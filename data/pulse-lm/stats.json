@@ -1,0 +1,36 @@
+{
+  "generatedAt": "2026-10-02T18:12:40.077Z",
+  "raw": 450,
+  "invalid": 66,
+  "scored": 384,
+  "averageScore": 7.56,
+  "minScore": 8,
+  "kept": 137,
+  "train": 106,
+  "val": 11,
+  "test": 20,
+  "keptByCommunity": {
+    "Startup India": 28,
+    "Campus Life": 22,
+    "Indie Gamers": 23,
+    "Creator Circle": 27,
+    "Money Basics": 12,
+    "Fit Together": 25
+  },
+  "keptByInputType": {
+    "topic": 33,
+    "thread": 31,
+    "trend": 36,
+    "idea": 37
+  },
+  "teacherModels": {
+    "gemini-3.5-flash-lite": 450
+  },
+  "scoreHistogram": {
+    "5": 1,
+    "6": 63,
+    "7": 172,
+    "8": 146,
+    "9": 2
+  }
+}
