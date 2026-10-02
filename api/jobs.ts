@@ -56,17 +56,21 @@ async function createJobs(req: VercelRequest, res: VercelResponse) {
     return res.status(400).json({ error: `Each input must be 3 to ${MAX_INPUT_CHARS} characters` });
   }
 
+  // Fail before creating any job if the deployment is missing configuration.
+  for (const name of ["GH_OWNER", "GH_REPO", "GH_PAT"]) env(name);
+
   const db = supabase();
   const ip = String(req.headers["x-forwarded-for"] ?? "unknown").split(",")[0].trim();
   const ipHash = crypto.createHash("sha256").update(ip + env("SUPABASE_SERVICE_KEY")).digest("hex").slice(0, 16);
   const maxPerIp = Number(process.env.MAX_JOBS_PER_IP_PER_HOUR ?? 5);
   const maxPerDay = Number(process.env.MAX_JOBS_PER_DAY ?? 40);
+  // Failed jobs do not count towards either limit.
   const hourAgo = new Date(Date.now() - 3600_000).toISOString();
   const dayAgo = new Date(Date.now() - 86_400_000).toISOString();
 
   const [byIp, byDay] = await Promise.all([
-    db.from("jobs").select("id", { count: "exact", head: true }).gte("created_at", hourAgo).eq("options->>ipHash", ipHash),
-    db.from("jobs").select("id", { count: "exact", head: true }).gte("created_at", dayAgo),
+    db.from("jobs").select("id", { count: "exact", head: true }).gte("created_at", hourAgo).neq("status", "failed").eq("options->>ipHash", ipHash),
+    db.from("jobs").select("id", { count: "exact", head: true }).gte("created_at", dayAgo).neq("status", "failed"),
   ]);
   if (byIp.error || byDay.error) throw new Error((byIp.error ?? byDay.error)!.message);
   if ((byIp.count ?? 0) + inputs.length > maxPerIp) {
