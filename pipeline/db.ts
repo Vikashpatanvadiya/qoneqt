@@ -18,6 +18,10 @@ export async function getJob(jobId: string) {
   return check("get job", await db().from("jobs").select("*").eq("id", jobId).maybeSingle());
 }
 
+export async function getCommunity(communityId: string) {
+  return check("get community", await db().from("communities").select("name, profile").eq("id", communityId).maybeSingle());
+}
+
 export async function updateJob(jobId: string, patch: Record<string, unknown>) {
   check("update job", await db().from("jobs").update(patch).eq("id", jobId));
 }
@@ -36,8 +40,8 @@ export function createStageRunner(jobId: string, stageMs: Record<string, number>
       check(`update stage ${name}`, await db().from("stages").update({ ...patch, ended_at: new Date().toISOString() }).eq("id", row!.id));
     };
     try {
-      const { value, summary, reason, output } = await fn();
-      await finish({ status: "done", summary, reason, output });
+      const { value, summary, reason, output, retries } = await fn();
+      await finish({ status: "done", summary, reason, output, retries: retries ?? 0 });
       console.log(`[${name}] ${(stageMs[name] / 1000).toFixed(1)}s - ${summary}`);
       return value;
     } catch (err) {

@@ -3,7 +3,13 @@ import { Composition } from "remotion";
 import { FPS, HEIGHT, WIDTH, type PulseVideoProps } from "../shared/types";
 import { PulseVideo, sceneFrames } from "./PulseVideo";
 
-const defaultProps: PulseVideoProps = { title: "Qoneqt Pulse", scenes: [] };
+const defaultProps: PulseVideoProps = {
+  title: "Qoneqt Pulse",
+  communityName: "Qoneqt",
+  cta: "",
+  global: { stylePrompt: "", palette: ["#a78bfa", "#7c3aed", "#f59e0b"], musicMood: "upbeat" },
+  scenes: [],
+};
 
 export const Root: React.FC = () => (
   <Composition

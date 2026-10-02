@@ -2,8 +2,10 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { createStageRunner, getJob, updateJob, uploadFile } from "./db";
+import { DEFAULT_COMMUNITY, parseCommunityProfile } from "./agents/community";
+import { createStageRunner, getCommunity, getJob, updateJob, uploadFile } from "./db";
 import { generateVideo } from "./generate";
+import { InputTypeSchema } from "./schemas";
 
 const JOB_TIMEOUT_MS = 25 * 60 * 1000;
 
@@ -12,15 +14,23 @@ async function runJob(jobId: string) {
   const stageMs: Record<string, number> = {};
   const stage = createStageRunner(jobId, stageMs);
 
-  const job = await stage("ingest", async () => {
+  const { job, community } = await stage("ingest", async () => {
     const row = await getJob(jobId);
     if (!row) throw new Error(`Job ${jobId} not found`);
     await updateJob(jobId, { status: "running", error: null });
-    return { value: row, summary: `${row.input_type}: ${String(row.input_text).slice(0, 80)}` };
+    const saved = row.community_id ? await getCommunity(row.community_id) : null;
+    const profile = saved ? parseCommunityProfile(saved.name, saved.profile) : DEFAULT_COMMUNITY;
+    return {
+      value: { job: row, community: profile },
+      summary: `${row.input_type} for ${profile.name}: ${String(row.input_text).replace(/\s+/g, " ").slice(0, 80)}`,
+      reason: saved ? "Using the saved Community Brain profile" : "No community chosen, using the default Qoneqt profile",
+      output: { community: profile },
+    };
   });
 
   const workDir = fs.mkdtempSync(path.join(os.tmpdir(), `pulse-${jobId}-`));
-  const result = await generateVideo({ topic: job.input_text, workDir, stage });
+  const inputType = InputTypeSchema.catch("topic").parse(job.input_type);
+  const result = await generateVideo({ inputType, content: job.input_text, community, workDir, stage });
 
   const urls = await stage("upload", async () => {
     const videoUrl = await uploadFile(`${jobId}/video.mp4`, result.videoFile, "video/mp4");

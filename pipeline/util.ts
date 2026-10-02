@@ -13,20 +13,28 @@ export class HttpError extends Error {
   ) {
     super(`${label} failed: HTTP ${status} ${body.slice(0, 300)}`);
   }
+
+  // Gemini puts the wait time in the body of a 429 ("retryDelay": "23s").
+  get retryAfterMs(): number | undefined {
+    const match = this.body.match(/"retryDelay":\s*"([\d.]+)s"/);
+    return match ? Math.ceil(Number(match[1]) * 1000) + 500 : undefined;
+  }
 }
 
 // Retry with exponential backoff. 4xx errors other than 408/429 are not retried.
-export async function withRetry<T>(label: string, fn: () => Promise<T>, attempts = 3): Promise<T> {
+export async function withRetry<T>(label: string, fn: () => Promise<T>, attempts = 3, onFail?: (err: Error) => void): Promise<T> {
   let lastErr: unknown;
   for (let i = 0; i < attempts; i++) {
     try {
       return await fn();
     } catch (err) {
       lastErr = err;
+      onFail?.(err as Error);
       const status = err instanceof HttpError ? err.status : 0;
       const retryable = status === 0 || status === 408 || status === 429 || status >= 500;
       if (!retryable || i === attempts - 1) break;
-      const wait = 1500 * 2 ** i;
+      const backoff = (status === 429 ? 8000 : 1500) * 2 ** i;
+      const wait = Math.min((err instanceof HttpError && err.retryAfterMs) || backoff, 60_000);
       console.warn(`  [retry] ${label} attempt ${i + 1} failed (${(err as Error).message.slice(0, 120)}). Waiting ${wait}ms`);
       await sleep(wait);
     }

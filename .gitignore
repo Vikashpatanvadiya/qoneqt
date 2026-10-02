@@ -7,3 +7,8 @@ out
 .venv
 dist
 .DS_Store
+
+# Raw posts, profile links and personal data never go in the public repo
+data/private/
+*.xlsx
+*.xls

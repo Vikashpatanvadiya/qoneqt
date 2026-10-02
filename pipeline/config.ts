@@ -18,6 +18,8 @@ export const config = {
     textModel: () => env("GEMINI_MODEL_TEXT"),
     textFallbackModel: () => optional("GEMINI_MODEL_TEXT_FALLBACK"),
     visionModel: () => env("GEMINI_MODEL_VISION"),
+    // Default thinking made single calls take 30 to 90 sec. "low" keeps them near 10 sec.
+    thinkingLevel: () => optional("GEMINI_THINKING_LEVEL") ?? "low",
   },
   cloudflare: {
     accountId: () => env("CF_ACCOUNT_ID"),

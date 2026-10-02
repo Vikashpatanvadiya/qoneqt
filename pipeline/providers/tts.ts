@@ -18,7 +18,7 @@ export type TtsResult = {
 };
 
 export interface TtsProvider {
-  speak(text: string): Promise<TtsResult>;
+  speak(text: string, voice?: string): Promise<TtsResult>;
 }
 
 function runPython(args: string[], stdin: string): Promise<void> {
@@ -53,8 +53,8 @@ function evenSplit(text: string, durationSec: number): WordTiming[] {
 }
 
 export const edgeTts: TtsProvider = {
-  async speak(text) {
-    const voice = config.tts.voice();
+  async speak(text, voiceOverride) {
+    const voice = voiceOverride || config.tts.voice();
     const dir = path.join(config.cacheDir(), "tts");
     fs.mkdirSync(dir, { recursive: true });
     const key = sha(text, voice);

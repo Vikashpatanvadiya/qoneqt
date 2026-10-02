@@ -4,12 +4,17 @@ import type { WordTiming } from "../shared/types";
 
 const WORDS_PER_GROUP = 3;
 
-// Basic word-by-word captions: a few words at a time, current word highlighted.
-export const Captions: React.FC<{ words: WordTiming[] }> = ({ words }) => {
+const bare = (word: string) => word.toLowerCase().replace(/[^\p{L}\p{N}]/gu, "");
+
+// Basic word-by-word captions: a few words at a time, current word highlighted,
+// the Director's emphasis words in the accent color.
+export const Captions: React.FC<{ words: WordTiming[]; emphasisWords: string[]; accent: string }> = ({ words, emphasisWords, accent }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const t = frame / fps;
   if (words.length === 0) return null;
+
+  const emphasis = new Set(emphasisWords.flatMap((w) => w.split(/\s+/)).map(bare).filter(Boolean));
 
   // The current word is the last one that has started.
   let current = 0;
@@ -29,18 +34,22 @@ export const Captions: React.FC<{ words: WordTiming[] }> = ({ words }) => {
         flexWrap: "wrap",
         justifyContent: "center",
         gap: "0 22px",
-        fontFamily: "Helvetica, Arial, sans-serif",
+        fontFamily: "Helvetica, Arial, 'Liberation Sans', sans-serif",
         fontWeight: 800,
         fontSize: 74,
         lineHeight: 1.15,
         textShadow: "0 4px 22px rgba(0,0,0,0.95)",
       }}
     >
-      {group.map((w, i) => (
-        <span key={groupStart + i} style={{ color: groupStart + i === current ? "#c4b5fd" : "white" }}>
-          {w.word}
-        </span>
-      ))}
+      {group.map((w, i) => {
+        const isCurrent = groupStart + i === current;
+        const isEmphasis = emphasis.has(bare(w.word));
+        return (
+          <span key={groupStart + i} style={{ color: isEmphasis ? accent : "white", opacity: isCurrent ? 1 : 0.72, transform: `scale(${isCurrent ? 1.08 : 1})` }}>
+            {w.word}
+          </span>
+        );
+      })}
     </div>
   );
 };
