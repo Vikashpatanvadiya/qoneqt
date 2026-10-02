@@ -1,4 +1,4 @@
-// The pipeline: Researcher -> Scriptwriter -> Director -> assets -> Remotion render.
+// The Pulse Engine pipeline: Researcher -> Scriptwriter -> Director -> assets -> Remotion render.
 // Used by the local CLI (scripts/gen.ts) and by the GitHub Action (pipeline/run.ts).
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
@@ -12,9 +12,10 @@ import { runResearcher } from "./agents/researcher";
 import { runScriptwriter } from "./agents/scriptwriter";
 import { config } from "./config";
 import { fluxNeurons } from "./cost/pricing";
-import { cloudflareImage } from "./providers/image";
-import type { LlmResult } from "./providers/llm";
-import { edgeTts } from "./providers/tts";
+import { budgetSec, governScript, governTimeline, type GovernorAction } from "./governor";
+import type { Engine } from "./providers";
+import { summarizeAttempts, type LlmResult } from "./providers/llm";
+import type { TtsResult } from "./providers/tts";
 import { scriptWordCount, type CommunityProfile, type InputType, type Script } from "./schemas";
 import { mapLimit } from "./util";
 
@@ -29,6 +30,7 @@ export type GenerateInput = {
   inputType: InputType;
   content: string;
   community: CommunityProfile;
+  engine: Engine;
   workDir: string;
   stage: StageRunner;
 };
@@ -40,14 +42,19 @@ export type GenerateResult = {
   thumbFile: string;
   durationSec: number;
   metrics: {
+    engine: string;
     llm_calls: number;
     llm_failures: number;
+    rate_limit_hits: number;
+    llm_wait_ms: number;
     input_tokens: number;
     output_tokens: number;
     images: number;
     images_cached: number;
     fallbacks: number;
     neurons_est: number;
+    governor_actions: number;
+    over_limit: boolean;
   };
 };
 
@@ -58,74 +65,113 @@ function imageSize(file: string): { width: number; height: number } {
 }
 
 export async function generateVideo(input: GenerateInput): Promise<GenerateResult> {
-  const { inputType, content, community, workDir, stage } = input;
+  const { inputType, content, community, engine, workDir, stage } = input;
   const publicDir = path.join(workDir, "public");
   fs.rmSync(publicDir, { recursive: true, force: true });
   fs.mkdirSync(publicDir, { recursive: true });
-  const metrics: GenerateResult["metrics"] = { llm_calls: 0, llm_failures: 0, input_tokens: 0, output_tokens: 0, images: 0, images_cached: 0, fallbacks: 0, neurons_est: 0 };
+  const metrics: GenerateResult["metrics"] = {
+    engine: engine.name,
+    llm_calls: 0,
+    llm_failures: 0,
+    rate_limit_hits: 0,
+    llm_wait_ms: 0,
+    input_tokens: 0,
+    output_tokens: 0,
+    images: 0,
+    images_cached: 0,
+    fallbacks: 0,
+    neurons_est: 0,
+    governor_actions: 0,
+    over_limit: false,
+  };
 
-  // Adds the call's tokens to the job metrics and returns what the stage row should store.
+  // Adds the call's attempts to the job metrics and returns what the stage row should store.
   const track = <T>(res: LlmResult<T>) => {
-    metrics.llm_calls += res.usage.length;
-    metrics.llm_failures += res.failures.length;
-    for (const u of res.usage) {
-      metrics.input_tokens += u.inputTokens;
-      metrics.output_tokens += u.outputTokens;
-    }
-    return { usage: res.usage, failures: res.failures };
+    const s = summarizeAttempts(res.attempts);
+    metrics.llm_calls += s.calls;
+    metrics.llm_failures += s.failed;
+    metrics.rate_limit_hits += s.rateLimitHits;
+    metrics.llm_wait_ms += s.waitMs;
+    metrics.input_tokens += s.inputTokens;
+    metrics.output_tokens += s.outputTokens;
+    return { model: res.model, attempts: res.attempts, rate_limited: s.rateLimitHits > 0, wait_ms: s.waitMs, retries: s.failed };
   };
 
   const research = await stage("research", async () => {
-    const res = await runResearcher({ inputType, content, communityProfile: community });
+    const res = await runResearcher(engine.llm, { inputType, content, communityProfile: community });
     const chosen = res.data.angles[res.data.chosenIndex];
-    return {
-      value: res.data,
-      summary: `Angle: ${chosen.title} (${chosen.targetEmotion})`,
-      reason: res.data.reason,
-      output: { research: res.data, ...track(res) },
-      retries: res.failures.length,
-    };
+    const { retries, ...llm } = track(res);
+    return { value: res.data, summary: `Angle: ${chosen.title} (${chosen.targetEmotion})`, reason: res.data.reason, output: { research: res.data, ...llm }, retries };
   });
 
   const script = await stage("script", async () => {
-    const res = await runScriptwriter({ content, research, communityProfile: community });
-    const wordCount = scriptWordCount(res.data);
+    const res = await runScriptwriter(engine.llm, { content, research, communityProfile: community });
+    const governed = governScript(res.data);
+    metrics.governor_actions += governed.actions.length;
+    const { retries, ...llm } = track(res);
+    const wordCount = scriptWordCount(governed.script);
+    const fixes = governed.actions.length ? ` Governor: ${governed.actions.length} fix${governed.actions.length > 1 ? "es" : ""}.` : "";
     return {
-      value: res.data,
-      summary: `"${res.data.title}": ${res.data.scenes.length} scenes, ${wordCount} words. Hook: ${res.data.hook}`,
-      reason: `Ends with the question: ${res.data.cta}`,
-      output: { versions: [{ version: 1, script: res.data, wordCount }], ...track(res) },
-      retries: res.failures.length,
+      value: governed.script,
+      summary: `"${governed.script.title}": ${governed.script.scenes.length} scenes, ${wordCount} words, about ${governed.estimatedSec.toFixed(0)}s.${fixes} Hook: ${governed.script.hook}`,
+      reason: `Ends with the question: ${governed.script.cta}`,
+      output: {
+        versions: [{ version: 1, script: governed.script, wordCount }],
+        governor: { limitSec: config.video.maxSec(), budgetSec: governed.budgetSec, estimatedSec: governed.estimatedSec, actions: governed.actions },
+        ...(governed.actions.length ? { scriptBeforeGovernor: res.data } : {}),
+        ...llm,
+      },
+      retries,
     };
   });
 
   const plan = await stage("direct", async () => {
-    const res = await runDirector({ script, communityProfile: community });
+    const res = await runDirector(engine.llm, { script, communityProfile: community });
     const { plan, repairs } = normalizeShotPlan(res.data, script);
     const layouts = plan.shots.map((s) => s.layout);
-    const count = (l: string) => layouts.filter((x) => x === l).length;
+    const images = layouts.filter((l) => l === "full_image").length;
+    const { retries, ...llm } = track(res);
     return {
       value: plan,
-      summary: `${count("full_image")} image scenes, ${layouts.length - count("full_image")} designed scenes, ${plan.global.musicMood} music`,
+      summary: `${images} image scenes, ${layouts.length - images} designed scenes, ${plan.global.musicMood} music`,
       reason: `Style: ${plan.global.stylePrompt}`,
-      output: { plan, repairs, ...track(res) },
-      retries: res.failures.length,
+      output: { plan, repairs, ...llm },
+      retries,
     };
   });
 
   const scenes = await stage("assets", async () => {
-    const value = await mapLimit(script.scenes, config.maxParallelAssets, async (scene): Promise<RenderScene> => {
+    const voice = community.defaultVoice;
+    const speakAll = (list: Script["scenes"], speedUpPct: number) => mapLimit(list, config.maxParallelAssets, (scene) => engine.tts.speak(scene.narration, { voice, speedUpPct }));
+    const total = (tracks: TtsResult[]) => tracks.reduce((n, t) => n + t.durationSec + config.scenePaddingSec, 0);
+
+    // Voice first: the real audio length decides which scenes survive, so no image quota is spent on dropped scenes.
+    let kept = script.scenes;
+    let voices = await speakAll(kept, 0);
+    const measuredSec = total(voices);
+    const decision = governTimeline(kept.map((s, i) => ({ id: s.id, purpose: s.purpose, durationSec: voices[i].durationSec + config.scenePaddingSec })));
+    const actions: GovernorAction[] = [...decision.actions];
+    if (decision.dropIds.length || decision.speedUpPct) {
+      kept = kept.filter((s) => !decision.dropIds.includes(s.id));
+      voices = await speakAll(kept, decision.speedUpPct);
+    }
+    const finalSec = total(voices);
+    if (finalSec > budgetSec() + 0.5) {
+      metrics.over_limit = true;
+      actions.push({ type: "over_limit", detail: `Still ${finalSec.toFixed(1)}s after fixes for a ${budgetSec().toFixed(1)}s budget` });
+    }
+    metrics.governor_actions += actions.length;
+
+    const value = await mapLimit(kept, config.maxParallelAssets, async (scene, i): Promise<RenderScene> => {
       const shot = plan.shots.find((s) => s.sceneId === scene.id)!;
+      const track = voices[i];
       const wantsImage = shot.layout === "full_image";
-      const [image, voice] = await Promise.all([
-        wantsImage
-          ? cloudflareImage.generate(`${shot.visualPrompt}. ${plan.global.stylePrompt}. Vertical composition, no text, no watermark.`).catch((err) => {
-              console.warn(`  [image] ${scene.id} failed, using a designed scene: ${(err as Error).message.slice(0, 160)}`);
-              return null;
-            })
-          : null,
-        edgeTts.speak(scene.narration, community.defaultVoice),
-      ]);
+      const image = wantsImage
+        ? await engine.image.generate(`${shot.visualPrompt}. ${plan.global.stylePrompt}. Vertical composition, no text, no watermark.`).catch((err) => {
+            console.warn(`  [image] ${scene.id} failed, using a designed scene: ${(err as Error).message.slice(0, 160)}`);
+            return null;
+          })
+        : null;
 
       let imageFile: string | null = null;
       if (image) {
@@ -142,8 +188,8 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
         metrics.fallbacks++;
       }
       const audioFile = `${scene.id}.mp3`;
-      fs.copyFileSync(voice.audioFile, path.join(publicDir, audioFile));
-      console.log(`  ${scene.id} ${wantsImage ? (image ? `image ${image.cached ? "cached" : `${(image.ms / 1000).toFixed(1)}s`}` : "image FAILED -> text card") : shot.layout}, voice ${voice.durationSec.toFixed(1)}s (${voice.timingSource})`);
+      fs.copyFileSync(track.audioFile, path.join(publicDir, audioFile));
+      console.log(`  ${scene.id} ${wantsImage ? (image ? `image ${image.cached ? "cached" : `${(image.ms / 1000).toFixed(1)}s`}` : "image FAILED -> text card") : shot.layout}, voice ${track.durationSec.toFixed(1)}s (${track.timingSource})`);
 
       return {
         id: scene.id,
@@ -158,14 +204,22 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
         statValue: shot.statValue,
         imageFile,
         audioFile,
-        durationSec: voice.durationSec + config.scenePaddingSec,
-        words: voice.words,
+        durationSec: track.durationSec + config.scenePaddingSec,
+        words: track.words,
       };
     });
+
+    const fixes = actions.length ? ` Governor: ${actions.map((a) => a.type).join(", ")}.` : "";
     return {
       value,
-      summary: `${metrics.images} new images, ${metrics.images_cached} cached, ${metrics.fallbacks} fallbacks, ${value.length} voice tracks`,
-      output: { neurons_est: metrics.neurons_est, scenes: value.map((s) => ({ id: s.id, layout: s.layout, durationSec: s.durationSec })) },
+      summary: `${value.length} voice tracks (${finalSec.toFixed(1)}s), ${metrics.images} new images, ${metrics.images_cached} cached, ${metrics.fallbacks} fallbacks.${fixes}`,
+      reason: actions.length ? actions.map((a) => a.detail).join(" ") : `Voice is ${finalSec.toFixed(1)}s, inside the ${budgetSec().toFixed(1)}s budget`,
+      output: {
+        providers: { image: engine.image.name, tts: engine.tts.name, timings: [...new Set(voices.map((v) => v.timingSource))] },
+        governor: { limitSec: config.video.maxSec(), budgetSec: budgetSec(), measuredSec, finalSec, speedUpPct: decision.speedUpPct, actions },
+        neurons_est: metrics.neurons_est,
+        scenes: value.map((s) => ({ id: s.id, layout: s.layout, durationSec: s.durationSec })),
+      },
     };
   });
 

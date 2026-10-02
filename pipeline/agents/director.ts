@@ -1,4 +1,4 @@
-import { geminiLlm, type LlmResult } from "../providers/llm";
+import type { LlmProvider, LlmResult } from "../providers/llm";
 import { MAX_IMAGE_SCENES, ShotPlanSchema, type CommunityProfile, type Script, type Shot, type ShotPlan } from "../schemas";
 import { communityBlock } from "./community";
 
@@ -57,10 +57,10 @@ export function normalizeShotPlan(plan: ShotPlan, script: Script): { plan: ShotP
   return { plan: { global: plan.global, shots }, repairs };
 }
 
-export function runDirector(input: DirectorInput): Promise<LlmResult<ShotPlan>> {
+export function runDirector(llm: LlmProvider, input: DirectorInput): Promise<LlmResult<ShotPlan>> {
   const prompt = `${communityBlock(input.communityProfile)}
 ${input.communityProfile.defaultStyle ? `Preferred visual style: ${input.communityProfile.defaultStyle}\n` : ""}
 SCRIPT: ${input.script.title}
 ${input.script.scenes.map((s) => `${s.id} [${s.purpose}]\n  narration: ${s.narration}\n  onScreenText: ${s.onScreenText}`).join("\n")}`;
-  return geminiLlm.generateJson({ label: "director", system: SYSTEM, prompt, schema: ShotPlanSchema });
+  return llm.generateJson({ label: "director", system: SYSTEM, prompt, schema: ShotPlanSchema, tier: "light" });
 }

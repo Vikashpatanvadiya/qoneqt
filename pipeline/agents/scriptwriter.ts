@@ -1,4 +1,4 @@
-import { geminiLlm, type LlmResult } from "../providers/llm";
+import { LlmError, type LlmProvider, type LlmResult } from "../providers/llm";
 import { SCENE_MAX_WORDS, SCRIPT_MAX_WORDS, SCRIPT_MIN_WORDS, ScriptSchema, StrictScriptSchema, type CommunityProfile, type Research, type Script } from "../schemas";
 import { communityBlock } from "./community";
 
@@ -16,7 +16,7 @@ Rules:
 - Scene ids are "s1", "s2", ... in order. Scene 1 narration starts with the hook.
 Return only JSON.`;
 
-export async function runScriptwriter(input: ScriptwriterInput): Promise<LlmResult<Script>> {
+export async function runScriptwriter(llm: LlmProvider, input: ScriptwriterInput): Promise<LlmResult<Script>> {
   const angle = input.research.angles[input.research.chosenIndex];
   const prompt = `${communityBlock(input.communityProfile)}
 
@@ -33,10 +33,12 @@ ORIGINAL INPUT
 ${input.content}`;
 
   try {
-    return await geminiLlm.generateJson({ label: "scriptwriter", system: SYSTEM, prompt, schema: StrictScriptSchema });
+    return await llm.generateJson({ label: "scriptwriter", system: SYSTEM, prompt, schema: StrictScriptSchema });
   } catch (err) {
-    // A slightly long script is better than no video: accept any well-formed script.
+    // A slightly long script is better than no video: accept any well-formed script. The duration governor trims it in code.
     console.warn(`  [scriptwriter] strict length rules failed, accepting a well-formed script: ${(err as Error).message.slice(0, 160)}`);
-    return geminiLlm.generateJson({ label: "scriptwriter (lenient)", system: SYSTEM, prompt, schema: ScriptSchema });
+    const earlier = err instanceof LlmError ? err.attempts : [];
+    const res = await llm.generateJson({ label: "scriptwriter (lenient)", system: SYSTEM, prompt, schema: ScriptSchema });
+    return { ...res, attempts: [...earlier, ...res.attempts] };
   }
 }

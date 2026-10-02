@@ -17,7 +17,11 @@ export const config = {
     apiKey: () => env("GEMINI_API_KEY"),
     textModel: () => env("GEMINI_MODEL_TEXT"),
     textFallbackModel: () => optional("GEMINI_MODEL_TEXT_FALLBACK"),
+    // Optional cheaper model with a higher free rate limit, used first by the lighter agents.
+    lightModel: () => optional("GEMINI_MODEL_LIGHT"),
     visionModel: () => env("GEMINI_MODEL_VISION"),
+    // Free-tier requests per minute. The main model is the tight one. Check the AI Studio rate-limit page.
+    rpm: (model: string) => (model === process.env.GEMINI_MODEL_TEXT ? Number(optional("GEMINI_RPM_MAIN") ?? 5) : Number(optional("GEMINI_RPM_OTHER") ?? 15)),
     // Default thinking made single calls take 30 to 90 sec. "low" keeps them near 10 sec.
     thinkingLevel: () => optional("GEMINI_THINKING_LEVEL") ?? "low",
   },
@@ -34,6 +38,16 @@ export const config = {
   supabase: {
     url: () => env("SUPABASE_URL"),
     serviceKey: () => env("SUPABASE_SERVICE_KEY"),
+  },
+  engine: () => optional("PULSE_ENGINE") ?? "gemini",
+  // Duration governor. The limit covers the whole video including the outro.
+  video: {
+    maxSec: () => Number(optional("MAX_VIDEO_SEC") ?? 45),
+    outroSec: 1.5,
+    wordsPerSec: 2.1, // measured from edge-tts en-IN voices
+    hardMaxWordsPerScene: 24,
+    minScenes: 4,
+    maxSpeedUpPct: 18,
   },
   render: {
     crf: () => Number(optional("RENDER_CRF") ?? 23),

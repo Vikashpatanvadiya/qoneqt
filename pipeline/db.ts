@@ -45,7 +45,8 @@ export function createStageRunner(jobId: string, stageMs: Record<string, number>
       console.log(`[${name}] ${(stageMs[name] / 1000).toFixed(1)}s - ${summary}`);
       return value;
     } catch (err) {
-      await finish({ status: "failed", summary: (err as Error).message.slice(0, 500) }).catch(() => {});
+      const attempts = (err as { attempts?: unknown }).attempts;
+      await finish({ status: "failed", summary: (err as Error).message.slice(0, 500), output: attempts ? { attempts } : null }).catch(() => {});
       throw err;
     }
   };

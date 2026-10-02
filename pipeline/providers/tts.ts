@@ -5,20 +5,24 @@ import { promisify } from "node:util";
 import type { WordTiming } from "../../shared/types";
 import { config } from "../config";
 import { sha, withRetry } from "../util";
+import { resolveTimings } from "./timings";
 
 const execFileAsync = promisify(execFile);
+
+export type TtsOptions = { voice?: string; speedUpPct?: number };
 
 export type TtsResult = {
   audioFile: string;
   durationSec: number;
   words: WordTiming[];
-  timingSource: "edge-tts" | "even-split";
+  timingSource: string;
   cached: boolean;
   ms: number;
 };
 
 export interface TtsProvider {
-  speak(text: string, voice?: string): Promise<TtsResult>;
+  name: string;
+  speak(text: string, options?: TtsOptions): Promise<TtsResult>;
 }
 
 function runPython(args: string[], stdin: string): Promise<void> {
@@ -39,25 +43,14 @@ async function audioDurationSec(file: string): Promise<number> {
   return sec;
 }
 
-// Last-resort timings: spread the words evenly, weighted by length.
-function evenSplit(text: string, durationSec: number): WordTiming[] {
-  const tokens = text.split(/\s+/).filter(Boolean);
-  const total = tokens.reduce((n, w) => n + w.length + 1, 0);
-  let t = 0;
-  return tokens.map((word) => {
-    const d = ((word.length + 1) / total) * durationSec;
-    const timing = { word, startSec: t, endSec: t + d };
-    t += d;
-    return timing;
-  });
-}
-
 export const edgeTts: TtsProvider = {
-  async speak(text, voiceOverride) {
-    const voice = voiceOverride || config.tts.voice();
+  name: "edge-tts",
+  async speak(text, options = {}) {
+    const voice = options.voice || config.tts.voice();
+    const rate = `+${Math.max(0, Math.round(options.speedUpPct ?? 0))}%`;
     const dir = path.join(config.cacheDir(), "tts");
     fs.mkdirSync(dir, { recursive: true });
-    const key = sha(text, voice);
+    const key = sha(text, voice, rate);
     const audioFile = path.join(dir, `${key}.mp3`);
     const timingFile = path.join(dir, `${key}.json`);
     const cached = fs.existsSync(audioFile) && fs.existsSync(timingFile);
@@ -65,21 +58,14 @@ export const edgeTts: TtsProvider = {
     const start = Date.now();
     if (!cached) {
       await withRetry(`tts ${voice}`, async () => {
-        await runPython([path.resolve("scripts/tts.py"), voice, audioFile, timingFile], text);
+        await runPython([path.resolve("scripts/tts.py"), voice, audioFile, timingFile, rate], text);
         if (!fs.existsSync(audioFile) || fs.statSync(audioFile).size === 0) throw new Error("edge-tts wrote no audio");
       });
     }
 
     const durationSec = await audioDurationSec(audioFile);
     const boundaries = JSON.parse(fs.readFileSync(timingFile, "utf8")) as WordTiming[];
-    const hasTimings = boundaries.length > 0;
-    return {
-      audioFile,
-      durationSec,
-      words: hasTimings ? boundaries : evenSplit(text, durationSec),
-      timingSource: hasTimings ? "edge-tts" : "even-split",
-      cached,
-      ms: cached ? 0 : Date.now() - start,
-    };
+    const { words, source } = await resolveTimings({ text, audioFile, durationSec, boundaries });
+    return { audioFile, durationSec, words, timingSource: source, cached, ms: cached ? 0 : Date.now() - start };
   },
 };

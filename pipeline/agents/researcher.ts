@@ -1,4 +1,4 @@
-import { geminiLlm } from "../providers/llm";
+import type { LlmProvider } from "../providers/llm";
 import { ResearchSchema, type CommunityProfile, type InputType } from "../schemas";
 import { communityBlock } from "./community";
 
@@ -12,11 +12,11 @@ Give exactly 3 different angles for a 30 to 45 second vertical video.
 Pick the one most likely to make someone stop scrolling AND comment. Prefer angles that start a community conversation.
 chosenIndex is 0, 1 or 2. Return only JSON.`;
 
-export function runResearcher(input: ResearcherInput) {
+export function runResearcher(llm: LlmProvider, input: ResearcherInput) {
   const prompt = `${communityBlock(input.communityProfile)}
 ${input.audience ? `\nAudience for this video: ${input.audience}` : ""}
 INPUT TYPE: ${input.inputType}
 INPUT:
 ${input.content}`;
-  return geminiLlm.generateJson({ label: "researcher", system: SYSTEM, prompt, schema: ResearchSchema });
+  return llm.generateJson({ label: "researcher", system: SYSTEM, prompt, schema: ResearchSchema, tier: "light" });
 }

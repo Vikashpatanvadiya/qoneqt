@@ -5,7 +5,9 @@ import path from "node:path";
 import { DEFAULT_COMMUNITY, parseCommunityProfile } from "./agents/community";
 import { createStageRunner, getCommunity, getJob, updateJob, uploadFile } from "./db";
 import { generateVideo } from "./generate";
+import { resolveEngine } from "./providers";
 import { InputTypeSchema } from "./schemas";
+import { sleep } from "./util";
 
 const JOB_TIMEOUT_MS = 25 * 60 * 1000;
 
@@ -14,23 +16,25 @@ async function runJob(jobId: string) {
   const stageMs: Record<string, number> = {};
   const stage = createStageRunner(jobId, stageMs);
 
-  const { job, community } = await stage("ingest", async () => {
+  const { job, community, engine } = await stage("ingest", async () => {
     const row = await getJob(jobId);
     if (!row) throw new Error(`Job ${jobId} not found`);
     await updateJob(jobId, { status: "running", error: null });
     const saved = row.community_id ? await getCommunity(row.community_id) : null;
     const profile = saved ? parseCommunityProfile(saved.name, saved.profile) : DEFAULT_COMMUNITY;
+    const resolved = resolveEngine(typeof row.options?.engine === "string" ? row.options.engine : undefined);
+    const communityNote = saved ? "Using the saved Community Brain profile." : "No community chosen, using the default Qoneqt profile.";
     return {
-      value: { job: row, community: profile },
-      summary: `${row.input_type} for ${profile.name}: ${String(row.input_text).replace(/\s+/g, " ").slice(0, 80)}`,
-      reason: saved ? "Using the saved Community Brain profile" : "No community chosen, using the default Qoneqt profile",
-      output: { community: profile },
+      value: { job: row, community: profile, engine: resolved.engine },
+      summary: `${row.input_type} for ${profile.name} on ${resolved.engine.label}: ${String(row.input_text).replace(/\s+/g, " ").slice(0, 80)}`,
+      reason: [communityNote, resolved.note].filter(Boolean).join(" "),
+      output: { community: profile, engine: resolved.engine.name, engineNote: resolved.note ?? null },
     };
   });
 
   const workDir = fs.mkdtempSync(path.join(os.tmpdir(), `pulse-${jobId}-`));
   const inputType = InputTypeSchema.catch("topic").parse(job.input_type);
-  const result = await generateVideo({ inputType, content: job.input_text, community, workDir, stage });
+  const result = await generateVideo({ inputType, content: job.input_text, community, engine, workDir, stage });
 
   const urls = await stage("upload", async () => {
     const videoUrl = await uploadFile(`${jobId}/video.mp4`, result.videoFile, "video/mp4");
@@ -54,6 +58,12 @@ async function main() {
   if (!jobId) {
     console.error("Usage: npx tsx pipeline/run.ts <job_id>");
     process.exit(1);
+  }
+  // Batch jobs start a few seconds apart so they do not hit the free LLM rate limit together.
+  const delaySec = Math.min(Math.max(Number(process.argv[3] ?? 0) || 0, 0), 600);
+  if (delaySec > 0) {
+    console.log(`Staggered start: waiting ${delaySec}s`);
+    await sleep(delaySec * 1000);
   }
   let timer: NodeJS.Timeout | undefined;
   const timeout = new Promise<never>((_, reject) => {

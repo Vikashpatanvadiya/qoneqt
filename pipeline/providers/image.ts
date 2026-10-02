@@ -6,12 +6,14 @@ import { HttpError, sha, withRetry } from "../util";
 export type ImageResult = { file: string; cached: boolean; model: string; steps: number; ms: number };
 
 export interface ImageProvider {
+  name: string;
   generate(prompt: string): Promise<ImageResult>;
 }
 
 // Cloudflare Workers AI FLUX schnell. The model only accepts prompt, steps and seed,
 // so the output is square and the composition crops it to 9:16.
 export const cloudflareImage: ImageProvider = {
+  name: "cloudflare-flux",
   async generate(prompt) {
     const model = config.cloudflare.imageModel();
     const steps = config.cloudflare.imageSteps();

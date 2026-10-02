@@ -8,6 +8,11 @@ on:
         description: Job id from the Supabase jobs table
         required: true
         type: string
+      delay_sec:
+        description: Seconds to wait before starting (staggers batch jobs)
+        required: false
+        default: "0"
+        type: string
 
 permissions:
   contents: read
@@ -24,11 +29,16 @@ jobs:
       SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
       GEMINI_MODEL_TEXT: ${{ vars.GEMINI_MODEL_TEXT }}
       GEMINI_MODEL_TEXT_FALLBACK: ${{ vars.GEMINI_MODEL_TEXT_FALLBACK }}
+      GEMINI_MODEL_LIGHT: ${{ vars.GEMINI_MODEL_LIGHT }}
       GEMINI_MODEL_VISION: ${{ vars.GEMINI_MODEL_VISION }}
+      GEMINI_RPM_MAIN: ${{ vars.GEMINI_RPM_MAIN }}
+      GEMINI_RPM_OTHER: ${{ vars.GEMINI_RPM_OTHER }}
+      MAX_VIDEO_SEC: ${{ vars.MAX_VIDEO_SEC }}
       CF_IMAGE_MODEL: ${{ vars.CF_IMAGE_MODEL }}
       EDGE_TTS_VOICE: ${{ vars.EDGE_TTS_VOICE }}
       PYTHON_BIN: python
       JOB_ID: ${{ inputs.job_id }}
+      DELAY_SEC: ${{ inputs.delay_sec }}
     steps:
       - uses: actions/checkout@v4
 
@@ -70,4 +80,4 @@ jobs:
         run: npx remotion browser ensure
 
       - name: Run pipeline
-        run: npx tsx pipeline/run.ts "$JOB_ID"
+        run: npx tsx pipeline/run.ts "$JOB_ID" "$DELAY_SEC"
