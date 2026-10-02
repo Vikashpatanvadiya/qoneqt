@@ -2,3 +2,8 @@ out
 .cache
 .venv
 CLAUDE*.md
+scripts
+pipeline
+remotion
+.github
+supabase
