@@ -1,0 +1,80 @@
+[
+  {
+    "name": "Startup India",
+    "description": "Founders, early employees and students building or dreaming of startups in India.",
+    "audience": "Indian founders and aspiring founders, 20 to 32",
+    "tone": "Direct, a bit blunt, numbers when possible, light desi startup humour. No hype words.",
+    "language": "en-IN",
+    "vocabulary": ["runway", "bootstrapped", "MVP", "jugaad", "cofounder", "pitch", "PMF", "burn"],
+    "topicsToCover": ["first customers", "cofounder fights", "raising vs bootstrapping", "quitting a job to build", "pricing in India", "hiring the first employee"],
+    "topicsToAvoid": ["politics", "religion", "investment advice", "naming real people"],
+    "exampleHooks": ["Your startup does not have a funding problem. It has a nobody-wants-this problem.", "I quit a 30 lakh job for a startup that made 400 rupees.", "Stop building. Nobody asked for this feature."],
+    "defaultStyle": "cinematic, late-night co-working space, warm desk lamps, purple and amber tones, shallow depth of field",
+    "defaultVoice": ""
+  },
+  {
+    "name": "Campus Life",
+    "description": "College students talking about exams, placements, hostels, friendships and what college is really like.",
+    "audience": "Indian college students, 18 to 23",
+    "tone": "Relatable, funny, slightly self-roasting. Sounds like a hostel roommate at 2 AM.",
+    "language": "en-IN",
+    "vocabulary": ["backlog", "placements", "attendance", "hostel", "proxy", "CGPA", "internship", "seniors"],
+    "topicsToCover": ["exam week", "placement pressure", "tier 3 college reality", "hostel life", "group projects", "internship hunt"],
+    "topicsToAvoid": ["politics", "religion", "naming real colleges or people", "anything about cheating guides"],
+    "exampleHooks": ["Your CGPA is not the problem. Your LinkedIn is.", "Nobody tells you this about first year.", "The group project friend who does nothing is winning at life."],
+    "defaultStyle": "candid documentary photo, Indian college campus, soft evening light, warm tones, slight film grain",
+    "defaultVoice": ""
+  },
+  {
+    "name": "Fit Together",
+    "description": "People who work out, run or are trying to start, sharing routines, wins and honest struggles.",
+    "audience": "Beginners and regular gym-goers in India, 18 to 35",
+    "tone": "Encouraging but honest. No shaming, no miracle claims. Practical and a little cheeky.",
+    "language": "en-IN",
+    "vocabulary": ["PR", "rest day", "protein", "consistency", "form", "cut", "bulk", "step count"],
+    "topicsToCover": ["starting at the gym", "home workouts", "eating enough protein on a budget", "staying consistent", "gym anxiety", "rest and sleep"],
+    "topicsToAvoid": ["medical advice", "supplement or steroid recommendations", "body shaming", "extreme diets"],
+    "exampleHooks": ["You are not lazy. Your plan is just too big.", "The gym is not judging you. They are all checking themselves.", "Three months of walking beat my six months of gym."],
+    "defaultStyle": "dynamic sports photography, early morning light, strong contrast, deep purple and orange accents",
+    "defaultVoice": ""
+  },
+  {
+    "name": "Indie Gamers",
+    "description": "Mobile and PC gamers who share clips, setups, hot takes and game recommendations.",
+    "audience": "Indian gamers, 16 to 28",
+    "tone": "Fast, playful, opinionated. Friendly trash talk, never toxic.",
+    "language": "en-IN",
+    "vocabulary": ["clutch", "ranked", "lag", "squad", "nerf", "grind", "budget build", "ping"],
+    "topicsToCover": ["budget setups", "ranked rage", "mobile vs PC", "gaming with a job or exams", "underrated games", "playing with friends"],
+    "topicsToAvoid": ["politics", "religion", "gambling or real-money gaming", "cheats and hacks"],
+    "exampleHooks": ["Your aim is fine. Your ping is the villain.", "The best game I played this year was free.", "Every squad has this one teammate. If you cannot find him, it is you."],
+    "defaultStyle": "neon-lit gaming desk, RGB glow, purple and cyan light, cinematic close-ups, shallow depth of field",
+    "defaultVoice": ""
+  },
+  {
+    "name": "Creator Circle",
+    "description": "Small creators, musicians, designers and writers growing an audience and learning the craft.",
+    "audience": "Indian creators with under 10k followers, 18 to 30",
+    "tone": "Supportive, craft-focused, honest about the grind. Zero guru energy.",
+    "language": "en-IN",
+    "vocabulary": ["reach", "niche", "hook", "collab", "draft", "posting streak", "burnout", "first 100"],
+    "topicsToCover": ["first 100 followers", "posting when nobody watches", "finding a niche", "creator burnout", "collabs", "making money from a small audience"],
+    "topicsToAvoid": ["politics", "religion", "follower-buying tips", "naming real creators"],
+    "exampleHooks": ["You have 2,000 followers. How many would notice if you left?", "Your best post took 10 minutes. Your worst took 10 hours.", "Stop asking for feedback from people who never post."],
+    "defaultStyle": "editorial lifestyle photo, creative desk with camera and notebook, soft window light, purple and peach tones",
+    "defaultVoice": ""
+  },
+  {
+    "name": "Money Basics",
+    "description": "Young earners sharing how they save, spend and think about money. Conversations, not advice.",
+    "audience": "First-job Indians, 21 to 30",
+    "tone": "Calm, clear, zero jargon, slightly funny about being broke by the 20th.",
+    "language": "en-IN",
+    "vocabulary": ["salary day", "EMI", "savings", "rent", "UPI", "budget", "side income", "month end"],
+    "topicsToCover": ["first salary", "month-end broke feeling", "rent vs living with parents", "impulse buying", "saving on a small salary", "talking about money with friends"],
+    "topicsToAvoid": ["investment recommendations", "specific stocks, crypto or schemes", "tax or legal advice", "politics", "religion"],
+    "exampleHooks": ["Your salary is not small. Your subscriptions are big.", "I tracked every rupee for 30 days. One line shocked me.", "Why is it rude to ask a friend what they earn?"],
+    "defaultStyle": "clean minimal still life, wallet, phone and chai on a desk, soft daylight, purple and gold accents",
+    "defaultVoice": ""
+  }
+]

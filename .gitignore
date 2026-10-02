@@ -12,3 +12,6 @@ dist
 data/private/
 *.xlsx
 *.xls
+
+# Pulse-LM dataset working files
+data/pulse-lm/generate.log

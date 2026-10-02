@@ -1,4 +1,5 @@
 import type { LlmProvider, LlmResult } from "../providers/llm";
+import { z } from "zod";
 import { CritiqueSchema, type CommunityProfile, type Critique, type Script } from "../schemas";
 import { communityBlock } from "./community";
 
@@ -26,6 +27,24 @@ ${input.script.scenes.map((s) => `${s.id} [${s.purpose}]\n  narration: ${s.narra
 Closing question: ${input.script.cta}`;
   // A different, lighter model than the Scriptwriter: it has a higher free rate limit and does not grade its own work.
   return llm.generateJson({ label: "script critic", system: SYSTEM, prompt, schema: CritiqueSchema, tier: "light" });
+}
+
+const scriptBlock = (script: Script) => `SCRIPT: ${script.title}
+Hook: ${script.hook}
+${script.scenes.map((s) => `${s.id} [${s.purpose}]\n  narration: ${s.narration}\n  onScreenText: ${s.onScreenText}`).join("\n")}
+Closing question: ${script.cta}`;
+
+const BatchSchema = z.object({ reviews: z.array(CritiqueSchema.extend({ index: z.number().int() })) });
+
+// Scores several scripts in one call. Used to filter the Pulse-LM training data without burning the rate limit.
+export async function runScriptCriticBatch(llm: LlmProvider, input: { scripts: Script[]; communityProfile: CommunityProfile }): Promise<Array<Critique | null>> {
+  const prompt = `${communityBlock(input.communityProfile)}
+
+Review each script separately. Return one review per script, with "index" set to the script number.
+
+${input.scripts.map((s, i) => `--- SCRIPT NUMBER ${i} ---\n${scriptBlock(s)}`).join("\n\n")}`;
+  const res = await llm.generateJson({ label: "script critic (batch)", system: SYSTEM, prompt, schema: BatchSchema, tier: "light" });
+  return input.scripts.map((_, i) => res.data.reviews.find((r) => r.index === i) ?? null);
 }
 
 // The critic advises, code decides: the overall score is recomputed and the thresholds are applied here.
