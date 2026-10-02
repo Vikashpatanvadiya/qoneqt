@@ -1,7 +1,7 @@
 import React from "react";
 import { Composition } from "remotion";
 import { FPS, HEIGHT, WIDTH, type PulseVideoProps } from "../shared/types";
-import { PulseVideo, sceneFrames } from "./PulseVideo";
+import { PulseVideo, totalFrames } from "./PulseVideo";
 
 const defaultProps: PulseVideoProps = {
   title: "Qoneqt Pulse",
@@ -9,6 +9,9 @@ const defaultProps: PulseVideoProps = {
   cta: "",
   global: { stylePrompt: "", palette: ["#a78bfa", "#7c3aed", "#f59e0b"], musicMood: "upbeat" },
   scenes: [],
+  musicFile: null,
+  logoFile: null,
+  grainFile: null,
 };
 
 export const Root: React.FC = () => (
@@ -20,11 +23,6 @@ export const Root: React.FC = () => (
     fps={FPS}
     durationInFrames={FPS}
     defaultProps={defaultProps}
-    calculateMetadata={({ props }) => ({
-      durationInFrames: Math.max(
-        FPS,
-        props.scenes.reduce((n, s) => n + sceneFrames(s), 0),
-      ),
-    })}
+    calculateMetadata={({ props }) => ({ durationInFrames: Math.max(FPS, totalFrames(props.scenes)) })}
   />
 );

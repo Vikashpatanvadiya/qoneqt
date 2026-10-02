@@ -1,156 +1,98 @@
 import React from "react";
-import { AbsoluteFill, Audio, Img, Series, interpolate, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
-import { HIGH_CONTRAST_BACKING_ALPHA, TITLE_LAYOUT, titleBox } from "../shared/layout";
-import { FPS, type PulseVideoProps, type RenderScene } from "../shared/types";
+import { AbsoluteFill, Audio, Sequence, interpolate, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
+import { FPS, OUTRO_SEC, TRANSITION_FRAMES, type PulseVideoProps, type RenderScene } from "../shared/types";
 import { Captions } from "./Captions";
+import { Outro } from "./Outro";
+import { FilmLook, ProgressBar } from "./Overlays";
+import { CardScene } from "./scenes/CardScene";
+import { ImageScene } from "./scenes/ImageScene";
+import { toPalette, type Palette } from "./theme";
 
 export const sceneFrames = (scene: RenderScene) => Math.max(1, Math.round(scene.durationSec * FPS));
+export const OUTRO_FRAMES = Math.round(OUTRO_SEC * FPS);
+export const totalFrames = (scenes: RenderScene[]) => scenes.reduce((n, s) => n + sceneFrames(s), 0) + OUTRO_FRAMES;
 
-const FONT = "Helvetica, Arial, 'Liberation Sans', sans-serif";
+const MUSIC_VOLUME = 0.1;
+const OUTRO_MUSIC_VOLUME = 0.3;
+const FADE_FRAMES = Math.round(0.2 * FPS);
 
-type Palette = { accent: string; second: string; third: string };
-// Text sits on dark backgrounds, so a dark accent is mixed with white until it is readable.
-function readable(hex: string): string {
-  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
-  const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
-  if (!Number.isFinite(luminance) || luminance >= 0.5) return hex;
-  const mix = (c: number) => Math.round(c + (255 - c) * 0.55);
-  return `rgb(${mix(r)}, ${mix(g)}, ${mix(b)})`;
-}
-
-const toPalette = (colors: string[]): Palette => ({
-  accent: readable(colors[0] ?? "#a78bfa"),
-  second: colors[1] ?? "#7c3aed",
-  third: colors[2] ?? "#f59e0b",
-});
-
-// Ken Burns motion for image scenes, driven by the Director's `camera`.
-function cameraTransform(camera: RenderScene["camera"], progress: number): string {
-  switch (camera) {
-    case "zoom_in":
-      return `scale(${1.05 + 0.15 * progress})`;
-    case "zoom_out":
-      return `scale(${1.2 - 0.15 * progress})`;
-    case "pan_left":
-      return `scale(1.16) translateX(${4 - 8 * progress}%)`;
-    case "pan_right":
-      return `scale(1.16) translateX(${-4 + 8 * progress}%)`;
-    default:
-      return "scale(1.05)";
-  }
-}
-
-const ImageScene: React.FC<{ scene: RenderScene; isHook: boolean }> = ({ scene, isHook }) => {
+// The entering scene animates in on top of the previous one, which stays underneath until the move is done.
+const Entrance: React.FC<{ transition: RenderScene["transition"]; children: React.ReactNode }> = ({ transition, children }) => {
   const frame = useCurrentFrame();
+  const p = interpolate(frame, [0, TRANSITION_FRAMES], [0, 1], { extrapolateRight: "clamp" });
+  const eased = 1 - (1 - p) ** 3;
+  const style: React.CSSProperties =
+    transition === "fade"
+      ? { opacity: p }
+      : transition === "slide"
+        ? { transform: `translateX(${(1 - eased) * 100}%)` }
+        : transition === "zoom"
+          ? { opacity: Math.min(1, p * 1.6), transform: `scale(${1.35 - 0.35 * eased})` }
+          : {};
+  return <AbsoluteFill style={style}>{children}</AbsoluteFill>;
+};
+
+const SceneVisual: React.FC<{ scene: RenderScene; palette: Palette; isHook: boolean; frames: number }> = ({ scene, palette, isHook, frames }) =>
+  scene.layout === "full_image" && scene.imageFile ? <ImageScene scene={scene} isHook={isHook} frames={frames} /> : <CardScene scene={scene} palette={palette} isHook={isHook} frames={frames} />;
+
+const Music: React.FC<{ file: string; voiceFrames: number }> = ({ file, voiceFrames }) => {
   const { durationInFrames } = useVideoConfig();
   return (
-    <AbsoluteFill>
-      <Img
-        src={staticFile(scene.imageFile!)}
-        style={{ width: "100%", height: "100%", objectFit: "cover", transform: cameraTransform(scene.camera, frame / durationInFrames) }}
-      />
-      {/* Keep in sync with scrimAlphaAt() in shared/layout.ts, which the QA gate uses to measure contrast */}
-      <AbsoluteFill style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0) 45%, rgba(0,0,0,0.78) 100%)" }} />
-      {/* QA gate found the text unreadable on this image: darken the whole frame behind it */}
-      {scene.highContrast ? <AbsoluteFill style={{ backgroundColor: `rgba(0,0,0,${HIGH_CONTRAST_BACKING_ALPHA})` }} /> : null}
-      {/* On-screen text sits below the top 10% safe zone */}
-      <div
-        style={{
-          position: "absolute",
-          top: `${TITLE_LAYOUT.image.topPct}%`,
-          left: TITLE_LAYOUT.image.sidePad,
-          right: TITLE_LAYOUT.image.sidePad,
-          textAlign: "center",
-          color: "white",
-          fontFamily: FONT,
-          fontWeight: 900,
-          fontSize: scene.titleFontSize ?? titleBox("image", isHook).fontSize,
-          lineHeight: TITLE_LAYOUT.image.lineHeight,
-          textTransform: "uppercase",
-          textShadow: "0 6px 30px rgba(0,0,0,0.85)",
-        }}
-      >
-        {scene.onScreenText}
-      </div>
-    </AbsoluteFill>
+    <Audio
+      src={staticFile(file)}
+      loop
+      volume={(f) => {
+        // Low under the voice, a little louder on the outro, with a short fade at both ends.
+        const level = interpolate(f, [voiceFrames - 6, voiceFrames + 6], [MUSIC_VOLUME, OUTRO_MUSIC_VOLUME], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+        const fade = interpolate(f, [0, FADE_FRAMES, durationInFrames - FADE_FRAMES, durationInFrames], [0, 1, 1, 0], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+        return level * fade;
+      }}
+    />
   );
 };
 
-// Designed scenes: text_card, stat_card and quote_card. No image needed, so they never fail.
-const DesignedScene: React.FC<{ scene: RenderScene; palette: Palette; isHook: boolean }> = ({ scene, palette, isHook }) => {
-  const frame = useCurrentFrame();
-  const { durationInFrames } = useVideoConfig();
-  const drift = interpolate(frame, [0, durationInFrames], [0, 60]);
-  const enter = interpolate(frame, [0, 8], [0, 1], { extrapolateRight: "clamp" });
-  // The hook must be readable from frame 0, so it does not animate in.
-  const opacity = isHook ? 1 : enter;
-  const lift = isHook ? 0 : (1 - enter) * 40;
-
-  return (
-    <AbsoluteFill style={{ backgroundColor: "#0b0616" }}>
-      <AbsoluteFill
-        style={{
-          background: `radial-gradient(900px 900px at ${20 + drift / 3}% 18%, ${palette.second}88, transparent 70%), radial-gradient(1000px 1000px at ${85 - drift / 3}% 80%, ${palette.third}55, transparent 70%)`,
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          top: `${TITLE_LAYOUT.card.topPct}%`,
-          bottom: `${TITLE_LAYOUT.card.bottomPct}%`,
-          left: TITLE_LAYOUT.card.sidePad,
-          right: TITLE_LAYOUT.card.sidePad,
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: scene.layout === "quote_card" ? "flex-start" : "center",
-          textAlign: scene.layout === "quote_card" ? "left" : "center",
-          opacity,
-          transform: `translateY(${lift}px)`,
-          fontFamily: FONT,
-          color: "white",
-        }}
-      >
-        {scene.layout === "stat_card" && scene.statValue ? (
-          <div style={{ fontSize: 300, fontWeight: 900, lineHeight: 1, color: palette.accent, letterSpacing: -8 }}>{scene.statValue}</div>
-        ) : null}
-        <div
-          style={{
-            fontSize: scene.titleFontSize ?? titleBox(scene.layout === "stat_card" && scene.statValue ? "stat" : "card", isHook).fontSize,
-            fontWeight: 900,
-            lineHeight: TITLE_LAYOUT.card.lineHeight,
-            textTransform: scene.layout === "quote_card" ? "none" : "uppercase",
-            borderLeft: scene.layout === "quote_card" ? `14px solid ${palette.accent}` : undefined,
-            paddingLeft: scene.layout === "quote_card" ? 44 : 0,
-            marginTop: scene.layout === "stat_card" ? 30 : 0,
-          }}
-        >
-          {scene.onScreenText}
-        </div>
-      </div>
-    </AbsoluteFill>
-  );
-};
-
-const Scene: React.FC<{ scene: RenderScene; palette: Palette; isHook: boolean }> = ({ scene, palette, isHook }) => (
-  <AbsoluteFill>
-    {scene.layout === "full_image" && scene.imageFile ? <ImageScene scene={scene} isHook={isHook} /> : <DesignedScene scene={scene} palette={palette} isHook={isHook} />}
-    <Captions words={scene.words} emphasisWords={scene.emphasisWords} accent={palette.accent} fontSize={scene.captionFontSize} />
-    <Audio src={staticFile(scene.audioFile)} />
-  </AbsoluteFill>
-);
-
-export const PulseVideo: React.FC<PulseVideoProps> = ({ scenes, global }) => {
+export const PulseVideo: React.FC<PulseVideoProps> = ({ scenes, global, communityName, cta, musicFile, logoFile, grainFile }) => {
   const palette = toPalette(global?.palette ?? []);
+  const starts: number[] = [];
+  let cursor = 0;
+  for (const scene of scenes) {
+    starts.push(cursor);
+    cursor += sceneFrames(scene);
+  }
+  const voiceFrames = cursor;
+
   return (
     <AbsoluteFill style={{ backgroundColor: "black" }}>
-      <Series>
-        {scenes.map((scene, i) => (
-          <Series.Sequence key={scene.id} durationInFrames={sceneFrames(scene)}>
-            <Scene scene={scene} palette={palette} isHook={i === 0} />
-          </Series.Sequence>
-        ))}
-      </Series>
+      {/* Visuals. Each scene stays a few frames longer so the next one can transition in over it. */}
+      {scenes.map((scene, i) => {
+        const frames = sceneFrames(scene);
+        return (
+          <Sequence key={scene.id} from={starts[i]} durationInFrames={frames + TRANSITION_FRAMES} name={`${scene.id} ${scene.layout}`}>
+            <Entrance transition={i === 0 ? "cut" : scene.transition}>
+              <SceneVisual scene={scene} palette={palette} isHook={i === 0} frames={frames + TRANSITION_FRAMES} />
+            </Entrance>
+          </Sequence>
+        );
+      })}
+
+      <Sequence from={voiceFrames} durationInFrames={OUTRO_FRAMES} name="outro">
+        <Entrance transition="fade">
+          <Outro communityName={communityName} cta={cta} logoFile={logoFile} palette={palette} />
+        </Entrance>
+      </Sequence>
+
+      <FilmLook grainFile={grainFile} />
+
+      {/* Captions and voice follow the exact scene timing, with no overlap */}
+      {scenes.map((scene, i) => (
+        <Sequence key={scene.id} from={starts[i]} durationInFrames={sceneFrames(scene)} name={`${scene.id} voice + captions`}>
+          <Captions scene={scene} accent={palette.accent} />
+          <Audio src={staticFile(scene.audioFile)} />
+        </Sequence>
+      ))}
+
+      {musicFile ? <Music file={musicFile} voiceFrames={voiceFrames} /> : null}
+      <ProgressBar color={palette.accent} />
     </AbsoluteFill>
   );
 };

@@ -3,7 +3,7 @@
 import { execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { CAPTION_LAYOUT, FRAME, HIGH_CONTRAST_BACKING_ALPHA, SAFE_ZONE, fitText, scrimAlphaAt, titleBox, type TitleKind } from "../shared/layout";
+import { CAPTION_LAYOUT, FRAME, HIGH_CONTRAST_BACKING_ALPHA, SAFE_ZONE, fitText, groupWords, scrimAlphaAt, titleBox, type TitleKind } from "../shared/layout";
 import type { RenderScene } from "../shared/types";
 import { config } from "./config";
 
@@ -93,8 +93,8 @@ export function qaScenes(input: { scenes: RenderScene[]; publicDir: string }): {
     let captionSize = CAPTION_LAYOUT.fontSize;
     let captionLines = 1;
     let captionFits = true;
-    for (let i = 0; i < scene.words.length; i += CAPTION_LAYOUT.wordsPerGroup) {
-      const group = scene.words.slice(i, i + CAPTION_LAYOUT.wordsPerGroup).map((w) => w.word).join(" ");
+    for (const words of groupWords(scene.words)) {
+      const group = words.map((w) => w.word).join(" ");
       const fit = fitText(group, {
         maxWidth: captionWidth,
         maxHeight: CAPTION_LAYOUT.maxLines * captionSize * CAPTION_LAYOUT.lineHeight,
@@ -197,9 +197,11 @@ function analyze(file: string, withVideo: boolean): Analysis {
 const sizeMb = (file: string) => fs.statSync(file).size / 1024 / 1024;
 
 // Checks the finished mp4. Loudness and file size are fixed by re-encoding in place.
-export function qaVideo(videoFile: string): { checks: QaCheck[]; reencoded: boolean } {
+export function qaVideo(videoFile: string, durationSec: number): { checks: QaCheck[]; reencoded: boolean } {
   const { maxFileMb, targetLufs, lufsTolerance, maxTruePeakDb } = config.qa;
   const before = analyze(videoFile, true);
+  // The outro has no voice by design, so quiet music there is not a fault.
+  before.silences = before.silences.filter((s) => s.startSec < durationSec - config.video.outroSec - 0.5);
   const beforeMb = sizeMb(videoFile);
 
   const loudnessOff = Math.abs(before.lufs - targetLufs) > lufsTolerance || before.truePeak > maxTruePeakDb;

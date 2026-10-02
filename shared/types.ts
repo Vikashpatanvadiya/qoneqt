@@ -36,8 +36,14 @@ export type PulseVideoProps = {
   cta: string;
   global: ShotPlan["global"];
   scenes: RenderScene[];
+  // Files inside the Remotion public dir. Each one is optional: the video still renders without it.
+  musicFile: string | null;
+  logoFile: string | null;
+  grainFile: string | null;
 };
 
 export const FPS = 30;
+export const OUTRO_SEC = 1.5;
+export const TRANSITION_FRAMES = 9;
 export const WIDTH = 1080;
 export const HEIGHT = 1920;

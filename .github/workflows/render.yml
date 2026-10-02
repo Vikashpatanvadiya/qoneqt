@@ -34,6 +34,8 @@ jobs:
       GEMINI_RPM_MAIN: ${{ vars.GEMINI_RPM_MAIN }}
       GEMINI_RPM_OTHER: ${{ vars.GEMINI_RPM_OTHER }}
       MAX_VIDEO_SEC: ${{ vars.MAX_VIDEO_SEC }}
+      RENDER_SCALE: ${{ vars.RENDER_SCALE }}
+      RENDER_CRF: ${{ vars.RENDER_CRF }}
       CF_IMAGE_MODEL: ${{ vars.CF_IMAGE_MODEL }}
       EDGE_TTS_VOICE: ${{ vars.EDGE_TTS_VOICE }}
       PYTHON_BIN: python

@@ -303,7 +303,7 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
     };
   });
 
-  const durationSec = scenes.reduce((n, s) => n + s.durationSec, 0);
+  const durationSec = scenes.reduce((n, s) => n + s.durationSec, 0) + config.video.outroSec;
   const videoFile = path.join(workDir, "video.mp4");
   const thumbFile = path.join(workDir, "thumb.jpg");
 
@@ -311,19 +311,41 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
   const pre = qaScenes({ scenes, publicDir });
 
   await stage("render", async () => {
-    const inputProps: PulseVideoProps = { title: script.title, communityName: community.name, cta: script.cta, global: plan.global, scenes: pre.scenes };
+    // Optional extras. Each one is skipped quietly if its file is missing, so the render never depends on them.
+    const copyIfExists = (from: string, to: string) => {
+      if (!fs.existsSync(from)) return null;
+      fs.copyFileSync(from, path.join(publicDir, to));
+      return to;
+    };
+    const musicFile = copyIfExists(path.resolve("public/music", `${plan.global.musicMood}.mp3`), "music.mp3");
+    const logoFile = ["svg", "png"].map((ext) => copyIfExists(path.resolve("public/brand", `logo.${ext}`), `logo.${ext}`)).find(Boolean) ?? null;
+    let grainFile: string | null = "grain.png";
+    try {
+      // A small noise tile for the film grain overlay.
+      execFileSync("ffmpeg", ["-v", "error", "-y", "-f", "lavfi", "-i", "nullsrc=s=256x256,geq=lum='random(1)*255':cb=128:cr=128", "-frames:v", "1", path.join(publicDir, grainFile)]);
+    } catch {
+      grainFile = null;
+    }
+    const inputProps: PulseVideoProps = { title: script.title, communityName: community.name, cta: script.cta, global: plan.global, scenes: pre.scenes, musicFile, logoFile, grainFile };
     fs.writeFileSync(path.join(workDir, "props.json"), JSON.stringify(inputProps, null, 2));
     const serveUrl = await bundle({ entryPoint: path.resolve("remotion/index.ts"), publicDir });
     const composition = await selectComposition({ serveUrl, id: "PulseVideo", inputProps });
-    await renderMedia({ composition, serveUrl, codec: "h264", crf: config.render.crf(), outputLocation: videoFile, inputProps, concurrency: os.cpus().length });
+    const renderStart = Date.now();
+    await renderMedia({ composition, serveUrl, codec: "h264", crf: config.render.crf(), scale: config.render.scale(), outputLocation: videoFile, inputProps, concurrency: os.cpus().length });
     execFileSync("ffmpeg", ["-v", "error", "-y", "-ss", "0.5", "-i", videoFile, "-frames:v", "1", "-vf", "scale=540:-2", "-q:v", "4", thumbFile]);
     const sizeMb = fs.statSync(videoFile).size / 1024 / 1024;
-    return { value: null, summary: `${durationSec.toFixed(1)}s video, ${sizeMb.toFixed(1)} MB`, output: { sizeMb, durationSec, cpus: os.cpus().length } };
+    const renderSec = (Date.now() - renderStart) / 1000;
+    return {
+      value: null,
+      summary: `${durationSec.toFixed(1)}s video, ${sizeMb.toFixed(1)} MB, rendered in ${renderSec.toFixed(0)}s on ${os.cpus().length} CPUs`,
+      reason: `${musicFile ? `${plan.global.musicMood} music` : "No music file found"}, ${logoFile ? "logo" : "text wordmark"} in the outro`,
+      output: { sizeMb, durationSec, renderSec, cpus: os.cpus().length, music: musicFile ? plan.global.musicMood : null, logo: Boolean(logoFile), scale: config.render.scale() },
+    };
   });
 
   // QA gate, part 2: measure the finished file. Loudness and file size are repaired by re-encoding.
   const qa = await stage("qa", async () => {
-    const post = qaVideo(videoFile);
+    const post = qaVideo(videoFile, durationSec);
     const checks = [...pre.checks, ...post.checks];
     const s = summarizeChecks(checks);
     metrics.qa_fixed = s.fixed;

@@ -1,6 +1,7 @@
 import "dotenv/config";
 import fs from "node:fs";
 import path from "node:path";
+import { OUTRO_SEC } from "../shared/types";
 
 const env = (name: string, fallback?: string): string => {
   const v = process.env[name] || fallback; // empty counts as unset (unset repo variables arrive as "")
@@ -54,7 +55,7 @@ export const config = {
   // Duration governor. The limit covers the whole video including the outro.
   video: {
     maxSec: () => Number(optional("MAX_VIDEO_SEC") ?? 45),
-    outroSec: 1.5,
+    outroSec: OUTRO_SEC,
     wordsPerSec: 2.1, // measured from edge-tts en-IN voices
     hardMaxWordsPerScene: 24,
     minScenes: 4,
@@ -78,6 +79,8 @@ export const config = {
   },
   render: {
     crf: () => Number(optional("RENDER_CRF") ?? 23),
+    // Lower this (for example 0.75) if a render takes more than 6 minutes on the runner.
+    scale: () => Number(optional("RENDER_SCALE") ?? 1),
   },
   cacheDir: () => path.resolve(optional("CACHE_DIR") ?? ".cache"),
   scenePaddingSec: 0.2,

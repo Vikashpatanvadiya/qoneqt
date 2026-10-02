@@ -1,56 +1,78 @@
 import React from "react";
-import { useCurrentFrame, useVideoConfig } from "remotion";
-import { CAPTION_LAYOUT } from "../shared/layout";
-import type { WordTiming } from "../shared/types";
-
-const WORDS_PER_GROUP = CAPTION_LAYOUT.wordsPerGroup;
+import { spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { CAPTION_LAYOUT, HIGH_CONTRAST_BACKING_ALPHA, groupWords } from "../shared/layout";
+import type { RenderScene } from "../shared/types";
+import { BACKING, FONT, TEXT_SHADOW } from "./theme";
 
 const bare = (word: string) => word.toLowerCase().replace(/[^\p{L}\p{N}]/gu, "");
 
-// Basic word-by-word captions: a few words at a time, current word highlighted,
-// the Director's emphasis words in the accent color.
-export const Captions: React.FC<{ words: WordTiming[]; emphasisWords: string[]; accent: string; fontSize?: number }> = ({ words, emphasisWords, accent, fontSize }) => {
+// Word-by-word captions for one scene. `frame` counts from the start of the scene.
+// Styles: pop (scale bounce on the spoken word), karaoke (words fill with the accent color), minimal.
+export const Captions: React.FC<{ scene: RenderScene; accent: string }> = ({ scene, accent }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const t = frame / fps;
-  if (words.length === 0) return null;
+  const groups = groupWords(scene.words);
+  if (groups.length === 0) return null;
 
-  const emphasis = new Set(emphasisWords.flatMap((w) => w.split(/\s+/)).map(bare).filter(Boolean));
+  // The visible group is the last one whose first word has started.
+  let groupIndex = 0;
+  groups.forEach((g, i) => {
+    if (g[0].startSec <= t + 0.05) groupIndex = i;
+  });
+  const group = groups[groupIndex];
+  const emphasis = new Set(scene.emphasisWords.flatMap((w) => w.split(/\s+/)).map(bare).filter(Boolean));
 
-  // The current word is the last one that has started.
-  let current = 0;
-  for (let i = 0; i < words.length; i++) if (words[i].startSec <= t) current = i;
-  const groupStart = Math.floor(current / WORDS_PER_GROUP) * WORDS_PER_GROUP;
-  const group = words.slice(groupStart, groupStart + WORDS_PER_GROUP);
+  const style = scene.captionStyle;
+  const baseSize = style === "minimal" ? 60 : style === "karaoke" ? 70 : CAPTION_LAYOUT.fontSize;
+  const fontSize = Math.min(baseSize, scene.captionFontSize ?? baseSize);
+  const groupIn = spring({ frame: frame - Math.round(group[0].startSec * fps), fps, config: { damping: 18, stiffness: 240 } });
+  // Karaoke always sits on a pill. Other styles get one only when the QA gate asks for it.
+  const backing = style === "karaoke" ? 0.55 : scene.highContrast ? HIGH_CONTRAST_BACKING_ALPHA : 0;
 
   return (
     // Sits above the bottom 20% safe zone
-    <div
-      style={{
-        position: "absolute",
-        bottom: `${CAPTION_LAYOUT.bottomPct}%`,
-        left: CAPTION_LAYOUT.sidePad,
-        right: CAPTION_LAYOUT.sidePad,
-        display: "flex",
-        flexWrap: "wrap",
-        justifyContent: "center",
-        gap: `0 ${CAPTION_LAYOUT.wordGap}px`,
-        fontFamily: "Helvetica, Arial, 'Liberation Sans', sans-serif",
-        fontWeight: 800,
-        fontSize: fontSize ?? CAPTION_LAYOUT.fontSize,
-        lineHeight: CAPTION_LAYOUT.lineHeight,
-        textShadow: "0 4px 22px rgba(0,0,0,0.95)",
-      }}
-    >
-      {group.map((w, i) => {
-        const isCurrent = groupStart + i === current;
-        const isEmphasis = emphasis.has(bare(w.word));
-        return (
-          <span key={groupStart + i} style={{ color: isEmphasis ? accent : "white", opacity: isCurrent ? 1 : 0.72, transform: `scale(${isCurrent ? 1.08 : 1})` }}>
-            {w.word}
-          </span>
-        );
-      })}
+    <div style={{ position: "absolute", bottom: `${CAPTION_LAYOUT.bottomPct}%`, left: CAPTION_LAYOUT.sidePad, right: CAPTION_LAYOUT.sidePad, display: "flex", justifyContent: "center" }}>
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          justifyContent: "center",
+          gap: `0 ${CAPTION_LAYOUT.wordGap}px`,
+          fontFamily: FONT,
+          fontWeight: style === "minimal" ? 600 : 800,
+          fontSize,
+          lineHeight: CAPTION_LAYOUT.lineHeight,
+          textShadow: TEXT_SHADOW,
+          transform: `scale(${style === "minimal" ? 1 : 0.94 + 0.06 * groupIn})`,
+          ...(backing ? { backgroundColor: BACKING(backing), borderRadius: 26, padding: "10px 28px" } : {}),
+        }}
+      >
+        {group.map((w, i) => {
+          const spoken = w.startSec <= t;
+          const isCurrent = spoken && (group[i + 1] ? group[i + 1].startSec > t : true);
+          const isEmphasis = emphasis.has(bare(w.word));
+          const bounce = spring({ frame: frame - Math.round(w.startSec * fps), fps, config: { damping: 9, stiffness: 260 } });
+
+          let color = isEmphasis ? accent : "white";
+          let opacity = 1;
+          let scale = 1;
+          if (style === "pop") {
+            opacity = spoken ? 1 : 0.55;
+            scale = isCurrent ? 1 + (isEmphasis ? 0.1 : 0.07) * bounce : 1;
+          } else if (style === "karaoke") {
+            color = spoken ? accent : "white";
+            opacity = spoken ? 1 : 0.7;
+          } else {
+            opacity = isCurrent ? 1 : 0.62;
+          }
+          return (
+            <span key={i} style={{ display: "inline-block", color, opacity, transform: `scale(${scale})` }}>
+              {w.word}
+            </span>
+          );
+        })}
+      </div>
     </div>
   );
 };

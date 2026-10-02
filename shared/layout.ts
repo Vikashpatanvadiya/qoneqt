@@ -11,7 +11,7 @@ export const CAPTION_LAYOUT = {
   fontSize: 74,
   minFontSize: 50,
   lineHeight: 1.15,
-  wordGap: 22,
+  wordGap: 26,
   wordsPerGroup: 3,
   maxLines: 2,
 };
@@ -32,13 +32,13 @@ export function scrimAlphaAt(yPct: number): number {
 }
 export const HIGH_CONTRAST_BACKING_ALPHA = 0.62;
 
-// Rough glyph widths for a bold sans font, in em. Good enough to catch overflow before rendering.
+// Rough glyph widths for Montserrat ExtraBold, in em. Slightly generous, so text shrinks a little early rather than overflowing.
 function charWidthEm(ch: string, uppercase: boolean): number {
   if (ch === " ") return 0.28;
-  if (/[ilI.,'!:;|]/.test(ch)) return 0.3;
-  if (/[mwMW@%]/.test(ch)) return 0.88;
-  if (uppercase || /[A-Z0-9?#&]/.test(ch)) return 0.68;
-  return 0.56;
+  if (/[ilI.,'!:;|]/.test(ch)) return 0.33;
+  if (/[mwMW@%]/.test(ch)) return 0.98;
+  if (uppercase || /[A-Z0-9?#&]/.test(ch)) return 0.74;
+  return 0.62;
 }
 
 export function textWidth(text: string, fontSize: number, uppercase = false): number {
@@ -79,6 +79,23 @@ export function fitText(text: string, box: { maxWidth: number; maxHeight: number
     if (fits || size <= box.minFontSize) return { fontSize: size, lines, heightPx, fits };
     size = Math.max(box.minFontSize, Math.floor(size * 0.94));
   }
+}
+
+// Splits a scene's words into caption groups of up to `wordsPerGroup` words.
+// A group also ends at punctuation or a pause, so captions break where the voice does.
+export function groupWords<T extends { word: string; startSec: number; endSec: number }>(words: T[]): T[][] {
+  const groups: T[][] = [];
+  let current: T[] = [];
+  words.forEach((w, i) => {
+    current.push(w);
+    const next = words[i + 1];
+    const endsPhrase = /[.!?,;:]$/.test(w.word) || (next !== undefined && next.startSec - w.endSec > 0.3);
+    if (current.length >= CAPTION_LAYOUT.wordsPerGroup || endsPhrase || !next) {
+      groups.push(current);
+      current = [];
+    }
+  });
+  return groups;
 }
 
 export type TitleKind = "image" | "card" | "stat";
