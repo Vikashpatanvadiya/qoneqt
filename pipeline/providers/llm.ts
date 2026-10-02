@@ -11,6 +11,7 @@ export type LlmAttempt = {
   status: number; // HTTP status, 0 for timeouts and network errors
   error?: string;
   rateLimited: boolean; // true when the provider answered 429
+  quota?: "minute" | "day"; // which free-tier limit was hit
   limiterWaitMs: number; // time our own limiter held the call back
   backoffMs: number; // time waited after this attempt before the next one
   ms: number;
@@ -53,6 +54,9 @@ export class LlmError extends Error {
 
 const API = "https://generativelanguage.googleapis.com/v1beta/models";
 const MAX_HTTP_TRIES = 3;
+
+// Models whose daily free quota is used up. They are skipped for the rest of this process.
+const exhaustedToday = new Set<string>();
 
 // Models that rejected thinkingConfig, so it is not sent to them again.
 const noThinkingConfig = new Set<string>();
@@ -111,8 +115,12 @@ async function runJson<T extends z.ZodType>(models: string[], req: JsonRequest<T
   const attempts: LlmAttempt[] = [];
   let lastError = "no model configured";
 
-  for (const [index, model] of models.entries()) {
-    const hasNextModel = index < models.length - 1;
+  // Skip models already known to be out of daily quota, unless nothing else is left.
+  const available = models.filter((m) => !exhaustedToday.has(m));
+  const chain = available.length ? available : models.slice(-1);
+
+  for (const [index, model] of chain.entries()) {
+    const hasNextModel = index < chain.length - 1;
     let prompt = req.prompt;
     let httpFails = 0;
     let validationFails = 0;
@@ -126,14 +134,19 @@ async function runJson<T extends z.ZodType>(models: string[], req: JsonRequest<T
       } catch (err) {
         const status = err instanceof HttpError ? err.status : 0;
         const rateLimited = status === 429;
+        // A daily quota error names a per-day limit or asks to wait for hours. Waiting does not help.
+        const dailyQuota = rateLimited && err instanceof HttpError && (/PerDay/i.test(err.body) || (err.retryAfterMs ?? 0) > 120_000);
+        if (dailyQuota) exhaustedToday.add(model);
         const retryable = status === 0 || status === 408 || rateLimited || status >= 500;
         httpFails++;
         // A rate-limited model is not worth waiting for when another model is available.
-        const retry = retryable && httpFails < MAX_HTTP_TRIES && !(rateLimited && hasNextModel);
+        // With another model to fall back to, an overloaded model gets one retry instead of two.
+        const maxTries = hasNextModel ? MAX_HTTP_TRIES - 1 : MAX_HTTP_TRIES;
+        const retry = retryable && httpFails < maxTries && !dailyQuota && !(rateLimited && hasNextModel);
         const backoffMs = retry ? Math.min((err instanceof HttpError && err.retryAfterMs) || (rateLimited ? 8000 : 1500) * 2 ** (httpFails - 1), 60_000) : 0;
         lastError = `${model}: ${status || "network"} ${shortError(err)}`;
-        attempts.push({ model, ok: false, status, error: shortError(err), rateLimited, limiterWaitMs, backoffMs, ms: Date.now() - start });
-        console.warn(`  [llm] ${req.label} on ${model} failed (${status || "timeout/network"}${rateLimited ? ", rate limited" : ""})${retry ? `, retrying in ${backoffMs}ms` : hasNextModel ? ", switching model" : ""}`);
+        attempts.push({ model, ok: false, status, error: shortError(err), rateLimited, ...(rateLimited ? { quota: dailyQuota ? ("day" as const) : ("minute" as const) } : {}), limiterWaitMs, backoffMs, ms: Date.now() - start });
+        console.warn(`  [llm] ${req.label} on ${model} failed (${status || "timeout/network"}${rateLimited ? `, ${dailyQuota ? "daily quota used up" : "rate limited"}` : ""})${retry ? `, retrying in ${backoffMs}ms` : hasNextModel ? ", switching model" : ""}`);
         if (!retry) break;
         await sleep(backoffMs);
         continue;
@@ -164,21 +177,17 @@ async function runJson<T extends z.ZodType>(models: string[], req: JsonRequest<T
   throw new LlmError(`${req.label} failed on every model. Last error: ${lastError}`, attempts);
 }
 
-const unique = (models: Array<string | undefined>) => [...new Set(models.filter((m): m is string => Boolean(m)))];
-
 export const geminiLlm: LlmProvider = {
   name: "gemini",
   generateJson(req) {
-    const { textModel, textFallbackModel, lightModel } = config.gemini;
-    const models = req.tier === "light" ? unique([lightModel(), textModel(), textFallbackModel()]) : unique([textModel(), textFallbackModel()]);
-    return runJson(models, req, []);
+    return runJson(req.tier === "light" ? config.gemini.lightModels() : config.gemini.textModels(), req, []);
   },
 };
 
 export const geminiVision: VisionProvider = {
   name: "gemini",
   inspectJson(req) {
-    return runJson(unique([config.gemini.visionModel()]), req, req.images);
+    return runJson(config.gemini.visionModels(), req, req.images);
   },
 };
 
@@ -187,6 +196,7 @@ export function summarizeAttempts(attempts: LlmAttempt[]) {
     calls: attempts.length,
     failed: attempts.filter((a) => !a.ok).length,
     rateLimitHits: attempts.filter((a) => a.rateLimited).length,
+    dailyQuotaHits: attempts.filter((a) => a.quota === "day").length,
     waitMs: attempts.reduce((n, a) => n + a.limiterWaitMs + a.backoffMs, 0),
     inputTokens: attempts.reduce((n, a) => n + (a.inputTokens ?? 0), 0),
     outputTokens: attempts.reduce((n, a) => n + (a.outputTokens ?? 0), 0),

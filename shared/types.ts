@@ -2,7 +2,7 @@
 // Agent types come straight from the zod schemas so they never drift.
 import type { Shot, ShotPlan } from "../pipeline/schemas";
 
-export type { CommunityProfile, InputType, Research, Script, Shot, ShotPlan } from "../pipeline/schemas";
+export type { CommunityProfile, Critique, InputType, Research, Script, ScriptVersion, Shot, ShotPlan } from "../pipeline/schemas";
 
 export type WordTiming = {
   word: string;
@@ -22,8 +22,12 @@ export type RenderScene = {
   statValue?: string;
   imageFile: string | null; // file name inside the Remotion public dir, null for designed layouts
   audioFile: string; // file name inside the Remotion public dir
-  durationSec: number; // real TTS length + padding
+  durationSec: number; // spoken length + padding
   words: WordTiming[];
+  // Set by the code QA gate when the default layout would not be readable.
+  titleFontSize?: number;
+  captionFontSize?: number;
+  highContrast?: boolean;
 };
 
 export type PulseVideoProps = {

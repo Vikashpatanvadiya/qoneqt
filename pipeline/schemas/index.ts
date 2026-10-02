@@ -85,6 +85,18 @@ export const StrictScriptSchema = ScriptSchema.superRefine((script, ctx) => {
   if (script.scenes[0]?.purpose !== "hook") ctx.addIssue({ code: "custom", message: "Scene 1 must have purpose hook." });
 });
 
+// 7.3 Script Critic
+const score = z.number().min(1).max(10);
+export const CritiqueSchema = z.object({
+  scores: z.object({ hook: score, clarity: score, pacing: score, communityFit: score, retention: score }),
+  overall: score,
+  verdict: z.enum(["pass", "revise"]),
+  issues: z.array(z.object({ sceneId: z.string(), problem: z.string(), fix: z.string().describe("A concrete rewrite, not general advice") })),
+});
+export type Critique = z.infer<typeof CritiqueSchema>;
+
+export type ScriptVersion = { version: number; script: Script; wordCount: number; critique: Critique | null; overall: number | null; passed: boolean };
+
 // 7.4 Director
 export const LayoutSchema = z.enum(["full_image", "text_card", "stat_card", "quote_card"]);
 export const CameraSchema = z.enum(["zoom_in", "zoom_out", "pan_left", "pan_right", "static"]);

@@ -11,6 +11,13 @@ import { sleep } from "./util";
 
 const JOB_TIMEOUT_MS = 25 * 60 * 1000;
 
+// options.critic = { minOverall, minHook } lets a job raise or lower the bar.
+function criticOptions(options: unknown): { minOverall?: number; minHook?: number } {
+  const critic = (options as { critic?: Record<string, unknown> } | null)?.critic ?? {};
+  const num = (v: unknown) => (typeof v === "number" && v >= 1 && v <= 10 ? v : undefined);
+  return { minOverall: num(critic.minOverall), minHook: num(critic.minHook) };
+}
+
 async function runJob(jobId: string) {
   const totalStart = Date.now();
   const stageMs: Record<string, number> = {};
@@ -34,7 +41,7 @@ async function runJob(jobId: string) {
 
   const workDir = fs.mkdtempSync(path.join(os.tmpdir(), `pulse-${jobId}-`));
   const inputType = InputTypeSchema.catch("topic").parse(job.input_type);
-  const result = await generateVideo({ inputType, content: job.input_text, community, engine, workDir, stage });
+  const result = await generateVideo({ inputType, content: job.input_text, community, engine, criticThresholds: criticOptions(job.options), workDir, stage });
 
   const urls = await stage("upload", async () => {
     const videoUrl = await uploadFile(`${jobId}/video.mp4`, result.videoFile, "video/mp4");
@@ -48,6 +55,7 @@ async function runJob(jobId: string) {
     video_url: urls.videoUrl,
     thumb_url: urls.thumbUrl,
     duration_sec: Number(result.durationSec.toFixed(2)),
+    scores: result.scores,
     metrics: { ...result.metrics, total_ms: Date.now() - totalStart, stage_ms: stageMs },
   });
   console.log(`\nDone: ${urls.videoUrl}`);

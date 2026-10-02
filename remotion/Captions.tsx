@@ -1,14 +1,15 @@
 import React from "react";
 import { useCurrentFrame, useVideoConfig } from "remotion";
+import { CAPTION_LAYOUT } from "../shared/layout";
 import type { WordTiming } from "../shared/types";
 
-const WORDS_PER_GROUP = 3;
+const WORDS_PER_GROUP = CAPTION_LAYOUT.wordsPerGroup;
 
 const bare = (word: string) => word.toLowerCase().replace(/[^\p{L}\p{N}]/gu, "");
 
 // Basic word-by-word captions: a few words at a time, current word highlighted,
 // the Director's emphasis words in the accent color.
-export const Captions: React.FC<{ words: WordTiming[]; emphasisWords: string[]; accent: string }> = ({ words, emphasisWords, accent }) => {
+export const Captions: React.FC<{ words: WordTiming[]; emphasisWords: string[]; accent: string; fontSize?: number }> = ({ words, emphasisWords, accent, fontSize }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const t = frame / fps;
@@ -27,17 +28,17 @@ export const Captions: React.FC<{ words: WordTiming[]; emphasisWords: string[]; 
     <div
       style={{
         position: "absolute",
-        bottom: "27%",
-        left: 60,
-        right: 60,
+        bottom: `${CAPTION_LAYOUT.bottomPct}%`,
+        left: CAPTION_LAYOUT.sidePad,
+        right: CAPTION_LAYOUT.sidePad,
         display: "flex",
         flexWrap: "wrap",
         justifyContent: "center",
-        gap: "0 22px",
+        gap: `0 ${CAPTION_LAYOUT.wordGap}px`,
         fontFamily: "Helvetica, Arial, 'Liberation Sans', sans-serif",
         fontWeight: 800,
-        fontSize: 74,
-        lineHeight: 1.15,
+        fontSize: fontSize ?? CAPTION_LAYOUT.fontSize,
+        lineHeight: CAPTION_LAYOUT.lineHeight,
         textShadow: "0 4px 22px rgba(0,0,0,0.95)",
       }}
     >

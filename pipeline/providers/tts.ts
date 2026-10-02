@@ -13,7 +13,8 @@ export type TtsOptions = { voice?: string; speedUpPct?: number };
 
 export type TtsResult = {
   audioFile: string;
-  durationSec: number;
+  durationSec: number; // usable length: ends shortly after the last spoken word
+  rawDurationSec: number; // full audio file length, including the trailing silence edge-tts adds
   words: WordTiming[];
   timingSource: string;
   cached: boolean;
@@ -63,9 +64,12 @@ export const edgeTts: TtsProvider = {
       });
     }
 
-    const durationSec = await audioDurationSec(audioFile);
+    const rawDurationSec = await audioDurationSec(audioFile);
     const boundaries = JSON.parse(fs.readFileSync(timingFile, "utf8")) as WordTiming[];
+    // Real word boundaries tell us where speech ends, so the dead air after it can be cut.
+    const lastWordEnd = boundaries.at(-1)?.endSec;
+    const durationSec = lastWordEnd ? Math.min(rawDurationSec, lastWordEnd + config.qa.voiceTailSec) : rawDurationSec;
     const { words, source } = await resolveTimings({ text, audioFile, durationSec, boundaries });
-    return { audioFile, durationSec, words, timingSource: source, cached, ms: cached ? 0 : Date.now() - start };
+    return { audioFile, durationSec, rawDurationSec, words, timingSource: source, cached, ms: cached ? 0 : Date.now() - start };
   },
 };

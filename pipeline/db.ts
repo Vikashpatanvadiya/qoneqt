@@ -40,8 +40,8 @@ export function createStageRunner(jobId: string, stageMs: Record<string, number>
       check(`update stage ${name}`, await db().from("stages").update({ ...patch, ended_at: new Date().toISOString() }).eq("id", row!.id));
     };
     try {
-      const { value, summary, reason, output, retries } = await fn();
-      await finish({ status: "done", summary, reason, output, retries: retries ?? 0 });
+      const { value, summary, reason, output, retries, status } = await fn();
+      await finish({ status: status ?? "done", summary, reason, output, retries: retries ?? 0 });
       console.log(`[${name}] ${(stageMs[name] / 1000).toFixed(1)}s - ${summary}`);
       return value;
     } catch (err) {

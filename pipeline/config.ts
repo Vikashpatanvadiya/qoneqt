@@ -10,18 +10,29 @@ const env = (name: string, fallback?: string): string => {
 
 const optional = (name: string): string | undefined => process.env[name] || undefined;
 
+// Splits comma-separated values and removes duplicates, keeping the order.
+const list = (...values: Array<string | undefined>): string[] => [
+  ...new Set(
+    values
+      .flatMap((v) => (v ?? "").split(","))
+      .map((v) => v.trim())
+      .filter(Boolean),
+  ),
+];
+
 const localPython = path.resolve(".venv/bin/python");
 
 export const config = {
   gemini: {
     apiKey: () => env("GEMINI_API_KEY"),
-    textModel: () => env("GEMINI_MODEL_TEXT"),
-    textFallbackModel: () => optional("GEMINI_MODEL_TEXT_FALLBACK"),
-    // Optional cheaper model with a higher free rate limit, used first by the lighter agents.
-    lightModel: () => optional("GEMINI_MODEL_LIGHT"),
-    visionModel: () => env("GEMINI_MODEL_VISION"),
-    // Free-tier requests per minute. The main model is the tight one. Check the AI Studio rate-limit page.
-    rpm: (model: string) => (model === process.env.GEMINI_MODEL_TEXT ? Number(optional("GEMINI_RPM_MAIN") ?? 5) : Number(optional("GEMINI_RPM_OTHER") ?? 15)),
+    // Each of these is a comma-separated chain, tried in order. Free-tier quotas are per model per day
+    // (the main model allows only 20 requests a day), so a chain multiplies what one key can do.
+    textModels: () => list(env("GEMINI_MODEL_TEXT"), optional("GEMINI_MODEL_TEXT_FALLBACK")),
+    // Lighter agents (Researcher, Critic, Director) start on cheaper models with higher limits.
+    lightModels: () => list(optional("GEMINI_MODEL_LIGHT"), env("GEMINI_MODEL_TEXT"), optional("GEMINI_MODEL_TEXT_FALLBACK")),
+    visionModels: () => list(env("GEMINI_MODEL_VISION")),
+    // Free-tier requests per minute. Check the AI Studio rate-limit page for the real numbers.
+    rpm: (model: string) => (/lite|gemma/i.test(model) ? Number(optional("GEMINI_RPM_OTHER") ?? 15) : Number(optional("GEMINI_RPM_MAIN") ?? 5)),
     // Default thinking made single calls take 30 to 90 sec. "low" keeps them near 10 sec.
     thinkingLevel: () => optional("GEMINI_THINKING_LEVEL") ?? "low",
   },
@@ -48,6 +59,22 @@ export const config = {
     hardMaxWordsPerScene: 24,
     minScenes: 4,
     maxSpeedUpPct: 18,
+  },
+  // Script Critic thresholds. A job can override them in options.critic.
+  critic: {
+    minOverall: () => Number(optional("CRITIC_MIN_OVERALL") ?? 7.5),
+    minHook: () => Number(optional("CRITIC_MIN_HOOK") ?? 8),
+    maxRevisions: 2,
+  },
+  // Code QA gate targets
+  qa: {
+    maxFileMb: 25,
+    targetLufs: -16,
+    lufsTolerance: 1.5,
+    maxTruePeakDb: -1,
+    maxSilenceSec: 1.2,
+    minContrast: 4.5,
+    voiceTailSec: 0.3, // silence kept after the last spoken word of a scene
   },
   render: {
     crf: () => Number(optional("RENDER_CRF") ?? 23),

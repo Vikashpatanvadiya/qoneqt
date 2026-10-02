@@ -9,19 +9,22 @@ import { renderMedia, selectComposition } from "@remotion/renderer";
 import type { PulseVideoProps, RenderScene } from "../shared/types";
 import { normalizeShotPlan, runDirector } from "./agents/director";
 import { runResearcher } from "./agents/researcher";
-import { runScriptwriter } from "./agents/scriptwriter";
+import { judge, runScriptCritic, type CriticThresholds } from "./agents/scriptCritic";
+import { runScriptRevision, runScriptwriter } from "./agents/scriptwriter";
 import { config } from "./config";
 import { fluxNeurons } from "./cost/pricing";
 import { budgetSec, governScript, governTimeline, type GovernorAction } from "./governor";
 import type { Engine } from "./providers";
-import { summarizeAttempts, type LlmResult } from "./providers/llm";
+import { LlmError, summarizeAttempts, type LlmAttempt } from "./providers/llm";
+import { qaScenes, qaVideo, summarizeChecks, type QaCheck } from "./qa";
 import type { TtsResult } from "./providers/tts";
-import { scriptWordCount, type CommunityProfile, type InputType, type Script } from "./schemas";
+import { scriptWordCount, type CommunityProfile, type InputType, type Script, type ScriptVersion } from "./schemas";
 import { mapLimit } from "./util";
 
-export type StageName = "ingest" | "research" | "script" | "script_critic" | "direct" | "assets" | "vision_critic" | "render" | "upload";
+export type StageName = "ingest" | "research" | "script" | "script_critic" | "direct" | "assets" | "vision_critic" | "render" | "qa" | "upload";
 
-export type StageResult<T> = { value: T; summary: string; reason?: string; output?: unknown; retries?: number };
+// `status` defaults to "done". "fixed" means the stage caught a problem and repaired it, "skipped" means it could not run.
+export type StageResult<T> = { value: T; summary: string; reason?: string; output?: unknown; retries?: number; status?: "done" | "fixed" | "skipped" };
 
 // Wraps a stage so the caller decides where progress goes (console, Supabase).
 export type StageRunner = <T>(name: StageName, fn: () => Promise<StageResult<T>>) => Promise<T>;
@@ -31,6 +34,7 @@ export type GenerateInput = {
   content: string;
   community: CommunityProfile;
   engine: Engine;
+  criticThresholds?: Partial<CriticThresholds>;
   workDir: string;
   stage: StageRunner;
 };
@@ -41,11 +45,14 @@ export type GenerateResult = {
   videoFile: string;
   thumbFile: string;
   durationSec: number;
+  scores: { script_v1: number | null; script_final: number | null };
+  qa: QaCheck[];
   metrics: {
     engine: string;
     llm_calls: number;
     llm_failures: number;
     rate_limit_hits: number;
+    daily_quota_hits: number;
     llm_wait_ms: number;
     input_tokens: number;
     output_tokens: number;
@@ -55,6 +62,10 @@ export type GenerateResult = {
     neurons_est: number;
     governor_actions: number;
     over_limit: boolean;
+    script_revisions: number;
+    qa_fixed: number;
+    qa_flagged: number;
+    fixes: number; // everything the engine repaired on its own: script revisions, governor actions, QA fixes
   };
 };
 
@@ -74,6 +85,7 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
     llm_calls: 0,
     llm_failures: 0,
     rate_limit_hits: 0,
+    daily_quota_hits: 0,
     llm_wait_ms: 0,
     input_tokens: 0,
     output_tokens: 0,
@@ -83,19 +95,25 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
     neurons_est: 0,
     governor_actions: 0,
     over_limit: false,
+    script_revisions: 0,
+    qa_fixed: 0,
+    qa_flagged: 0,
+    fixes: 0,
   };
 
   // Adds the call's attempts to the job metrics and returns what the stage row should store.
-  const track = <T>(res: LlmResult<T>) => {
-    const s = summarizeAttempts(res.attempts);
+  const trackAttempts = (attempts: LlmAttempt[]) => {
+    const s = summarizeAttempts(attempts);
     metrics.llm_calls += s.calls;
     metrics.llm_failures += s.failed;
     metrics.rate_limit_hits += s.rateLimitHits;
     metrics.llm_wait_ms += s.waitMs;
     metrics.input_tokens += s.inputTokens;
     metrics.output_tokens += s.outputTokens;
-    return { model: res.model, attempts: res.attempts, rate_limited: s.rateLimitHits > 0, wait_ms: s.waitMs, retries: s.failed };
+    metrics.daily_quota_hits += s.dailyQuotaHits;
+    return { attempts, rate_limited: s.rateLimitHits > 0, daily_quota_hit: s.dailyQuotaHits > 0, wait_ms: s.waitMs, retries: s.failed };
   };
+  const track = (res: { model: string; attempts: LlmAttempt[] }) => ({ model: res.model, ...trackAttempts(res.attempts) });
 
   const research = await stage("research", async () => {
     const res = await runResearcher(engine.llm, { inputType, content, communityProfile: community });
@@ -104,7 +122,7 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
     return { value: res.data, summary: `Angle: ${chosen.title} (${chosen.targetEmotion})`, reason: res.data.reason, output: { research: res.data, ...llm }, retries };
   });
 
-  const script = await stage("script", async () => {
+  const draft = await stage("script", async () => {
     const res = await runScriptwriter(engine.llm, { content, research, communityProfile: community });
     const governed = governScript(res.data);
     metrics.governor_actions += governed.actions.length;
@@ -122,6 +140,66 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
         ...llm,
       },
       retries,
+    };
+  });
+
+  // Script Critic loop: score, revise up to twice, keep the best version. Every version is saved for the UI.
+  const thresholds: CriticThresholds = {
+    minOverall: input.criticThresholds?.minOverall ?? config.critic.minOverall(),
+    minHook: input.criticThresholds?.minHook ?? config.critic.minHook(),
+  };
+  const scores: GenerateResult["scores"] = { script_v1: null, script_final: null };
+
+  const script = await stage("script_critic", async () => {
+    const versions: ScriptVersion[] = [];
+    const attempts: LlmAttempt[] = [];
+    let current = draft;
+    let stoppedBy: string | null = null;
+
+    for (let version = 1; version <= 1 + config.critic.maxRevisions; version++) {
+      try {
+        const res = await runScriptCritic(engine.llm, { script: current, communityProfile: community });
+        attempts.push(...res.attempts);
+        const verdict = judge(res.data, thresholds);
+        versions.push({ version, script: current, wordCount: scriptWordCount(current), critique: res.data, overall: verdict.overall, passed: verdict.passed });
+        if (verdict.passed || version > config.critic.maxRevisions) break;
+
+        const revised = await runScriptRevision(engine.llm, { script: current, critique: res.data, communityProfile: community });
+        attempts.push(...revised.attempts);
+        const governed = governScript(revised.data);
+        metrics.governor_actions += governed.actions.length;
+        current = governed.script;
+      } catch (err) {
+        // The critic is a quality step, not a blocker: keep the best script so far and move on.
+        if (err instanceof LlmError) attempts.push(...err.attempts);
+        stoppedBy = (err as Error).message.slice(0, 200);
+        console.warn(`  [script_critic] stopped early: ${stoppedBy}`);
+        break;
+      }
+    }
+
+    const llm = trackAttempts(attempts);
+    if (versions.length === 0) {
+      return { value: draft, status: "skipped" as const, summary: "Script check skipped, using the first draft", reason: stoppedBy ?? "The critic was not available", output: { versions: [], thresholds, ...llm }, retries: llm.retries };
+    }
+
+    // Keep the best-scoring version even if none pass. On a tie the later version wins.
+    const best = versions.reduce((a, b) => ((b.overall ?? 0) >= (a.overall ?? 0) ? b : a));
+    const first = versions[0];
+    scores.script_v1 = first.overall;
+    scores.script_final = best.overall;
+    metrics.script_revisions = versions.length - 1;
+
+    const trail = versions.map((v) => `v${v.version} ${v.overall}`).join(" -> ");
+    const hookChanged = best.script.hook !== first.script.hook;
+    const topIssue = first.critique?.issues[0];
+    return {
+      value: best.script,
+      status: best.version > 1 ? ("fixed" as const) : ("done" as const),
+      summary: `${trail}. ${best.passed ? "Passed" : "Best version kept, below the bar"} (need ${thresholds.minOverall} overall, ${thresholds.minHook} hook).${best.version > 1 ? ` Using v${best.version}.` : ""}${hookChanged ? ` New hook: ${best.script.hook}` : ""}`,
+      reason: best.version > 1 && topIssue ? `v1 problem (${topIssue.sceneId}): ${topIssue.problem}` : best.passed ? "The first draft met the bar" : (stoppedBy ?? "No revision scored higher"),
+      output: { versions, chosenVersion: best.version, thresholds, stoppedBy, ...llm },
+      retries: llm.retries,
     };
   });
 
@@ -156,6 +234,7 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
       voices = await speakAll(kept, decision.speedUpPct);
     }
     const finalSec = total(voices);
+    const trimmedSilenceSec = voices.reduce((n, t) => n + (t.rawDurationSec - t.durationSec), 0);
     if (finalSec > budgetSec() + 0.5) {
       metrics.over_limit = true;
       actions.push({ type: "over_limit", detail: `Still ${finalSec.toFixed(1)}s after fixes for a ${budgetSec().toFixed(1)}s budget` });
@@ -217,6 +296,7 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
       output: {
         providers: { image: engine.image.name, tts: engine.tts.name, timings: [...new Set(voices.map((v) => v.timingSource))] },
         governor: { limitSec: config.video.maxSec(), budgetSec: budgetSec(), measuredSec, finalSec, speedUpPct: decision.speedUpPct, actions },
+        trimmedSilenceSec: Number(trimmedSilenceSec.toFixed(2)),
         neurons_est: metrics.neurons_est,
         scenes: value.map((s) => ({ id: s.id, layout: s.layout, durationSec: s.durationSec })),
       },
@@ -227,8 +307,11 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
   const videoFile = path.join(workDir, "video.mp4");
   const thumbFile = path.join(workDir, "thumb.jpg");
 
+  // QA gate, part 1: measure the layout before rendering and fix what can be fixed, so one render is enough.
+  const pre = qaScenes({ scenes, publicDir });
+
   await stage("render", async () => {
-    const inputProps: PulseVideoProps = { title: script.title, communityName: community.name, cta: script.cta, global: plan.global, scenes };
+    const inputProps: PulseVideoProps = { title: script.title, communityName: community.name, cta: script.cta, global: plan.global, scenes: pre.scenes };
     fs.writeFileSync(path.join(workDir, "props.json"), JSON.stringify(inputProps, null, 2));
     const serveUrl = await bundle({ entryPoint: path.resolve("remotion/index.ts"), publicDir });
     const composition = await selectComposition({ serveUrl, id: "PulseVideo", inputProps });
@@ -238,5 +321,23 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
     return { value: null, summary: `${durationSec.toFixed(1)}s video, ${sizeMb.toFixed(1)} MB`, output: { sizeMb, durationSec, cpus: os.cpus().length } };
   });
 
-  return { title: script.title, script, videoFile, thumbFile, durationSec, metrics };
+  // QA gate, part 2: measure the finished file. Loudness and file size are repaired by re-encoding.
+  const qa = await stage("qa", async () => {
+    const post = qaVideo(videoFile);
+    const checks = [...pre.checks, ...post.checks];
+    const s = summarizeChecks(checks);
+    metrics.qa_fixed = s.fixed;
+    metrics.qa_flagged = s.flagged;
+    const named = (status: string) => checks.filter((c) => c.status === status).map((c) => c.label.toLowerCase()).join(", ");
+    return {
+      value: checks,
+      status: s.fixed ? ("fixed" as const) : ("done" as const),
+      summary: `${checks.length} checks: ${s.passed} passed, ${s.fixed} fixed, ${s.flagged} flagged.${s.fixed ? ` Fixed: ${named("fixed")}.` : ""}${s.flagged ? ` Flagged: ${named("flagged")}.` : ""}`,
+      reason: checks.filter((c) => c.status !== "pass").map((c) => `${c.label}: ${c.detail}${c.before ? ` (${c.before} -> ${c.after})` : ""}`).join(" ") || "Every check passed without changes",
+      output: { checks, reencoded: post.reencoded, sizeMb: fs.statSync(videoFile).size / 1024 / 1024 },
+    };
+  });
+
+  metrics.fixes = metrics.script_revisions + metrics.governor_actions + metrics.qa_fixed;
+  return { title: script.title, script, videoFile, thumbFile, durationSec, scores, qa, metrics };
 }

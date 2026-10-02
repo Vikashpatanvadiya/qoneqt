@@ -1,5 +1,6 @@
 import React from "react";
 import { AbsoluteFill, Audio, Img, Series, interpolate, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
+import { HIGH_CONTRAST_BACKING_ALPHA, TITLE_LAYOUT, titleBox } from "../shared/layout";
 import { FPS, type PulseVideoProps, type RenderScene } from "../shared/types";
 import { Captions } from "./Captions";
 
@@ -48,20 +49,23 @@ const ImageScene: React.FC<{ scene: RenderScene; isHook: boolean }> = ({ scene, 
         src={staticFile(scene.imageFile!)}
         style={{ width: "100%", height: "100%", objectFit: "cover", transform: cameraTransform(scene.camera, frame / durationInFrames) }}
       />
+      {/* Keep in sync with scrimAlphaAt() in shared/layout.ts, which the QA gate uses to measure contrast */}
       <AbsoluteFill style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0) 30%, rgba(0,0,0,0) 45%, rgba(0,0,0,0.78) 100%)" }} />
+      {/* QA gate found the text unreadable on this image: darken the whole frame behind it */}
+      {scene.highContrast ? <AbsoluteFill style={{ backgroundColor: `rgba(0,0,0,${HIGH_CONTRAST_BACKING_ALPHA})` }} /> : null}
       {/* On-screen text sits below the top 10% safe zone */}
       <div
         style={{
           position: "absolute",
-          top: "14%",
-          left: 70,
-          right: 70,
+          top: `${TITLE_LAYOUT.image.topPct}%`,
+          left: TITLE_LAYOUT.image.sidePad,
+          right: TITLE_LAYOUT.image.sidePad,
           textAlign: "center",
           color: "white",
           fontFamily: FONT,
           fontWeight: 900,
-          fontSize: isHook ? 110 : 76,
-          lineHeight: 1.05,
+          fontSize: scene.titleFontSize ?? titleBox("image", isHook).fontSize,
+          lineHeight: TITLE_LAYOUT.image.lineHeight,
           textTransform: "uppercase",
           textShadow: "0 6px 30px rgba(0,0,0,0.85)",
         }}
@@ -92,10 +96,10 @@ const DesignedScene: React.FC<{ scene: RenderScene; palette: Palette; isHook: bo
       <div
         style={{
           position: "absolute",
-          top: "16%",
-          bottom: "40%",
-          left: 80,
-          right: 80,
+          top: `${TITLE_LAYOUT.card.topPct}%`,
+          bottom: `${TITLE_LAYOUT.card.bottomPct}%`,
+          left: TITLE_LAYOUT.card.sidePad,
+          right: TITLE_LAYOUT.card.sidePad,
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
@@ -112,9 +116,9 @@ const DesignedScene: React.FC<{ scene: RenderScene; palette: Palette; isHook: bo
         ) : null}
         <div
           style={{
-            fontSize: scene.layout === "stat_card" ? 72 : isHook ? 128 : 104,
+            fontSize: scene.titleFontSize ?? titleBox(scene.layout === "stat_card" && scene.statValue ? "stat" : "card", isHook).fontSize,
             fontWeight: 900,
-            lineHeight: 1.04,
+            lineHeight: TITLE_LAYOUT.card.lineHeight,
             textTransform: scene.layout === "quote_card" ? "none" : "uppercase",
             borderLeft: scene.layout === "quote_card" ? `14px solid ${palette.accent}` : undefined,
             paddingLeft: scene.layout === "quote_card" ? 44 : 0,
@@ -131,7 +135,7 @@ const DesignedScene: React.FC<{ scene: RenderScene; palette: Palette; isHook: bo
 const Scene: React.FC<{ scene: RenderScene; palette: Palette; isHook: boolean }> = ({ scene, palette, isHook }) => (
   <AbsoluteFill>
     {scene.layout === "full_image" && scene.imageFile ? <ImageScene scene={scene} isHook={isHook} /> : <DesignedScene scene={scene} palette={palette} isHook={isHook} />}
-    <Captions words={scene.words} emphasisWords={scene.emphasisWords} accent={palette.accent} />
+    <Captions words={scene.words} emphasisWords={scene.emphasisWords} accent={palette.accent} fontSize={scene.captionFontSize} />
     <Audio src={staticFile(scene.audioFile)} />
   </AbsoluteFill>
 );

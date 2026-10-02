@@ -1,5 +1,5 @@
 import { LlmError, type LlmProvider, type LlmResult } from "../providers/llm";
-import { SCENE_MAX_WORDS, SCRIPT_MAX_WORDS, SCRIPT_MIN_WORDS, ScriptSchema, StrictScriptSchema, type CommunityProfile, type Research, type Script } from "../schemas";
+import { SCENE_MAX_WORDS, SCRIPT_MAX_WORDS, SCRIPT_MIN_WORDS, ScriptSchema, StrictScriptSchema, type CommunityProfile, type Critique, type Research, type Script } from "../schemas";
 import { communityBlock } from "./community";
 
 export type ScriptwriterInput = { content: string; research: Research; communityProfile: CommunityProfile };
@@ -39,6 +39,38 @@ ${input.content}`;
     console.warn(`  [scriptwriter] strict length rules failed, accepting a well-formed script: ${(err as Error).message.slice(0, 160)}`);
     const earlier = err instanceof LlmError ? err.attempts : [];
     const res = await llm.generateJson({ label: "scriptwriter (lenient)", system: SYSTEM, prompt, schema: ScriptSchema });
+    return { ...res, attempts: [...earlier, ...res.attempts] };
+  }
+}
+
+export type RevisionInput = { script: Script; critique: Critique; communityProfile: CommunityProfile };
+
+const REVISION_RULES = `
+You are now REVISING a script after an editor's review.
+- Fix every issue the editor listed. Use the editor's fix as a starting point, and make it better if you can.
+- Keep scenes the editor did not complain about, unless a change elsewhere forces an edit.
+- The lowest score is the priority. If the hook scored under 8, write a new hook that is specific, surprising or personal.
+- Do not make the script longer. The length rules above still apply.`;
+
+// Rewrites a script from the Script Critic's issues. Same output shape and length rules as the first draft.
+export async function runScriptRevision(llm: LlmProvider, input: RevisionInput): Promise<LlmResult<Script>> {
+  const { scores, issues } = input.critique;
+  const prompt = `${communityBlock(input.communityProfile)}
+
+CURRENT SCRIPT
+${JSON.stringify(input.script, null, 2)}
+
+EDITOR SCORES (1 to 10)
+hook ${scores.hook}, clarity ${scores.clarity}, pacing ${scores.pacing}, communityFit ${scores.communityFit}, retention ${scores.retention}
+
+EDITOR ISSUES
+${issues.map((i) => `- ${i.sceneId}: ${i.problem}\n  Fix: ${i.fix}`).join("\n") || "- No specific issues listed. Raise the weakest score."}`;
+
+  try {
+    return await llm.generateJson({ label: "scriptwriter revision", system: SYSTEM + REVISION_RULES, prompt, schema: StrictScriptSchema });
+  } catch (err) {
+    const earlier = err instanceof LlmError ? err.attempts : [];
+    const res = await llm.generateJson({ label: "scriptwriter revision (lenient)", system: SYSTEM + REVISION_RULES, prompt, schema: ScriptSchema });
     return { ...res, attempts: [...earlier, ...res.attempts] };
   }
 }
