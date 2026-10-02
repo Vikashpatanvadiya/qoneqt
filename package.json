@@ -1,0 +1,29 @@
+{
+  "name": "qoneqt-pulse",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "gen": "tsx scripts/gen.ts",
+    "remotion:studio": "remotion studio remotion/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@remotion/bundler": "^4.0.532",
+    "@remotion/cli": "^4.0.532",
+    "@remotion/renderer": "^4.0.532",
+    "@supabase/supabase-js": "^2.117.2",
+    "dotenv": "^18.0.5",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "remotion": "^4.0.532",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.4",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vercel/node": "^17.0.0",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}
