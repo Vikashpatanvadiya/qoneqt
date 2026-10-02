@@ -23,6 +23,10 @@
     <main>
       <h1>Qoneqt Pulse</h1>
       <textarea id="topic" placeholder="Topic, trend or idea"></textarea>
+      <select id="engine" style="margin-top:12px;width:100%;padding:12px;border-radius:10px;border:1px solid #3b2a66;background:#170d2b;color:inherit;font:inherit">
+        <option value="gemini">Engine: Cloud Gemini (agents)</option>
+        <option value="pulse-lm">Engine: Pulse-LM (our fine-tuned model, slower)</option>
+      </select>
       <button id="go">Generate video</button>
       <p id="status" class="muted"></p>
       <ul id="stages"></ul>
@@ -60,7 +64,7 @@
       $("go").onclick = async () => {
         $("go").disabled = true; $("result").replaceChildren(); $("stages").replaceChildren();
         text($("status"), "Creating job...");
-        const res = await fetch("/api/jobs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ input_type: "topic", input_text: $("topic").value }) });
+        const res = await fetch("/api/jobs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ input_type: "topic", input_text: $("topic").value, options: { engine: $("engine").value } }) });
         const data = await res.json();
         const job = data.jobs && data.jobs[0];
         if (!res.ok || !job || job.status === "failed") {

@@ -8,6 +8,11 @@ on:
         description: Job id from the Supabase jobs table
         required: true
         type: string
+      engine:
+        description: gemini (cloud agents) or pulse-lm (our fine-tuned planner)
+        required: false
+        default: gemini
+        type: string
       delay_sec:
         description: Seconds to wait before starting (staggers batch jobs)
         required: false
@@ -38,6 +43,7 @@ jobs:
       RENDER_CRF: ${{ vars.RENDER_CRF }}
       CF_IMAGE_MODEL: ${{ vars.CF_IMAGE_MODEL }}
       EDGE_TTS_VOICE: ${{ vars.EDGE_TTS_VOICE }}
+      PULSE_LM_MODEL: ${{ vars.PULSE_LM_MODEL }}
       PYTHON_BIN: python
       JOB_ID: ${{ inputs.job_id }}
       DELAY_SEC: ${{ inputs.delay_sec }}
@@ -80,6 +86,25 @@ jobs:
 
       - name: Ensure Remotion browser
         run: npx remotion browser ensure
+
+      # Pulse-LM only: serve our fine-tuned GGUF model on the runner's CPU. If any of this fails,
+      # the pipeline notices the server is missing and falls back to the Gemini agents.
+      - name: Cache Pulse-LM model
+        if: inputs.engine == 'pulse-lm'
+        uses: actions/cache@v4
+        with:
+          path: ~/.ollama/models
+          key: pulse-lm-${{ vars.PULSE_LM_MODEL }}
+
+      - name: Start Pulse-LM server
+        if: inputs.engine == 'pulse-lm'
+        continue-on-error: true
+        run: |
+          curl -fsSL https://ollama.com/install.sh | sh
+          sudo systemctl stop ollama || true
+          OLLAMA_MODELS="$HOME/.ollama/models" OLLAMA_KEEP_ALIVE=30m nohup ollama serve > ollama.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:11434/api/version && break; sleep 1; done
+          time ollama pull "$PULSE_LM_MODEL"
 
       - name: Run pipeline
         run: npx tsx pipeline/run.ts "$JOB_ID" "$DELAY_SEC"

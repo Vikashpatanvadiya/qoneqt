@@ -16,7 +16,9 @@ const env = (name: string, fallback?: string): string => {
 
 const supabase = () => createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_KEY"), { auth: { persistSession: false } });
 
-async function dispatchRender(jobId: string, delaySec: number): Promise<void> {
+const ENGINES = ["gemini", "pulse-lm"];
+
+async function dispatchRender(jobId: string, delaySec: number, engine: string): Promise<void> {
   const url = `https://api.github.com/repos/${env("GH_OWNER")}/${env("GH_REPO")}/actions/workflows/render.yml/dispatches`;
   const res = await fetch(url, {
     method: "POST",
@@ -26,7 +28,7 @@ async function dispatchRender(jobId: string, delaySec: number): Promise<void> {
       "X-GitHub-Api-Version": "2022-11-28",
       "User-Agent": "qoneqt-pulse",
     },
-    body: JSON.stringify({ ref: env("GH_REF", "main"), inputs: { job_id: jobId, delay_sec: String(delaySec) } }),
+    body: JSON.stringify({ ref: env("GH_REF", "main"), inputs: { job_id: jobId, delay_sec: String(delaySec), engine } }),
   });
   if (!res.ok) throw new Error(`GitHub dispatch failed: HTTP ${res.status} ${(await res.text()).slice(0, 200)}`);
 }
@@ -81,7 +83,10 @@ async function createJobs(req: VercelRequest, res: VercelResponse) {
   }
 
   const batchId = inputs.length > 1 ? crypto.randomUUID() : null;
-  const options = { ...(typeof body.options === "object" && body.options ? body.options : {}), ipHash };
+  const requested = typeof body.options === "object" && body.options ? body.options : {};
+  // The engine decides whether the worker starts our own model, so only known names are passed on.
+  const engine = ENGINES.includes(requested.engine) ? String(requested.engine) : "gemini";
+  const options = { ...requested, engine, ipHash };
   const inserted = await db
     .from("jobs")
     .insert(inputs.map((input_text) => ({ input_type: inputType, input_text, batch_id: batchId, community_id: body.community_id ?? null, options })))
@@ -93,7 +98,7 @@ async function createJobs(req: VercelRequest, res: VercelResponse) {
   const staggerSec = Number(process.env.BATCH_STAGGER_SEC ?? 20);
   for (const [index, { id }] of inserted.data.entries()) {
     try {
-      await dispatchRender(id, index * staggerSec);
+      await dispatchRender(id, index * staggerSec, engine);
       jobs.push({ id, status: "queued" });
     } catch (err) {
       const error = (err as Error).message;

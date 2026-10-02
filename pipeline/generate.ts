@@ -18,10 +18,10 @@ import type { Engine } from "./providers";
 import { LlmError, summarizeAttempts, type LlmAttempt } from "./providers/llm";
 import { qaScenes, qaVideo, summarizeChecks, type QaCheck } from "./qa";
 import type { TtsResult } from "./providers/tts";
-import { scriptWordCount, type CommunityProfile, type InputType, type Script, type ScriptVersion } from "./schemas";
+import { scriptWordCount, type CommunityProfile, type InputType, type Script, type ScriptVersion, type ShotPlan } from "./schemas";
 import { mapLimit } from "./util";
 
-export type StageName = "ingest" | "research" | "script" | "script_critic" | "direct" | "assets" | "vision_critic" | "render" | "qa" | "upload";
+export type StageName = "ingest" | "plan" | "research" | "script" | "script_critic" | "direct" | "assets" | "vision_critic" | "render" | "qa" | "upload";
 
 // `status` defaults to "done". "fixed" means the stage caught a problem and repaired it, "skipped" means it could not run.
 export type StageResult<T> = { value: T; summary: string; reason?: string; output?: unknown; retries?: number; status?: "done" | "fixed" | "skipped" };
@@ -115,6 +115,15 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
   };
   const track = (res: { model: string; attempts: LlmAttempt[] }) => ({ model: res.model, ...trackAttempts(res.attempts) });
 
+  // Script Critic loop: score, revise up to twice, keep the best version. Every version is saved for the UI.
+  const thresholds: CriticThresholds = {
+    minOverall: input.criticThresholds?.minOverall ?? config.critic.minOverall(),
+    minHook: input.criticThresholds?.minHook ?? config.critic.minHook(),
+  };
+  const scores: GenerateResult["scores"] = { script_v1: null, script_final: null };
+
+  // Cloud engine: Researcher, Scriptwriter, Script Critic and Director as separate agents.
+  const planWithAgents = async (): Promise<{ script: Script; plan: ShotPlan }> => {
   const research = await stage("research", async () => {
     const res = await runResearcher(engine.llm, { inputType, content, communityProfile: community });
     const chosen = res.data.angles[res.data.chosenIndex];
@@ -142,13 +151,6 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
       retries,
     };
   });
-
-  // Script Critic loop: score, revise up to twice, keep the best version. Every version is saved for the UI.
-  const thresholds: CriticThresholds = {
-    minOverall: input.criticThresholds?.minOverall ?? config.critic.minOverall(),
-    minHook: input.criticThresholds?.minHook ?? config.critic.minHook(),
-  };
-  const scores: GenerateResult["scores"] = { script_v1: null, script_final: null };
 
   const script = await stage("script_critic", async () => {
     const versions: ScriptVersion[] = [];
@@ -217,6 +219,72 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
       retries,
     };
   });
+  return { script, plan };
+  };
+
+  // Pulse-LM engine: one call to our fine-tuned model plans the script and the shots.
+  // If it is not available or fails, the job falls back to the Gemini agents, so the video still finishes.
+  const planWithPulseLm = async (): Promise<{ script: Script; plan: ShotPlan } | null> => {
+    const planned = await stage("plan", async () => {
+      try {
+        const start = Date.now();
+        const res = await engine.planner!({ inputType, content, communityProfile: community });
+        const governed = governScript(res.data.script);
+        const { plan, repairs } = normalizeShotPlan(res.data.plan, governed.script);
+        metrics.governor_actions += governed.actions.length;
+        const { retries, ...llm } = track(res);
+        const images = plan.shots.filter((s) => s.layout === "full_image").length;
+        const fixes = governed.actions.length + repairs.length;
+        return {
+          value: { script: governed.script, plan },
+          status: fixes ? ("fixed" as const) : ("done" as const),
+          summary: `Pulse-LM planned "${governed.script.title}" in one call (${((Date.now() - start) / 1000).toFixed(0)}s, ${res.tokensPerSec.toFixed(1)} tokens/sec): ${governed.script.scenes.length} scenes, ${scriptWordCount(governed.script)} words, ${images} image scenes.${fixes ? ` Code fixed ${fixes} problem${fixes > 1 ? "s" : ""}.` : ""} Hook: ${governed.script.hook}`,
+          reason: `Our fine-tuned model wrote the script and the shot plan together. Ends with: ${governed.script.cta}`,
+          output: {
+            versions: [{ version: 1, script: governed.script, wordCount: scriptWordCount(governed.script) }],
+            plan,
+            repairs,
+            governor: { limitSec: config.video.maxSec(), budgetSec: governed.budgetSec, estimatedSec: governed.estimatedSec, actions: governed.actions },
+            tokensPerSec: res.tokensPerSec,
+            ...llm,
+          },
+          retries,
+        };
+      } catch (err) {
+        const attempts = err instanceof LlmError ? trackAttempts(err.attempts).attempts : [];
+        console.warn(`  [plan] Pulse-LM failed, falling back to the Gemini agents: ${(err as Error).message.slice(0, 160)}`);
+        return { value: null, status: "skipped" as const, summary: "Pulse-LM was not available, using the Cloud Gemini agents instead", reason: (err as Error).message.slice(0, 300), output: { attempts } };
+      }
+    });
+    if (!planned) {
+      metrics.engine = "gemini (fallback from pulse-lm)";
+      return null;
+    }
+
+    // The Script Critic still scores the result, on a different model. This engine does not revise.
+    await stage("script_critic", async () => {
+      try {
+        const res = await runScriptCritic(engine.llm, { script: planned.script, communityProfile: community });
+        const verdict = judge(res.data, thresholds);
+        scores.script_v1 = verdict.overall;
+        scores.script_final = verdict.overall;
+        const { retries, ...llm } = track(res);
+        const version: ScriptVersion = { version: 1, script: planned.script, wordCount: scriptWordCount(planned.script), critique: res.data, overall: verdict.overall, passed: verdict.passed };
+        return {
+          value: null,
+          summary: `Pulse-LM script scored ${verdict.overall}. ${verdict.passed ? "Passed" : "Below the bar"} (need ${thresholds.minOverall} overall, ${thresholds.minHook} hook). No revision loop in this engine.`,
+          reason: res.data.issues[0] ? `Main issue (${res.data.issues[0].sceneId}): ${res.data.issues[0].problem}` : "No issues listed",
+          output: { versions: [version], chosenVersion: 1, thresholds, ...llm },
+          retries,
+        };
+      } catch (err) {
+        return { value: null, status: "skipped" as const, summary: "Script check skipped", reason: (err as Error).message.slice(0, 200) };
+      }
+    });
+    return planned;
+  };
+
+  const { script, plan } = (engine.planner ? await planWithPulseLm() : null) ?? (await planWithAgents());
 
   const scenes = await stage("assets", async () => {
     const voice = community.defaultVoice;

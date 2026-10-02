@@ -52,6 +52,12 @@ export const config = {
     serviceKey: () => env("SUPABASE_SERVICE_KEY"),
   },
   engine: () => optional("PULSE_ENGINE") ?? "gemini",
+  // Pulse-LM: our fine-tuned planner, served by a local Ollama (llama.cpp) server.
+  pulseLm: {
+    url: () => optional("PULSE_LM_URL") ?? "http://127.0.0.1:11434",
+    model: () => env("PULSE_LM_MODEL"),
+    timeoutMs: () => Number(optional("PULSE_LM_TIMEOUT_SEC") ?? 600) * 1000,
+  },
   // Duration governor. The limit covers the whole video including the outro.
   video: {
     maxSec: () => Number(optional("MAX_VIDEO_SEC") ?? 45),
