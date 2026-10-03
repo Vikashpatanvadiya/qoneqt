@@ -69,7 +69,7 @@ export const Captions: React.FC<{ scene: RenderScene; accent: string; theme: The
           let scale = 1;
           if (style === "pop") {
             opacity = spoken ? 1 : 0.55;
-            scale = isCurrent ? 1 + (isEmphasis ? (creator ? 0.2 : 0.1) : 0.07) * bounce : 1;
+            scale = isCurrent ? 1 + (isEmphasis ? (creator ? 0.14 : 0.1) : 0.07) * bounce : 1;
           } else if (style === "karaoke") {
             color = spoken ? (onLight ? ink : accent) : ink;
             opacity = spoken ? 1 : 0.7;
@@ -84,6 +84,8 @@ export const Captions: React.FC<{ scene: RenderScene; accent: string; theme: The
                 color,
                 opacity,
                 transform: `scale(${scale})`,
+                // Room for the scaled word, so it never touches its neighbours
+                margin: scale > 1 ? `0 ${Math.round(fontSize * (scale - 1) * 1.6)}px` : 0,
                 // On light backgrounds emphasis (and karaoke progress) is a highlighter stroke, not a color
                 ...(onLight && (isEmphasis || (style === "karaoke" && spoken)) ? { background: `linear-gradient(transparent 52%, ${accent}bb 52%)`, padding: "0 4px" } : {}),
               }}
