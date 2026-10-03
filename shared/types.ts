@@ -14,6 +14,8 @@ export type WordTiming = {
 export type RenderScene = {
   id: string;
   purpose?: "hook" | "context" | "point" | "twist" | "cta";
+  // "upload" scenes use the creator's own image, which is never regenerated.
+  source?: "ai" | "upload";
   narration: string;
   onScreenText: string;
   layout: Shot["layout"];

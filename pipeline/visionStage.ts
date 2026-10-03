@@ -118,7 +118,8 @@ export async function runVisionStage(input: VisionStageInput): Promise<StageResu
         report.rounds.push({ round, stillUrl, review: null, decision: "skipped" });
         continue;
       }
-      let decision = decide(review, scene.layout === "full_image" && Boolean(scene.imageFile));
+      // The creator's own photos are never replaced; only their text contrast can be fixed.
+      let decision = decide(review, scene.layout === "full_image" && Boolean(scene.imageFile) && scene.source !== "upload");
       report.finalScore = review.score;
       report.beforeUrl ??= stillUrl;
 

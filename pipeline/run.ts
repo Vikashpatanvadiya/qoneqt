@@ -9,6 +9,7 @@ import { resolveEngine } from "./providers";
 import { InputTypeSchema } from "./schemas";
 import { sleep } from "./util";
 import { parseSound } from "./sound";
+import { parseMedia } from "./uploads";
 
 const JOB_TIMEOUT_MS = 25 * 60 * 1000;
 
@@ -17,6 +18,13 @@ function criticOptions(options: unknown): { minOverall?: number; minHook?: numbe
   const critic = (options as { critic?: Record<string, unknown> } | null)?.critic ?? {};
   const num = (v: unknown) => (typeof v === "number" && v >= 1 && v <= 10 ? v : undefined);
   return { minOverall: num(critic.minOverall), minHook: num(critic.minHook) };
+}
+
+// options.script = { text, keepWords }. Without keepWords the script is handed to the agents as a strong brief instead.
+function ownScriptOption(options: unknown): { text: string; keepWords: boolean } | undefined {
+  const o = (options as { script?: { text?: unknown; keepWords?: unknown } } | null)?.script;
+  if (!o || typeof o.text !== "string" || o.text.trim().length < 20) return undefined;
+  return { text: o.text.slice(0, 5000), keepWords: o.keepWords !== false };
 }
 
 async function runJob(jobId: string) {
@@ -52,6 +60,8 @@ async function runJob(jobId: string) {
     debugBreakScene: typeof job.options?.debugBreakScene === "string" ? job.options.debugBreakScene : undefined,
     editStyle: job.options?.editStyle === "classic" ? "classic" : "creator",
     sound: parseSound(job.options?.sound),
+    ownScript: ownScriptOption(job.options),
+    media: parseMedia(job.options?.media),
     workDir,
     stage,
   });

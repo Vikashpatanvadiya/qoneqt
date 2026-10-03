@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowRight, Cpu, Layers, SlidersHorizontal, Sparkles } from "lucide-react";
+import { ArrowRight, Cpu, ImagePlus, Layers, SlidersHorizontal, Sparkles, X } from "lucide-react";
+import { uploadImages, type Uploaded } from "../lib/uploads";
 import { createJobs } from "../lib/api";
 import { supabase } from "../lib/supabase";
 import { JOB_COLUMNS, type CommunityRow, type JobRow } from "../lib/types";
@@ -65,6 +66,27 @@ export function CreatePage() {
   const [sound, setSound] = useState<Sound>(DEFAULT_SOUND);
   const [editStyle, setEditStyle] = useState<"creator" | "classic">("creator");
   const [showSound, setShowSound] = useState(false);
+  const [scriptMode, setScriptMode] = useState<"ai" | "own">("ai");
+  const [keepWords, setKeepWords] = useState(true);
+  const [uploads, setUploads] = useState<Uploaded[]>([]);
+  const [mediaMode, setMediaMode] = useState<"mixed" | "ai" | "uploads">("mixed");
+  const [uploading, setUploading] = useState(false);
+
+  async function addFiles(list: FileList | null) {
+    if (!list?.length) return;
+    setError(null);
+    const files = Array.from(list).slice(0, 10 - uploads.length);
+    setUploading(true);
+    try {
+      const done = await uploadImages(files);
+      // Numbering continues across uploads so [img3] keeps meaning image 3.
+      setUploads((prev) => [...prev, ...done.map((u, i) => ({ ...u, index: prev.length + i + 1 }))]);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setUploading(false);
+    }
+  }
   const setS = <K extends keyof Sound>(k: K) => (v: Sound[K]) => setSound((prev) => ({ ...prev, [k]: v }));
 
   useEffect(() => {
@@ -72,7 +94,8 @@ export function CreatePage() {
     supabase.from("jobs").select(JOB_COLUMNS).eq("status", "done").order("created_at", { ascending: false }).limit(4).then(({ data }) => setRecent((data as JobRow[]) ?? []));
   }, []);
 
-  const inputs = batch ? text.split("\n").map((l) => l.trim()).filter(Boolean) : [text.trim()].filter(Boolean);
+  const own = scriptMode === "own";
+  const inputs = batch && !own ? text.split("\n").map((l) => l.trim()).filter(Boolean) : [text.trim()].filter(Boolean);
   const current = TYPES.find((t) => t.id === type)!;
 
   async function submit() {
@@ -81,7 +104,13 @@ export function CreatePage() {
     if (inputs.length > 10) return setError("Batch mode takes up to 10 lines at a time.");
     setBusy(true);
     try {
-      const res = await createJobs({ input_type: type, inputs, community_id: communityId || null, options: { engine, editStyle, sound } });
+      const media = uploads.length ? { mode: mediaMode, uploads: uploads.map(({ index, path, name }) => ({ index, path, name })) } : undefined;
+      const res = await createJobs({
+        input_type: own ? "idea" : type,
+        inputs,
+        community_id: communityId || null,
+        options: { engine, editStyle, sound, ...(own ? { script: { text: inputs[0], keepWords } } : {}), ...(media ? { media } : {}) },
+      });
       const ok = res.jobs.filter((j) => j.status !== "failed");
       if (ok.length === 0) throw new Error(res.jobs[0]?.error ?? "Could not start the job");
       navigate(res.batch_id ? `/library?batch=${res.batch_id}` : `/jobs/${ok[0].id}`);
@@ -107,7 +136,25 @@ export function CreatePage() {
       <section>
         <SectionTitle>Create</SectionTitle>
         <Card className="space-y-6">
-          <div className="flex flex-wrap gap-2" role="tablist" aria-label="Input type">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="mr-1 text-sm font-medium text-muted">Script</span>
+            {([
+              { id: "ai", label: "AI writes the script" },
+              { id: "own", label: "I have my own script" },
+            ] as const).map((m) => (
+              <button key={m.id} onClick={() => setScriptMode(m.id)} aria-pressed={scriptMode === m.id} className={cx("rounded-xl px-3 py-1.5 text-sm font-semibold transition", scriptMode === m.id ? "bg-brand text-[#141414]" : "bg-white/[0.05] text-muted hover:text-ink")}>
+                {m.label}
+              </button>
+            ))}
+            {own ? (
+              <label className="ml-auto flex cursor-pointer items-center gap-2 text-sm">
+                <input type="checkbox" checked={keepWords} onChange={(e) => setKeepWords(e.target.checked)} className="h-4 w-4 accent-[#fda24a]" />
+                Keep my words exactly
+              </label>
+            ) : null}
+          </div>
+
+          <div className={cx("flex flex-wrap gap-2", own && "hidden")} role="tablist" aria-label="Input type">
             {TYPES.map((t) => (
               <button
                 key={t.id}
@@ -125,11 +172,12 @@ export function CreatePage() {
             <textarea
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder={batch ? "One input per line, up to 10. Each line becomes its own video." : current.placeholder}
-              rows={type === "thread" || batch ? 8 : 4}
+              placeholder={own ? "Paste your script. Start a sentence with [img1] or {{image:2}} to put your uploaded image there." : batch ? "One input per line, up to 10. Each line becomes its own video." : current.placeholder}
+              rows={own || type === "thread" || batch ? 8 : 4}
               className="w-full resize-y rounded-2xl border border-line bg-surface px-4 py-3.5 text-[16px] leading-relaxed text-ink placeholder:text-faint focus:border-amber/60 focus:outline-none"
             />
-            <div className="mt-3 flex flex-wrap gap-2">
+            {own ? <p className="mt-2 text-xs text-faint">{keepWords ? "Your words are used exactly. AI only splits them into scenes, adds on-screen text and gives advice." : "AI may tighten your script for pacing and length."}</p> : null}
+            <div className={cx("mt-3 flex flex-wrap gap-2", own && "hidden")}>
               <span className="py-1 text-xs text-faint">Try:</span>
               {(SAMPLES[type] ?? []).map((s) => (
                 <button key={s} onClick={() => setText(batch ? (text ? `${text}\n${s}` : s) : s)} className="max-w-full truncate rounded-full bg-white/[0.05] px-3 py-1 text-xs text-muted hover:text-ink">
@@ -173,6 +221,32 @@ export function CreatePage() {
           </div>
 
           <div className="border-t border-line pt-5">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="flex items-center gap-2 text-sm font-semibold text-muted"><ImagePlus size={16} /> My media</span>
+              <label className={cx("cursor-pointer rounded-xl border border-line bg-surface px-3 py-1.5 text-sm font-medium hover:border-white/20", (uploading || uploads.length >= 10) && "pointer-events-none opacity-50")}>
+                {uploading ? "Uploading…" : "Add images"}
+                <input type="file" accept="image/jpeg,image/png,image/webp" multiple className="sr-only" onChange={(e) => addFiles(e.target.files)} />
+              </label>
+              <span className="text-xs text-faint">Up to 10 · JPG, PNG, WebP · 5 MB each · EXIF and location are removed</span>
+            </div>
+            {uploads.length ? (
+              <div className="mt-4 space-y-3">
+                <div className="flex flex-wrap gap-2">
+                  {uploads.map((u) => (
+                    <figure key={u.path} className="relative w-20">
+                      <img src={u.preview} alt={u.name} className="aspect-[3/4] w-20 rounded-lg object-cover" />
+                      <figcaption className="mt-1 text-center text-[11px] text-muted">[img{u.index}]</figcaption>
+                      <button onClick={() => setUploads(uploads.filter((x) => x.path !== u.path))} className="absolute right-1 top-1 rounded-full bg-black/70 p-0.5" aria-label={`Remove ${u.name}`}><X size={12} /></button>
+                    </figure>
+                  ))}
+                </div>
+                <Segmented label="Images in the video" value={mediaMode} onChange={setMediaMode} options={[{ value: "mixed", label: "Mixed (my images first, AI for the rest)" }, { value: "uploads", label: "Only my images" }, { value: "ai", label: "Only AI images" }]} />
+                <p className="rounded-xl bg-amber/10 px-3 py-2 text-xs text-amber">Only upload images you have the right to use. The video may be public.</p>
+              </div>
+            ) : null}
+          </div>
+
+          <div className="border-t border-line pt-5">
             <button onClick={() => setShowSound(!showSound)} className="flex items-center gap-2 text-sm font-semibold text-muted hover:text-ink" aria-expanded={showSound}>
               <SlidersHorizontal size={16} /> Sound and edit
               <span className="font-normal text-faint">
@@ -194,7 +268,7 @@ export function CreatePage() {
 
           <div className="flex flex-col gap-4 border-t border-line pt-6 sm:flex-row sm:items-center">
             <label className="flex cursor-pointer items-center gap-3 text-sm">
-              <input type="checkbox" checked={batch} onChange={(e) => setBatch(e.target.checked)} className="peer sr-only" />
+              <input type="checkbox" checked={batch && !own} disabled={own} onChange={(e) => setBatch(e.target.checked)} className="peer sr-only" />
               <span className="relative h-6 w-11 rounded-full bg-white/10 transition peer-checked:bg-amber after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-ink after:transition peer-checked:after:translate-x-5" />
               <span className="flex items-center gap-1.5 font-medium"><Layers size={15} />Batch mode</span>
               <span className="text-faint">{batch ? `${inputs.length} video${inputs.length === 1 ? "" : "s"}, rendered in parallel` : "one line, one video"}</span>

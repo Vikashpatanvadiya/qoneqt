@@ -11,6 +11,8 @@ import { normalizeShotPlan, runDirector } from "./agents/director";
 import { runResearcher } from "./agents/researcher";
 import { judge, runScriptCritic, type CriticThresholds } from "./agents/scriptCritic";
 import { runScriptRevision, runScriptwriter } from "./agents/scriptwriter";
+import { dressOwnScript, splitScript } from "./agents/ownScript";
+import { placeUploads, type MediaOptions, type Placement } from "./uploads";
 import { config } from "./config";
 import { fluxNeurons } from "./cost/pricing";
 import { budgetSec, governScript, governTimeline, type GovernorAction } from "./governor";
@@ -45,6 +47,9 @@ export type GenerateInput = {
   // "creator" (default) or "classic" edit
   editStyle?: "creator" | "classic";
   sound?: SoundOptions;
+  // The user's own script. With keepWords the narration is used word for word.
+  ownScript?: { text: string; keepWords: boolean };
+  media?: MediaOptions;
   workDir: string;
   stage: StageRunner;
 };
@@ -300,7 +305,54 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
     return planned;
   };
 
-  const { script, plan } = (engine.planner ? await planWithPulseLm() : null) ?? (await planWithAgents());
+  // Own script, word for word: code splits it, the model only dresses it, the critic only advises.
+  const keepWords = Boolean(input.ownScript?.keepWords);
+  const sceneTags = new Map<string, number>();
+  const planWithOwnScript = async (): Promise<{ script: Script; plan: ShotPlan }> => {
+    const own = await stage("script", async () => {
+      const split = splitScript(input.ownScript!.text);
+      for (const s of split) if (s.imageTag) sceneTags.set(s.id, s.imageTag);
+      const res = await dressOwnScript(engine.llm, { scenes: split, communityProfile: community });
+      const { retries, ...llm } = track(res);
+      return {
+        value: res.data,
+        summary: `Your script, kept word for word: ${res.data.scenes.length} scenes, ${scriptWordCount(res.data)} words.${sceneTags.size ? ` Image tags in ${sceneTags.size} scene${sceneTags.size > 1 ? "s" : ""}.` : ""}`,
+        reason: "Code split the script at sentence ends. The model only added on-screen text, scene roles, a title and a caption.",
+        output: { versions: [{ version: 1, script: res.data, wordCount: scriptWordCount(res.data) }], imageTags: Object.fromEntries(sceneTags), ...llm },
+        retries,
+      };
+    });
+    await stage("script_critic", async () => {
+      try {
+        const res = await runScriptCritic(engine.llm, { script: own, communityProfile: community });
+        const verdict = judge(res.data, thresholds);
+        scores.script_v1 = verdict.overall;
+        scores.script_final = verdict.overall;
+        const { retries, ...llm } = track(res);
+        return {
+          value: null,
+          summary: `Your script scored ${verdict.overall}. Advice only: your words are not changed.`,
+          reason: res.data.issues.map((i) => `${i.sceneId}: ${i.fix}`).join(" | ") || "No suggestions",
+          output: { versions: [{ version: 1, script: own, wordCount: scriptWordCount(own), critique: res.data, overall: verdict.overall, passed: verdict.passed }], chosenVersion: 1, thresholds, adviceOnly: true, ...llm },
+          retries,
+        };
+      } catch (err) {
+        return { value: null, status: "skipped" as const, summary: "Script advice skipped", reason: (err as Error).message.slice(0, 200) };
+      }
+    });
+    const plan = await stage("direct", async () => {
+      const res = await runDirector(engine.llm, { script: own, communityProfile: community });
+      const { plan, repairs } = normalizeShotPlan(res.data, own);
+      const images = plan.shots.filter((s) => s.layout === "full_image").length;
+      const { retries, ...llm } = track(res);
+      return { value: plan, summary: `${plan.global.theme ?? "auto"} theme, ${images} image scenes, ${plan.shots.length - images} designed scenes, ${plan.global.musicMood} music`, reason: `Style: ${plan.global.stylePrompt}`, output: { plan, repairs, ...llm }, retries };
+    });
+    return { script: own, plan };
+  };
+
+  const { script, plan } = input.ownScript?.keepWords
+    ? await planWithOwnScript()
+    : ((engine.planner ? await planWithPulseLm() : null) ?? (await planWithAgents()));
 
   const scenes = await stage("assets", async () => {
     const voice = sound.voice || community.defaultVoice;
@@ -313,7 +365,7 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
     let kept = script.scenes;
     let voices = await speakAll(kept, 0);
     const measuredSec = total(voices);
-    const decision = governTimeline(kept.map((s, i) => ({ id: s.id, purpose: s.purpose, durationSec: voices[i].durationSec + config.scenePaddingSec })));
+    const decision = governTimeline(kept.map((s, i) => ({ id: s.id, purpose: s.purpose, durationSec: voices[i].durationSec + config.scenePaddingSec })), { keepWords });
     const actions: GovernorAction[] = [...decision.actions];
     if (decision.dropIds.length || decision.speedUpPct) {
       kept = kept.filter((s) => !decision.dropIds.includes(s.id));
@@ -329,10 +381,21 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
 
     const imageSources: Record<string, number> = {};
     const imageProblems = new Set<string>();
+    // The creator's own images go first: by [imgN] tag, then matched by meaning.
+    const media = input.media ?? { mode: "mixed" as const, uploads: [] };
+    let placements: Placement[] = [];
+    if (media.uploads.length && media.mode !== "ai") {
+      const placed = await placeUploads({ media, script: { ...script, scenes: kept }, tags: sceneTags, theme: plan.global.theme, publicDir, workDir, vision: engine.vision });
+      placements = placed.placements;
+      placed.problems.forEach((p) => imageProblems.add(p));
+      trackAttempts(placed.attempts);
+    }
     const value = await mapLimit(kept, config.maxParallelAssets, async (scene, i): Promise<RenderScene> => {
       const shot = plan.shots.find((s) => s.sceneId === scene.id)!;
       const track = voices[i];
-      const wantsImage = shot.layout === "full_image";
+      const placed = placements.find((p) => p.sceneId === scene.id);
+      // "My uploads only": scenes without an upload become designed cards instead of AI images.
+      const wantsImage = !placed && shot.layout === "full_image" && media.mode !== "uploads";
       const image = wantsImage
         ? await engine.image.generate(`${shot.visualPrompt}. ${plan.global.stylePrompt}. ${DOCUMENTARY_STYLE}. Vertical 9:16 composition.`).catch((err) => {
             console.warn(`  [image] ${scene.id} failed, using a designed scene: ${(err as Error).message.slice(0, 160)}`);
@@ -341,7 +404,8 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
           })
         : null;
 
-      let imageFile: string | null = null;
+      let imageFile: string | null = placed ? placed.file : null;
+      if (placed) imageSources.upload = (imageSources.upload ?? 0) + 1;
       if (image) {
         imageSources[image.provider] = (imageSources[image.provider] ?? 0) + 1;
         for (const problem of image.fallbackFrom ?? []) imageProblems.add(problem);
@@ -379,8 +443,9 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
         purpose: scene.purpose,
         narration: scene.narration,
         onScreenText: scene.onScreenText,
+        source: placed ? ("upload" as const) : ("ai" as const),
         // A scene whose image failed becomes a designed scene, so the video still finishes.
-        layout: wantsImage && !image ? "text_card" : shot.layout,
+        layout: placed ? "full_image" : wantsImage && !image ? "text_card" : shot.layout === "full_image" && !wantsImage ? "text_card" : shot.layout,
         camera: shot.camera,
         transition: shot.transition,
         captionStyle: shot.captionStyle,
@@ -402,6 +467,7 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
       summary: `${value.length} voice tracks (${finalSec.toFixed(1)}s). Images: ${sources || "none"}${metrics.fallbacks ? `, ${metrics.fallbacks} scene${metrics.fallbacks > 1 ? "s" : ""} switched to designed cards because no image could be made` : ""}.${fixes}`,
       reason: [problems.length ? `Image problems: ${problems.join(" | ")}` : "", ...actions.map((a) => a.detail), actions.length ? "" : `Voice is ${finalSec.toFixed(1)}s, inside the ${budgetSec().toFixed(1)}s budget`].filter(Boolean).join(" "),
       output: {
+        uploads: placements.map(({ sceneId, index, name, url, how, why }) => ({ sceneId, index, name, url, how, why })),
         providers: { image: engine.image.name, imageSources, imageProblems: problems, tts: engine.tts.name, timings: [...new Set(voices.map((v) => v.timingSource))] },
         governor: { limitSec: config.video.maxSec(), budgetSec: budgetSec(), measuredSec, finalSec, speedUpPct: decision.speedUpPct, actions },
         trimmedSilenceSec: Number(trimmedSilenceSec.toFixed(2)),

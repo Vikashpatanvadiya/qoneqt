@@ -62,14 +62,15 @@ export function governScript(script: Script): ScriptGovernorResult {
 export type TimelineDecision = { dropIds: string[]; speedUpPct: number; actions: GovernorAction[] };
 
 // Decide from measured voice lengths. Small overruns are fixed by a faster voice, larger ones by dropping a scene first.
-export function governTimeline(scenes: Array<{ id: string; purpose: Purpose; durationSec: number }>): TimelineDecision {
+// With keepWords (the user's own script), scenes are never dropped: only the voice speed changes.
+export function governTimeline(scenes: Array<{ id: string; purpose: Purpose; durationSec: number }>, options: { keepWords?: boolean } = {}): TimelineDecision {
   const actions: GovernorAction[] = [];
   const budget = budgetSec();
   const { minScenes, maxSpeedUpPct } = config.video;
   let kept = scenes;
   const total = () => kept.reduce((n, s) => n + s.durationSec, 0);
 
-  while (total() / budget > 1.1 && kept.length > minScenes) {
+  while (!options.keepWords && total() / budget > 1.1 && kept.length > minScenes) {
     const drop = pickDroppable(kept);
     if (!drop) break;
     actions.push({ type: "drop_scene", sceneId: drop.id, detail: `Voice tracks total ${total().toFixed(1)}s, over the ${budget.toFixed(1)}s budget, dropped the ${drop.purpose} scene` });

@@ -238,6 +238,17 @@ function StageDetail({ name, output }: { name: string; output: any }) {
       <div className="space-y-2 text-sm text-muted">
         <p>Voice measured at {Number(g.measuredSec).toFixed(1)}s, final {Number(g.finalSec).toFixed(1)}s, budget {Number(g.budgetSec).toFixed(1)}s (limit {g.limitSec}s with the outro).{output.trimmedSilenceSec ? ` Trimmed ${output.trimmedSilenceSec}s of dead air.` : ""}</p>
         {g.actions?.map((a: any, i: number) => <p key={i}>• {a.detail}</p>)}
+        {output.uploads?.length ? (
+          <div className="flex flex-wrap gap-3 pt-2">
+            {output.uploads.map((u: any) => (
+              <figure key={u.sceneId} className="w-24 text-xs">
+                <img src={u.url} alt={u.name} className="aspect-[3/4] w-24 rounded-lg object-cover" loading="lazy" />
+                <figcaption className="mt-1 text-ink">{u.sceneId} ← [img{u.index}]</figcaption>
+                <span className="text-faint">{u.how === "tag" ? "placed by tag" : "matched by meaning"}</span>
+              </figure>
+            ))}
+          </div>
+        ) : null}
       </div>
     );
   }
