@@ -319,6 +319,8 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
     }
     metrics.governor_actions += actions.length;
 
+    const imageSources: Record<string, number> = {};
+    const imageProblems = new Set<string>();
     const value = await mapLimit(kept, config.maxParallelAssets, async (scene, i): Promise<RenderScene> => {
       const shot = plan.shots.find((s) => s.sceneId === scene.id)!;
       const track = voices[i];
@@ -326,12 +328,15 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
       const image = wantsImage
         ? await engine.image.generate(`${shot.visualPrompt}. ${plan.global.stylePrompt}. Vertical composition, no text, no watermark.`).catch((err) => {
             console.warn(`  [image] ${scene.id} failed, using a designed scene: ${(err as Error).message.slice(0, 160)}`);
+            imageProblems.add((err as Error).message.slice(0, 300));
             return null;
           })
         : null;
 
       let imageFile: string | null = null;
       if (image) {
+        imageSources[image.provider] = (imageSources[image.provider] ?? 0) + 1;
+        for (const problem of image.fallbackFrom ?? []) imageProblems.add(problem);
         imageFile = `${scene.id}.jpg`;
         fs.copyFileSync(image.file, path.join(publicDir, imageFile));
         if (image.cached) {
@@ -339,7 +344,7 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
         } else {
           const size = imageSize(image.file);
           metrics.images++;
-          metrics.neurons_est += fluxNeurons(size.width, size.height, image.steps);
+          if (image.provider === "cloudflare-flux") metrics.neurons_est += fluxNeurons(size.width, size.height, image.steps);
         }
       } else if (wantsImage) {
         metrics.fallbacks++;
@@ -367,12 +372,15 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
     });
 
     const fixes = actions.length ? ` Governor: ${actions.map((a) => a.type).join(", ")}.` : "";
+    const sources = Object.entries(imageSources).map(([p, n]) => `${n} from ${p}`).join(", ");
+    const problems = [...imageProblems];
     return {
       value,
-      summary: `${value.length} voice tracks (${finalSec.toFixed(1)}s), ${metrics.images} new images, ${metrics.images_cached} cached, ${metrics.fallbacks} fallbacks.${fixes}`,
-      reason: actions.length ? actions.map((a) => a.detail).join(" ") : `Voice is ${finalSec.toFixed(1)}s, inside the ${budgetSec().toFixed(1)}s budget`,
+      status: metrics.fallbacks > 0 || problems.length ? ("fixed" as const) : ("done" as const),
+      summary: `${value.length} voice tracks (${finalSec.toFixed(1)}s). Images: ${sources || "none"}${metrics.fallbacks ? `, ${metrics.fallbacks} scene${metrics.fallbacks > 1 ? "s" : ""} switched to designed cards because no image could be made` : ""}.${fixes}`,
+      reason: [problems.length ? `Image problems: ${problems.join(" | ")}` : "", ...actions.map((a) => a.detail), actions.length ? "" : `Voice is ${finalSec.toFixed(1)}s, inside the ${budgetSec().toFixed(1)}s budget`].filter(Boolean).join(" "),
       output: {
-        providers: { image: engine.image.name, tts: engine.tts.name, timings: [...new Set(voices.map((v) => v.timingSource))] },
+        providers: { image: engine.image.name, imageSources, imageProblems: problems, tts: engine.tts.name, timings: [...new Set(voices.map((v) => v.timingSource))] },
         governor: { limitSec: config.video.maxSec(), budgetSec: budgetSec(), measuredSec, finalSec, speedUpPct: decision.speedUpPct, actions },
         trimmedSilenceSec: Number(trimmedSilenceSec.toFixed(2)),
         neurons_est: metrics.neurons_est,

@@ -66,7 +66,7 @@ export async function runVisionStage(input: VisionStageInput): Promise<StageResu
     if (!image.cached) {
       const size = imageSize(image.file);
       metrics.images++;
-      metrics.neurons_est += fluxNeurons(size.width, size.height, image.steps);
+      if (image.provider === "cloudflare-flux") metrics.neurons_est += fluxNeurons(size.width, size.height, image.steps);
     }
     scene.imageFile = file;
     promptOf.set(scene.id, prompt);
