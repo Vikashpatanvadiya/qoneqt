@@ -243,7 +243,8 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
         metrics.governor_actions += governed.actions.length;
         const { retries, ...llm } = track(res);
         const images = plan.shots.filter((s) => s.layout === "full_image").length;
-        const fixes = governed.actions.length + repairs.length;
+        const fieldRepairs = "repairs" in res ? (res as { repairs: string[] }).repairs : [];
+        const fixes = governed.actions.length + repairs.length + fieldRepairs.length;
         return {
           value: { script: governed.script, plan },
           status: fixes ? ("fixed" as const) : ("done" as const),
@@ -252,7 +253,7 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
           output: {
             versions: [{ version: 1, script: governed.script, wordCount: scriptWordCount(governed.script) }],
             plan,
-            repairs,
+            repairs: [...fieldRepairs, ...repairs],
             governor: { limitSec: config.video.maxSec(), budgetSec: governed.budgetSec, estimatedSec: governed.estimatedSec, actions: governed.actions },
             tokensPerSec: res.tokensPerSec,
             ...llm,

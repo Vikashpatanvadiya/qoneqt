@@ -74,7 +74,9 @@ export async function runVisionStage(input: VisionStageInput): Promise<StageResu
   };
 
   // Debug option: break one image scene on purpose, to show the critic catching it.
-  const broken = input.breakScene ? scenes.find((s) => s.id === input.breakScene && s.layout === "full_image" && s.imageFile) : undefined;
+  // "auto" picks the first image scene.
+  const isImageScene = (s: RenderScene) => s.layout === "full_image" && Boolean(s.imageFile);
+  const broken = input.breakScene ? scenes.find((s) => isImageScene(s) && (input.breakScene === "auto" || s.id === input.breakScene)) : undefined;
   if (broken) await useImage(broken, BROKEN_PROMPT, "broken").catch(() => undefined);
 
   let toCheck = scenes.map((s) => s.id);

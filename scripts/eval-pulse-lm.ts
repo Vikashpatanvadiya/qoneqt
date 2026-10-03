@@ -32,6 +32,7 @@ type Row = {
   score: number | null;
   hook: string | null;
   problems: string[];
+  fieldRepairs: number;
   output: Combined | null;
 };
 
@@ -48,7 +49,7 @@ function check(output: Combined) {
 
 const empty = (t: TestInput, engine: Row["engine"], model: string, seconds: number, error: string): Row => ({
   id: t.id, community: t.community, inputType: t.inputType, engine, model, validJson: false, firstTryValid: false, lengthOk: false, planOk: false,
-  words: null, estimatedSec: null, seconds, tokensPerSec: null, score: null, hook: null, problems: [error], output: null,
+  words: null, estimatedSec: null, seconds, tokensPerSec: null, score: null, hook: null, problems: [error], fieldRepairs: 0, output: null,
 });
 
 async function main() {
@@ -61,7 +62,7 @@ async function main() {
     let start = Date.now();
     try {
       const res = await runPulsePlanner(input);
-      rows.push({ id: t.id, community: t.community, inputType: t.inputType, engine: "pulse-lm", model: res.model, validJson: true, firstTryValid: res.attempts.length === 1, ...check(res.data), seconds: (Date.now() - start) / 1000, tokensPerSec: Number(res.tokensPerSec.toFixed(1)), score: null, hook: res.data.script.hook, output: res.data });
+      rows.push({ id: t.id, community: t.community, inputType: t.inputType, engine: "pulse-lm", model: res.model, validJson: true, firstTryValid: res.attempts.length === 1, ...check(res.data), seconds: (Date.now() - start) / 1000, tokensPerSec: Number(res.tokensPerSec.toFixed(1)), score: null, hook: res.data.script.hook, fieldRepairs: res.repairs.length, output: res.data });
     } catch (err) {
       rows.push(empty(t, "pulse-lm", config.pulseLm.model(), (Date.now() - start) / 1000, (err as Error).message.slice(0, 200)));
     }
@@ -69,7 +70,7 @@ async function main() {
     start = Date.now();
     try {
       const res = await geminiLlm.generateJson({ label: "gemini planner", system: COMBINED_SYSTEM, prompt: combinedPrompt(input), schema: CombinedSchema, tier: "light" });
-      rows.push({ id: t.id, community: t.community, inputType: t.inputType, engine: "gemini", model: res.model, validJson: true, firstTryValid: res.attempts.length === 1, ...check(res.data), seconds: (Date.now() - start) / 1000, tokensPerSec: null, score: null, hook: res.data.script.hook, output: res.data });
+      rows.push({ id: t.id, community: t.community, inputType: t.inputType, engine: "gemini", model: res.model, validJson: true, firstTryValid: res.attempts.length === 1, ...check(res.data), seconds: (Date.now() - start) / 1000, tokensPerSec: null, score: null, hook: res.data.script.hook, fieldRepairs: 0, output: res.data });
     } catch (err) {
       rows.push(empty(t, "gemini", "gemini", (Date.now() - start) / 1000, (err as Error).message.slice(0, 200)));
     }
@@ -110,6 +111,7 @@ async function main() {
       scored: scored.length,
       avgSeconds: avg(all.map((r) => r.seconds)),
       avgTokensPerSec: avg(all.filter((r) => r.tokensPerSec).map((r) => r.tokensPerSec!)),
+      validNeedingFieldRepairPct: pct(all.filter((r) => r.fieldRepairs > 0).length),
     };
   };
   const pulse = summarize("pulse-lm");
@@ -122,7 +124,7 @@ async function main() {
     score: gap !== null && gap <= 1,
     scoreGap: gap,
   };
-  const result = { ranAt: new Date().toISOString(), machine: "local laptop (Apple M1, 8 GB)", note: "Pulse-LM runs in plain JSON mode, with no schema grammar. Our zod schema validates the result.", pulse, gemini, decision, rows: rows.map(({ output, ...r }) => r) };
+  const result = { ranAt: new Date().toISOString(), machine: "local laptop (Apple M1, 8 GB)", note: "Pulse-LM runs in plain JSON mode, with no schema grammar. Code repairs invented enum values and missing flags, then our zod schema validates the result.", pulse, gemini, decision, rows: rows.map(({ output, ...r }) => r) };
   fs.writeFileSync(path.join(DIR, "eval.json"), JSON.stringify(result, null, 2));
   fs.writeFileSync(path.join(DIR, "eval-outputs.json"), JSON.stringify(rows.map((r) => ({ id: r.id, engine: r.engine, output: r.output })), null, 2));
 
@@ -136,6 +138,7 @@ async function main() {
     "|---|---|---|",
     line("Valid JSON", `${pulse.validJsonPct}%`, `${gemini.validJsonPct}%`),
     line("Valid on the first try", `${pulse.firstTryValidPct}%`, `${gemini.firstTryValidPct}%`),
+    line("Needed a code repair of a field value", `${pulse.validNeedingFieldRepairPct}%`, "0%"),
     line("Length rules respected", `${pulse.lengthOkPct}%`, `${gemini.lengthOkPct}%`),
     line("Shot plan needed no repair", `${pulse.planOkPct}%`, `${gemini.planOkPct}%`),
     line("Average narration words", pulse.avgWords, gemini.avgWords),

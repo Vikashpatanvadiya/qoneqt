@@ -1,0 +1,5199 @@
+[
+  {
+    "id": "mura4uz2-4rdwy",
+    "engine": "pulse-lm",
+    "output": {
+      "script": {
+        "title": "Hiring your first employee too early",
+        "hook": "Hiring your first employee too early is a massive mistake.",
+        "scenes": [
+          {
+            "id": "s1",
+            "purpose": "hook",
+            "narration": "Hiring your first employee too early is a massive mistake.",
+            "onScreenText": "Hiring too early is bad"
+          },
+          {
+            "id": "s2",
+            "purpose": "context",
+            "narration": "You think you need someone to build your MVP.",
+            "onScreenText": "Need someone for MVP"
+          },
+          {
+            "id": "s3",
+            "purpose": "point",
+            "narration": "You end up paying them for doing nothing while you burn cash.",
+            "onScreenText": "Paying for doing nothing"
+          },
+          {
+            "id": "s4",
+            "purpose": "twist",
+            "narration": "The real MVP is your own hands and your sleep.",
+            "onScreenText": "MVP is your sleep"
+          },
+          {
+            "id": "s5",
+            "purpose": "point",
+            "narration": "Hire only when you have a clear product-market fit.",
+            "onScreenText": "Hire only when PMF"
+          },
+          {
+            "id": "s6",
+            "purpose": "cta",
+            "narration": "When did you hire your first employee?",
+            "onScreenText": "When did you hire?"
+          }
+        ],
+        "cta": "When did you hire your first employee?",
+        "caption": "Hiring too early kills your runway. #Startups #Founders #MVP #Hiring",
+        "estDurationSec": 35
+      },
+      "plan": {
+        "global": {
+          "stylePrompt": "candid documentary photo, late-night co-working space, warm desk lamps, purple and amber tones",
+          "palette": [
+            "#1a0a2e",
+            "#ff6b6b",
+            "#4ecdc4",
+            "#2c3e50"
+          ],
+          "musicMood": "inspiring"
+        },
+        "shots": [
+          {
+            "sceneId": "s1",
+            "layout": "full_image",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "massive"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s2",
+            "layout": "full_image",
+            "camera": "pan_left",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "MVP"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s3",
+            "layout": "full_image",
+            "camera": "zoom_out",
+            "transition": "zoom",
+            "captionStyle": "karaoke",
+            "emphasisWords": [
+              "nothing"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s4",
+            "layout": "full_image",
+            "camera": "static",
+            "transition": "slide",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "sleep"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s5",
+            "layout": "full_image",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "PMF"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s6",
+            "layout": "text_card",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "When"
+            ],
+            "useHeroClip": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "mura4uz2-4rdwy",
+    "engine": "gemini",
+    "output": {
+      "script": {
+        "title": "Hiring Too Early",
+        "hook": "Hiring your first employee too early will kill your startup.",
+        "scenes": [
+          {
+            "id": "s1",
+            "purpose": "hook",
+            "narration": "Hiring your first employee too early will kill your startup.",
+            "onScreenText": "Stop hiring too early"
+          },
+          {
+            "id": "s2",
+            "purpose": "context",
+            "narration": "You think you need a team because your friends are scaling up.",
+            "onScreenText": "Peer pressure is real"
+          },
+          {
+            "id": "s3",
+            "purpose": "point",
+            "narration": "Your runway burns twice as fast while you manage instead of build.",
+            "onScreenText": "Runway disappearing fast"
+          },
+          {
+            "id": "s4",
+            "purpose": "twist",
+            "narration": "Actually, your messy jugaad code doesn't need an engineer yet.",
+            "onScreenText": "You are the worker"
+          },
+          {
+            "id": "s5",
+            "purpose": "cta",
+            "narration": "At what month did you make your first hire? Drop it below.",
+            "onScreenText": "When did you hire?"
+          }
+        ],
+        "cta": "At what month did you make your first hire? Drop it below.",
+        "caption": "Most startups burn runway on bad timing. #StartupIndia #Bootstrapped #Founders #Hiring",
+        "estDurationSec": 35
+      },
+      "plan": {
+        "global": {
+          "stylePrompt": "Clean minimalist 3D vector illustration, modern tech startup aesthetic",
+          "palette": [
+            "#111827",
+            "#374151",
+            "#EF4444",
+            "#F9FAFB"
+          ],
+          "musicMood": "upbeat"
+        },
+        "shots": [
+          {
+            "sceneId": "s1",
+            "layout": "full_image",
+            "visualPrompt": "A stressed founder staring at a laptop with a declining chart",
+            "negativePrompt": "blurry, photorealistic",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "first employee",
+              "kill"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s2",
+            "layout": "full_image",
+            "visualPrompt": "Office desk with many sticky notes and empty coffee cups",
+            "negativePrompt": "blurry, photorealistic",
+            "camera": "pan_left",
+            "transition": "slide",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "friends",
+              "scaling up"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s3",
+            "layout": "stat_card",
+            "negativePrompt": "blurry",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "runway burns"
+            ],
+            "statValue": "2X",
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s4",
+            "layout": "full_image",
+            "visualPrompt": "A single developer typing frantically on a mechanical keyboard at night",
+            "negativePrompt": "blurry, photorealistic",
+            "camera": "zoom_out",
+            "transition": "zoom",
+            "captionStyle": "karaoke",
+            "emphasisWords": [
+              "jugaad",
+              "code"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s5",
+            "layout": "text_card",
+            "negativePrompt": "blurry",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "first hire",
+              "Drop it below"
+            ],
+            "useHeroClip": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "mura3eff-fpgrp",
+    "engine": "pulse-lm",
+    "output": {
+      "script": {
+        "title": "The Placement Season Startup Delusion",
+        "hook": "Suddenly everyone claims to be building a unicorn.",
+        "scenes": [
+          {
+            "id": "s1",
+            "purpose": "hook",
+            "narration": "Suddenly everyone claims to be building a unicorn.",
+            "onScreenText": "Unicorn claims"
+          },
+          {
+            "id": "s2",
+            "purpose": "context",
+            "narration": "We all thought we were just surviving exams.",
+            "onScreenText": "Surviving exams"
+          },
+          {
+            "id": "s3",
+            "purpose": "point",
+            "narration": "Then the placement season rolls around and we all drop everything.",
+            "onScreenText": "Drop everything"
+          },
+          {
+            "id": "s4",
+            "purpose": "twist",
+            "narration": "We are not building a startup, we are just surviving another semester.",
+            "onScreenText": "Just surviving"
+          },
+          {
+            "id": "s5",
+            "purpose": "point",
+            "narration": "The real work is still doing assignments and attending lectures.",
+            "onScreenText": "Doing assignments"
+          },
+          {
+            "id": "s6",
+            "purpose": "cta",
+            "narration": "Who is actually building a real startup right now?",
+            "onScreenText": "Who is building a startup?"
+          }
+        ],
+        "cta": "Who is actually building a real startup right now?",
+        "caption": "Stop pretending you are a founder. #PlacementSeason #CampusLife #UnicornDream",
+        "estDurationSec": 35
+      },
+      "plan": {
+        "global": {
+          "stylePrompt": "Cinematic late-night college hallway, warm desk lamps, purple and amber tones",
+          "palette": [
+            "#1a0b2e",
+            "#ff6b6b",
+            "#4ecdc4",
+            "#2c3e50"
+          ],
+          "musicMood": "inspiring"
+        },
+        "shots": [
+          {
+            "sceneId": "s1",
+            "layout": "full_image",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "Unicorn"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s2",
+            "layout": "full_image",
+            "camera": "pan_left",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "surviving"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s3",
+            "layout": "full_image",
+            "camera": "zoom_out",
+            "transition": "slide",
+            "captionStyle": "karaoke",
+            "emphasisWords": [
+              "drop"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s4",
+            "layout": "full_image",
+            "camera": "static",
+            "transition": "zoom",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "surviving"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s5",
+            "layout": "full_image",
+            "camera": "zoom_in",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "assignments"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s6",
+            "layout": "text_card",
+            "camera": "static",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "startup"
+            ],
+            "useHeroClip": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "mura3eff-fpgrp",
+    "engine": "gemini",
+    "output": {
+      "script": {
+        "title": "The Sudden Tech Bro Outbreak",
+        "hook": "Suddenly everyone is a startup founder during placements.",
+        "scenes": [
+          {
+            "id": "s1",
+            "purpose": "hook",
+            "narration": "Suddenly everyone is a startup founder during placements.",
+            "onScreenText": "Tech bro outbreak"
+          },
+          {
+            "id": "s2",
+            "purpose": "context",
+            "narration": "Your roommate who plays video games all night is now building AI unicorns.",
+            "onScreenText": "AI Unicorns"
+          },
+          {
+            "id": "s3",
+            "purpose": "point",
+            "narration": "LinkedIn bios change faster than hostel dinner menus.",
+            "onScreenText": "New LinkedIn bio"
+          },
+          {
+            "id": "s4",
+            "purpose": "twist",
+            "narration": "Half of them do not even know what a tech stack is.",
+            "onScreenText": "What is a tech stack?"
+          },
+          {
+            "id": "s5",
+            "purpose": "point",
+            "narration": "They start wearing black hoodies in thirty degree heat.",
+            "onScreenText": "Hoodie in summer"
+          },
+          {
+            "id": "s6",
+            "purpose": "cta",
+            "narration": "What is the funniest LinkedIn bio you have seen lately?",
+            "onScreenText": "Drop the worst bio"
+          }
+        ],
+        "cta": "What is the funniest LinkedIn bio you have seen lately?",
+        "caption": "The placement season personality shift is unreal. #Placements #TechBro #CollegeLife #HostelHumor",
+        "estDurationSec": 35
+      },
+      "plan": {
+        "global": {
+          "stylePrompt": "Cinematic 3d cartoon illustration, vibrant colors, expressive characters, vertical 9:16 aspect ratio",
+          "palette": [
+            "#1a1a2e",
+            "#e94560",
+            "#0f3460",
+            "#f0f0f0"
+          ],
+          "musicMood": "upbeat"
+        },
+        "shots": [
+          {
+            "sceneId": "s1",
+            "layout": "full_image",
+            "visualPrompt": "A stressed college student typing frantically on a laptop with matrix code reflection in glasses",
+            "negativePrompt": "text, watermark",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "startup founder"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s2",
+            "layout": "full_image",
+            "visualPrompt": "A messy college hostel room with glowing screens and empty coffee cups",
+            "negativePrompt": "text, watermark",
+            "camera": "pan_left",
+            "transition": "slide",
+            "captionStyle": "karaoke",
+            "emphasisWords": [
+              "AI unicorns"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s3",
+            "layout": "full_image",
+            "visualPrompt": "A smartphone screen glowing in the dark showing a professional profile",
+            "negativePrompt": "text, watermark",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "LinkedIn bios"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s4",
+            "layout": "full_image",
+            "visualPrompt": "A confused student staring blankly at a complex computer flowchart",
+            "negativePrompt": "text, watermark",
+            "camera": "zoom_out",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "tech stack"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s5",
+            "layout": "full_image",
+            "visualPrompt": "A student sweating in a heavy black hoodie sitting in a warm hostel room",
+            "negativePrompt": "text, watermark",
+            "camera": "pan_right",
+            "transition": "slide",
+            "captionStyle": "karaoke",
+            "emphasisWords": [
+              "black hoodies"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s6",
+            "layout": "text_card",
+            "visualPrompt": "",
+            "negativePrompt": "text, watermark",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "funniest LinkedIn bio"
+            ],
+            "useHeroClip": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "mura5jpc-z440l",
+    "engine": "pulse-lm",
+    "output": {
+      "script": {
+        "title": "The Silent Squad",
+        "hook": "Your squad is silent and you are alone.",
+        "scenes": [
+          {
+            "id": "s1",
+            "purpose": "hook",
+            "narration": "Your squad is silent and you are alone.",
+            "onScreenText": "Silent squad"
+          },
+          {
+            "id": "s2",
+            "purpose": "context",
+            "narration": "You are trying to talk over the headset but no one responds.",
+            "onScreenText": "Talking over headset"
+          },
+          {
+            "id": "s3",
+            "purpose": "point",
+            "narration": "They are just watching the screen and ignoring your chat.",
+            "onScreenText": "Ignoring chat"
+          },
+          {
+            "id": "s4",
+            "purpose": "twist",
+            "narration": "Suddenly they all start talking at once and you are overwhelmed.",
+            "onScreenText": "Overwhelmed"
+          },
+          {
+            "id": "s5",
+            "purpose": "point",
+            "narration": "It is a trap to keep everyone talking at once.",
+            "onScreenText": "Talking trap"
+          },
+          {
+            "id": "s6",
+            "purpose": "cta",
+            "narration": "Do you ever get overwhelmed by a loud squad?",
+            "onScreenText": "Loud squad?"
+          }
+        ],
+        "cta": "Do you ever get overwhelmed by a loud squad?",
+        "caption": "Loud squad traps are real. #gaming #squad #ranked #silentplayers",
+        "estDurationSec": 35
+      },
+      "plan": {
+        "global": {
+          "stylePrompt": "neon-lit gaming desk, RGB glow, cinematic close-ups, shallow depth of field",
+          "palette": [
+            "#000000",
+            "#ff00ff",
+            "#00ffff",
+            "#ff8000"
+          ],
+          "musicMood": "upbeat"
+        },
+        "shots": [
+          {
+            "sceneId": "s1",
+            "layout": "full_image",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "silent",
+              "alone"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s2",
+            "layout": "full_image",
+            "camera": "pan_right",
+            "transition": "slide",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "headset",
+              "respond"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s3",
+            "layout": "full_image",
+            "camera": "zoom_out",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "watching",
+              "chat"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s4",
+            "layout": "full_image",
+            "camera": "zoom_in",
+            "transition": "zoom",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "all",
+              "overwhelmed"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s5",
+            "layout": "full_image",
+            "camera": "pan_left",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "trap",
+              "talking"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s6",
+            "layout": "text_card",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "overwhelmed",
+              "loud"
+            ],
+            "useHeroClip": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "mura5jpc-z440l",
+    "engine": "gemini",
+    "output": {
+      "script": {
+        "title": "Random Lobby Silents",
+        "hook": "Why do random squadmates never use voice chat?",
+        "scenes": [
+          {
+            "id": "s1",
+            "purpose": "hook",
+            "narration": "Why do random squadmates never use voice chat?",
+            "onScreenText": "No mic randoms"
+          },
+          {
+            "id": "s2",
+            "purpose": "context",
+            "narration": "You enter a ranked match hoping for good comms.",
+            "onScreenText": "Ranked grind"
+          },
+          {
+            "id": "s3",
+            "purpose": "point",
+            "narration": "Instead you get absolute silence and zero pings.",
+            "onScreenText": "Pure silence"
+          },
+          {
+            "id": "s4",
+            "purpose": "twist",
+            "narration": "Then they rush solo, die instantly, and blame lag.",
+            "onScreenText": "Instant rush"
+          },
+          {
+            "id": "s5",
+            "purpose": "cta",
+            "narration": "Do you use voice chat or stay silent? Drop your take.",
+            "onScreenText": "Mic on or off?"
+          }
+        ],
+        "cta": "Do you use voice chat or stay silent?",
+        "caption": "Silence is not golden in ranked lobbies. #IndieGamers #GamingComms #RankedLife #MobileGaming",
+        "estDurationSec": 35
+      },
+      "plan": {
+        "global": {
+          "stylePrompt": "Vibrant cyberpunk gaming aesthetic, neon lighting, highly detailed, vertical 9:16",
+          "palette": [
+            "#0f0e17",
+            "#ff8906",
+            "#f25f4c",
+            "#e53170"
+          ],
+          "musicMood": "upbeat"
+        },
+        "shots": [
+          {
+            "sceneId": "s1",
+            "layout": "full_image",
+            "visualPrompt": "A gamer staring intensely at a glowing smartphone screen in a dark room with neon blue and pink lights",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "voice",
+              "chat"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s2",
+            "layout": "full_image",
+            "visualPrompt": "Mobile gaming interface showing a multiplayer squad selection screen with glowing avatars",
+            "camera": "pan_left",
+            "transition": "slide",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "ranked",
+              "match"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s3",
+            "layout": "full_image",
+            "visualPrompt": "A headset resting on a mechanical keyboard with RGB lighting glowing softly",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "silence"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s4",
+            "layout": "full_image",
+            "visualPrompt": "An intense mobile battle royale game screen showing a character getting eliminated",
+            "camera": "zoom_out",
+            "transition": "zoom",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "rush",
+              "lag"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s5",
+            "layout": "text_card",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "karaoke",
+            "emphasisWords": [
+              "voice",
+              "chat"
+            ],
+            "useHeroClip": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "mura5sun-t3atq",
+    "engine": "pulse-lm",
+    "output": {
+      "script": {
+        "title": "How to survive the creative grind",
+        "hook": "Stop posting when you feel empty.",
+        "scenes": [
+          {
+            "id": "s1",
+            "purpose": "hook",
+            "narration": "Stop posting when you feel empty.",
+            "onScreenText": "Stop posting when empty"
+          },
+          {
+            "id": "s2",
+            "purpose": "context",
+            "narration": "You are not lazy, you are just tired.",
+            "onScreenText": "You are not lazy"
+          },
+          {
+            "id": "s3",
+            "purpose": "point",
+            "narration": "Protect your creative energy like you would protect your health.",
+            "onScreenText": "Protect your energy"
+          },
+          {
+            "id": "s4",
+            "purpose": "twist",
+            "narration": "Sometimes the best idea comes from complete silence.",
+            "onScreenText": "Best ideas from silence"
+          },
+          {
+            "id": "s5",
+            "purpose": "point",
+            "narration": "Take breaks and let your brain rest.",
+            "onScreenText": "Take breaks"
+          },
+          {
+            "id": "s6",
+            "purpose": "cta",
+            "narration": "What is your biggest creative burnout moment?",
+            "onScreenText": "Biggest burnout moment?"
+          }
+        ],
+        "cta": "What is your biggest creative burnout moment?",
+        "caption": "Protect your creative energy. #burnout #creators #selfcare #mentalhealth #design",
+        "estDurationSec": 35
+      },
+      "plan": {
+        "global": {
+          "stylePrompt": "cinematic late-night desk setup, warm desk lamp, purple and amber tones, shallow depth of field",
+          "palette": [
+            "#1a0c2e",
+            "#3a1c6c",
+            "#f7f3ff",
+            "#ff6b6b"
+          ],
+          "musicMood": "inspiring"
+        },
+        "shots": [
+          {
+            "sceneId": "s1",
+            "layout": "full_image",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "Stop",
+              "empty"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s2",
+            "layout": "full_image",
+            "camera": "pan_left",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "lazy",
+              "tired"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s3",
+            "layout": "full_image",
+            "camera": "static",
+            "transition": "slide",
+            "captionStyle": "karaoke",
+            "emphasisWords": [
+              "Protect",
+              "energy"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s4",
+            "layout": "full_image",
+            "camera": "zoom_out",
+            "transition": "zoom",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "complete",
+              "silence"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s5",
+            "layout": "full_image",
+            "camera": "pan_right",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "breaks",
+              "rest"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s6",
+            "layout": "text_card",
+            "camera": "static",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "burnout"
+            ],
+            "useHeroClip": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "mura5sun-t3atq",
+    "engine": "gemini",
+    "output": {
+      "script": {
+        "title": "Beating Creator Burnout",
+        "hook": "Stop posting every single day if you are exhausted.",
+        "scenes": [
+          {
+            "id": "s1",
+            "purpose": "hook",
+            "narration": "Stop posting every single day if you are exhausted.",
+            "onScreenText": "Stop daily posting!"
+          },
+          {
+            "id": "s2",
+            "purpose": "context",
+            "narration": "That posting streak is draining all your energy and creative joy.",
+            "onScreenText": "Burnout is real"
+          },
+          {
+            "id": "s3",
+            "purpose": "point",
+            "narration": "You think more content equals more reach, but it leads nowhere.",
+            "onScreenText": "More isn't better"
+          },
+          {
+            "id": "s4",
+            "purpose": "twist",
+            "narration": "Actually, taking a full week off made my engagement double.",
+            "onScreenText": "Take a break"
+          },
+          {
+            "id": "s5",
+            "purpose": "cta",
+            "narration": "How many days can you rest without stressing about your draft?",
+            "onScreenText": "How many rest days?"
+          }
+        ],
+        "cta": "How many days can you rest without stressing about your draft?",
+        "caption": "Protect your peace while building. #creatorburnout #smallcreators #contentcreation #mentalhealth",
+        "estDurationSec": 35
+      },
+      "plan": {
+        "global": {
+          "stylePrompt": "Cinematic moody portrait, warm tones, high quality, 4k",
+          "palette": [
+            "#121212",
+            "#FF5722",
+            "#FFFFFF",
+            "#333333"
+          ],
+          "musicMood": "calm"
+        },
+        "shots": [
+          {
+            "sceneId": "s1",
+            "layout": "full_image",
+            "visualPrompt": "A tired creator staring at a glowing laptop screen in a dark room",
+            "negativePrompt": "blurry, text, watermark",
+            "camera": "zoom_in",
+            "transition": "fade",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "Stop",
+              "exhausted"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s2",
+            "layout": "full_image",
+            "visualPrompt": "A red calendar with crossed out days showing endless grind",
+            "negativePrompt": "blurry, text, watermark",
+            "camera": "pan_left",
+            "transition": "cut",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "posting streak",
+              "draining"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s3",
+            "layout": "full_image",
+            "visualPrompt": "A lonely smartphone lying flat on a wooden desk",
+            "negativePrompt": "blurry, text, watermark",
+            "camera": "static",
+            "transition": "slide",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "reach",
+              "nowhere"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s4",
+            "layout": "full_image",
+            "visualPrompt": "A person relaxing by a window with a cup of coffee smiling",
+            "negativePrompt": "blurry, text, watermark",
+            "camera": "zoom_out",
+            "transition": "zoom",
+            "captionStyle": "karaoke",
+            "emphasisWords": [
+              "week off",
+              "double"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s5",
+            "layout": "text_card",
+            "negativePrompt": "blurry, watermark",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "rest",
+              "draft"
+            ],
+            "useHeroClip": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "mur9z673-3l23r",
+    "engine": "pulse-lm",
+    "output": {
+      "script": {
+        "title": "The Quick Commerce Trap",
+        "hook": "Your delivery app is costing you more than your groceries.",
+        "scenes": [
+          {
+            "id": "s1",
+            "purpose": "hook",
+            "narration": "Your delivery app is costing you more than your groceries.",
+            "onScreenText": "Delivery apps are expensive"
+          },
+          {
+            "id": "s2",
+            "purpose": "context",
+            "narration": "We all love that instant hot meal from the nearest outlet.",
+            "onScreenText": "Instant hot meals"
+          },
+          {
+            "id": "s3",
+            "purpose": "point",
+            "narration": "But every quick order adds up fast to your monthly budget.",
+            "onScreenText": "Orders add up fast"
+          },
+          {
+            "id": "s4",
+            "purpose": "twist",
+            "narration": "That delivery fee is actually a hidden tax on your pocket money.",
+            "onScreenText": "Hidden tax on your wallet"
+          },
+          {
+            "id": "s5",
+            "purpose": "point",
+            "narration": "Stop using delivery apps for everything and save your hard earned cash.",
+            "onScreenText": "Stop using delivery apps"
+          },
+          {
+            "id": "s6",
+            "purpose": "cta",
+            "narration": "How many times have you ordered food through delivery apps this month?",
+            "onScreenText": "How many delivery orders?"
+          }
+        ],
+        "cta": "How many times have you ordered food through delivery apps this month?",
+        "caption": "Quick commerce is killing our wallets. #Budgeting #DeliveryApps #MoneyTips #Savings #Broke",
+        "estDurationSec": 35
+      },
+      "plan": {
+        "global": {
+          "stylePrompt": "Cinematic late-night food photography, warm table lamps, soft shadows, slight film grain",
+          "palette": [
+            "#3a0ca3",
+            "#f72585",
+            "#ff9a9e",
+            "#ffffff"
+          ],
+          "musicMood": "inspiring"
+        },
+        "shots": [
+          {
+            "sceneId": "s1",
+            "layout": "full_image",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "delivery",
+              "app",
+              "groceries"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s2",
+            "layout": "full_image",
+            "camera": "pan_right",
+            "transition": "slide",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "instant",
+              "hot",
+              "meal"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s3",
+            "layout": "full_image",
+            "camera": "zoom_out",
+            "transition": "fade",
+            "captionStyle": "karaoke",
+            "emphasisWords": [
+              "every",
+              "order",
+              "adds"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s4",
+            "layout": "full_image",
+            "camera": "zoom_in",
+            "transition": "zoom",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "hidden",
+              "tax",
+              "pocket"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s5",
+            "layout": "full_image",
+            "camera": "pan_left",
+            "transition": "cut",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "stop",
+              "using",
+              "delivery"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s6",
+            "layout": "text_card",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "how",
+              "many",
+              "orders"
+            ],
+            "useHeroClip": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "mur9z673-3l23r",
+    "engine": "gemini",
+    "output": {
+      "script": {
+        "title": "The 10-Minute Delivery Trap",
+        "hook": "Quick commerce is emptying your wallet in ten minutes flat.",
+        "scenes": [
+          {
+            "id": "s1",
+            "purpose": "hook",
+            "narration": "Quick commerce is emptying your wallet in ten minutes flat.",
+            "onScreenText": "10-minute delivery trap"
+          },
+          {
+            "id": "s2",
+            "purpose": "context",
+            "narration": "You just needed milk, but somehow ordered snacks, a candle, and skincare.",
+            "onScreenText": "Just needed milk"
+          },
+          {
+            "id": "s3",
+            "purpose": "point",
+            "narration": "UPI makes it too easy to spend without feeling the pain.",
+            "onScreenText": "Easy UPI payments"
+          },
+          {
+            "id": "s4",
+            "purpose": "twist",
+            "narration": "By the twentieth, you are wondering where half your salary vanished.",
+            "onScreenText": "Where is the salary?"
+          },
+          {
+            "id": "s5",
+            "purpose": "cta",
+            "narration": "What is the most useless thing you ordered this week?",
+            "onScreenText": "What did you order?"
+          }
+        ],
+        "cta": "What is the most useless thing you ordered this week?",
+        "caption": "Ten minute delivery is way too fast for our self-control. #MoneyBasics #MonthEnd #ImpulseBuying #QuickCommerce #Salary",
+        "estDurationSec": 35
+      },
+      "plan": {
+        "global": {
+          "stylePrompt": "Clean minimalist flat lay photography, modern Indian apartment aesthetic, warm lighting",
+          "palette": [
+            "#111111",
+            "#F5F5F5",
+            "#FF5722",
+            "#4CAF50"
+          ],
+          "musicMood": "upbeat"
+        },
+        "shots": [
+          {
+            "sceneId": "s1",
+            "layout": "full_image",
+            "visualPrompt": "A smartphone showing a quick delivery app cart loaded with snacks and items on a wooden table",
+            "negativePrompt": "blurry, distorted text, watermark",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "emptying",
+              "wallet"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s2",
+            "layout": "full_image",
+            "visualPrompt": "Paper grocery bags unboxed on a kitchen counter with random impulse items",
+            "negativePrompt": "blurry, low quality",
+            "camera": "pan_left",
+            "transition": "slide",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "snacks",
+              "skincare"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s3",
+            "layout": "full_image",
+            "visualPrompt": "A close up of a hand holding a phone scanning a QR code for payment",
+            "negativePrompt": "blurry",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "karaoke",
+            "emphasisWords": [
+              "UPI",
+              "pain"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s4",
+            "layout": "stat_card",
+            "negativePrompt": "",
+            "camera": "zoom_out",
+            "transition": "zoom",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "twentieth",
+              "vanished"
+            ],
+            "statValue": "20th",
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s5",
+            "layout": "text_card",
+            "negativePrompt": "",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "useless",
+              "ordered"
+            ],
+            "useHeroClip": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "mura3p12-3hicm",
+    "engine": "pulse-lm",
+    "output": {
+      "script": {
+        "title": "Heavy Weights and Broken Form",
+        "hook": "Stop lifting heavy before you master your basics.",
+        "scenes": [
+          {
+            "id": "s1",
+            "purpose": "hook",
+            "narration": "Stop lifting heavy before you master your basics.",
+            "onScreenText": "Stop heavy lifts"
+          },
+          {
+            "id": "s2",
+            "purpose": "context",
+            "narration": "We all want that PR and the bragging rights.",
+            "onScreenText": "PR and bragging"
+          },
+          {
+            "id": "s3",
+            "purpose": "point",
+            "narration": "But bad form leads to pain and injury in the long run.",
+            "onScreenText": "Bad form leads to pain"
+          },
+          {
+            "id": "s4",
+            "purpose": "twist",
+            "narration": "Your muscles will actually grow stronger with proper technique.",
+            "onScreenText": "Stronger with good form"
+          },
+          {
+            "id": "s5",
+            "purpose": "point",
+            "narration": "Take your time and learn how to move your body correctly.",
+            "onScreenText": "Learn proper movement"
+          },
+          {
+            "id": "s6",
+            "purpose": "cta",
+            "narration": "What is your biggest struggle with heavy lifting?",
+            "onScreenText": "Biggest struggle?"
+          }
+        ],
+        "cta": "What is your biggest struggle with heavy lifting?",
+        "caption": "Heavy weights are not magic. #gym #form #lifting #progress #fitness #workout",
+        "estDurationSec": 35
+      },
+      "plan": {
+        "global": {
+          "stylePrompt": "dynamic sports photography, early morning light, strong contrast, cinematic close-ups",
+          "palette": [
+            "#1a1a2e",
+            "#3a0ca3",
+            "#ff6b6b",
+            "#ffffff"
+          ],
+          "musicMood": "inspiring"
+        },
+        "shots": [
+          {
+            "sceneId": "s1",
+            "layout": "full_image",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "Stop",
+              "heavy"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s2",
+            "layout": "full_image",
+            "camera": "pan_right",
+            "transition": "slide",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "PR",
+              "bragging"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s3",
+            "layout": "full_image",
+            "camera": "zoom_out",
+            "transition": "zoom",
+            "captionStyle": "karaoke",
+            "emphasisWords": [
+              "pain",
+              "injury"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s4",
+            "layout": "full_image",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "stronger",
+              "form"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s5",
+            "layout": "full_image",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "time",
+              "correct"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s6",
+            "layout": "text_card",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "struggle"
+            ],
+            "useHeroClip": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "mura3p12-3hicm",
+    "engine": "gemini",
+    "output": {
+      "script": {
+        "title": "Stop Rushing Heavy Lifts",
+        "hook": "Stop ego lifting. You are ruining your gains.",
+        "scenes": [
+          {
+            "id": "s1",
+            "purpose": "hook",
+            "narration": "Stop ego lifting. You are ruining your gains.",
+            "onScreenText": "Stop ego lifting!"
+          },
+          {
+            "id": "s2",
+            "purpose": "context",
+            "narration": "We all want to add plates fast, but form suffers.",
+            "onScreenText": "Adding plates too fast"
+          },
+          {
+            "id": "s3",
+            "purpose": "point",
+            "narration": "When your form breaks, your joints take the hit.",
+            "onScreenText": "Protect your joints"
+          },
+          {
+            "id": "s4",
+            "purpose": "twist",
+            "narration": "Lifting lighter with control builds way more muscle.",
+            "onScreenText": "Lighter builds more"
+          },
+          {
+            "id": "s5",
+            "purpose": "cta",
+            "narration": "What is your current PR on squat? Drop it below.",
+            "onScreenText": "What is your PR?"
+          }
+        ],
+        "cta": "What is your current PR on squat? Drop it below.",
+        "caption": "Leave the ego at the door and watch your consistency grow. #gymtips #formmatters #fitfam #consistency",
+        "estDurationSec": 35
+      },
+      "plan": {
+        "global": {
+          "stylePrompt": "Cinematic gym lighting, moody atmosphere, realistic fitness photography, 8k resolution",
+          "palette": [
+            "#111111",
+            "#ff5722",
+            "#ffffff",
+            "#333333"
+          ],
+          "musicMood": "upbeat"
+        },
+        "shots": [
+          {
+            "sceneId": "s1",
+            "layout": "full_image",
+            "visualPrompt": "A frustrated gym goer looking at a heavy barbell loaded with too many plates",
+            "negativePrompt": "blurry, text, watermark",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "Stop",
+              "gains"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s2",
+            "layout": "full_image",
+            "visualPrompt": "Close up of hands gripping a heavy barbell with poor posture",
+            "negativePrompt": "blurry, text, watermark",
+            "camera": "pan_left",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "plates",
+              "fast"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s3",
+            "layout": "full_image",
+            "visualPrompt": "Gym environment with red accent lighting showing strain during a lift",
+            "negativePrompt": "blurry, text, watermark",
+            "camera": "zoom_out",
+            "transition": "slide",
+            "captionStyle": "karaoke",
+            "emphasisWords": [
+              "form",
+              "joints"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s4",
+            "layout": "full_image",
+            "visualPrompt": "Focused athlete performing a controlled dumbbell curl with great posture",
+            "negativePrompt": "blurry, text, watermark",
+            "camera": "pan_right",
+            "transition": "zoom",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "lighter",
+              "muscle"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s5",
+            "layout": "text_card",
+            "negativePrompt": "blurry",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "PR",
+              "below"
+            ],
+            "useHeroClip": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "mura4uz2-ikgkm",
+    "engine": "pulse-lm",
+    "output": {
+      "script": {
+        "title": "Zero Budget B2B User Hunt",
+        "hook": "Stop building features nobody wants.",
+        "scenes": [
+          {
+            "id": "s1",
+            "purpose": "hook",
+            "narration": "Stop building features nobody wants.",
+            "onScreenText": "Stop building features"
+          },
+          {
+            "id": "s2",
+            "purpose": "context",
+            "narration": "You have zero budget and no sales team.",
+            "onScreenText": "Zero budget"
+          },
+          {
+            "id": "s3",
+            "purpose": "point",
+            "narration": "Your only weapon is a cold email list.",
+            "onScreenText": "Cold email list"
+          },
+          {
+            "id": "s4",
+            "purpose": "twist",
+            "narration": "And your biggest customer is your own cofounder.",
+            "onScreenText": "Cofounder is biggest"
+          },
+          {
+            "id": "s5",
+            "purpose": "point",
+            "narration": "Send five emails and watch your inbox fill with replies.",
+            "onScreenText": "Five emails"
+          },
+          {
+            "id": "s6",
+            "purpose": "cta",
+            "narration": "How many cold emails did you send this week?",
+            "onScreenText": "How many cold emails?"
+          }
+        ],
+        "cta": "How many cold emails did you send this week?",
+        "caption": "Zero budget B2B user acquisition is brutal. #ZeroBudget #B2B #ColdEmail #StartupIndia",
+        "estDurationSec": 35
+      },
+      "plan": {
+        "global": {
+          "stylePrompt": "Cinematic late-night co-working space, warm desk lamps, purple and amber tones",
+          "palette": [
+            "#1a0a2e",
+            "#3a155c",
+            "#f77f00",
+            "#ffffff"
+          ],
+          "musicMood": "inspiring"
+        },
+        "shots": [
+          {
+            "sceneId": "s1",
+            "layout": "full_image",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "Stop",
+              "nobody"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s2",
+            "layout": "full_image",
+            "camera": "pan_left",
+            "transition": "slide",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "zero",
+              "sales"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s3",
+            "layout": "full_image",
+            "camera": "zoom_out",
+            "transition": "fade",
+            "captionStyle": "karaoke",
+            "emphasisWords": [
+              "cold",
+              "email"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s4",
+            "layout": "full_image",
+            "camera": "zoom_in",
+            "transition": "zoom",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "cofounder"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s5",
+            "layout": "full_image",
+            "camera": "pan_right",
+            "transition": "cut",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "five",
+              "emails"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s6",
+            "layout": "text_card",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "How",
+              "many"
+            ],
+            "useHeroClip": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "mura4uz2-ikgkm",
+    "engine": "gemini",
+    "output": {
+      "script": {
+        "title": "Finding First B2B Users With Zero Budget",
+        "hook": "Your startup does not have a marketing budget.",
+        "scenes": [
+          {
+            "id": "s1",
+            "purpose": "hook",
+            "narration": "Your startup does not have a marketing budget.",
+            "onScreenText": "Zero marketing budget"
+          },
+          {
+            "id": "s2",
+            "purpose": "context",
+            "narration": "Stop running ads. Your first B2B users are hiding in plain sight.",
+            "onScreenText": "Stop running ads"
+          },
+          {
+            "id": "s3",
+            "purpose": "point",
+            "narration": "Go where your ideal customers complain about their current software.",
+            "onScreenText": "Find the complaints"
+          },
+          {
+            "id": "s4",
+            "purpose": "twist",
+            "narration": "Plot twist: cold emails actually work if you stop talking about yourself.",
+            "onScreenText": "Cold emails work"
+          },
+          {
+            "id": "s5",
+            "purpose": "point",
+            "narration": "Solve one painful problem for free just to get that crucial initial feedback.",
+            "onScreenText": "Solve it for free"
+          },
+          {
+            "id": "s6",
+            "purpose": "cta",
+            "narration": "How did you land your very first B2B customer? Let us know below.",
+            "onScreenText": "How did you start?"
+          }
+        ],
+        "cta": "How did you land your very first B2B customer? Let us know below.",
+        "caption": "Finding B2B users needs hustle, not heavy ad spend. #Startups #B2B #Bootstrapped #Entrepreneurs",
+        "estDurationSec": 35
+      },
+      "plan": {
+        "global": {
+          "stylePrompt": "Minimalist tech illustration, vector flat art, professional business theme",
+          "palette": [
+            "#111827",
+            "#2563eb",
+            "#f97316"
+          ],
+          "musicMood": "upbeat"
+        },
+        "shots": [
+          {
+            "sceneId": "s1",
+            "layout": "full_image",
+            "visualPrompt": "A stressed founder looking at a laptop screen with zero revenue charts",
+            "negativePrompt": "blurry, low quality, text",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "marketing budget"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s2",
+            "layout": "full_image",
+            "visualPrompt": "A megaphone icon crossed out with a red slash against a clean background",
+            "negativePrompt": "blurry, low quality, text",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "Stop running ads"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s3",
+            "layout": "full_image",
+            "visualPrompt": "A magnifying glass zooming in on online forum comment threads",
+            "negativePrompt": "blurry, low quality, text",
+            "camera": "pan_right",
+            "transition": "slide",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "complain"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s4",
+            "layout": "full_image",
+            "visualPrompt": "An envelope icon glowing on a dark screen with binary code around it",
+            "negativePrompt": "blurry, low quality, text",
+            "camera": "zoom_out",
+            "transition": "zoom",
+            "captionStyle": "karaoke",
+            "emphasisWords": [
+              "Plot twist"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s5",
+            "layout": "full_image",
+            "visualPrompt": "A hand shaking over a finalized software contract document",
+            "negativePrompt": "blurry, low quality, text",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "for free"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s6",
+            "layout": "text_card",
+            "negativePrompt": "",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "first B2B customer"
+            ],
+            "useHeroClip": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "mura3eff-5sxnc",
+    "engine": "pulse-lm",
+    "output": {
+      "script": {
+        "title": "The Zero Work Group Project Survivor",
+        "hook": "Your group project partner who does nothing actually gets the highest package.",
+        "scenes": [
+          {
+            "id": "s1",
+            "purpose": "hook",
+            "narration": "Your group project partner who does nothing actually gets the highest package.",
+            "onScreenText": "Zero work partner"
+          },
+          {
+            "id": "s2",
+            "purpose": "context",
+            "narration": "We all know that the work is shared equally among the team members.",
+            "onScreenText": "Equal sharing"
+          },
+          {
+            "id": "s3",
+            "purpose": "twist",
+            "narration": "But the one who does zero ends up getting the highest package.",
+            "onScreenText": "Zero work wins"
+          },
+          {
+            "id": "s4",
+            "purpose": "point",
+            "narration": "It is not about effort, it is about who is the most visible in the final presentation.",
+            "onScreenText": "Visibility matters"
+          },
+          {
+            "id": "s5",
+            "purpose": "cta",
+            "narration": "Who is your zero work group project partner in your college?",
+            "onScreenText": "Name your partner"
+          }
+        ],
+        "cta": "Who is your zero work group project partner in your college?",
+        "caption": "Zero work partners always win the internship race. #groupprojects #college #internship #placement #hostel",
+        "estDurationSec": 35
+      },
+      "plan": {
+        "global": {
+          "stylePrompt": "Cinematic documentary photo, late night college campus, warm desk lamp glow, purple and amber tones",
+          "palette": [
+            "#1a0a2e",
+            "#4a154b",
+            "#f72585",
+            "#ff9a9e"
+          ],
+          "musicMood": "dramatic"
+        },
+        "shots": [
+          {
+            "sceneId": "s1",
+            "layout": "full_image",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "nothing",
+              "package"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s2",
+            "layout": "full_image",
+            "camera": "pan_left",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "equal",
+              "shared"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s3",
+            "layout": "full_image",
+            "camera": "zoom_out",
+            "transition": "zoom",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "zero",
+              "package"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s4",
+            "layout": "full_image",
+            "camera": "static",
+            "transition": "slide",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "visibility",
+              "presentation"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s5",
+            "layout": "text_card",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "partner"
+            ],
+            "useHeroClip": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "mura3eff-5sxnc",
+    "engine": "gemini",
+    "output": {
+      "script": {
+        "title": "The Group Project Paradox",
+        "hook": "The zero-work group project guy always wins.",
+        "scenes": [
+          {
+            "id": "s1",
+            "purpose": "hook",
+            "narration": "The zero-work group project guy always wins.",
+            "onScreenText": "Zero work winner"
+          },
+          {
+            "id": "s2",
+            "purpose": "context",
+            "narration": "You spent all night formatting the PPT while he slept.",
+            "onScreenText": "All night PPT"
+          },
+          {
+            "id": "s3",
+            "purpose": "point",
+            "narration": "You got the CGPA, but he got the placement.",
+            "onScreenText": "CGPA vs Placement"
+          },
+          {
+            "id": "s4",
+            "purpose": "twist",
+            "narration": "Turns out corporate loves people who delegate everything.",
+            "onScreenText": "Corporate loves delegation"
+          },
+          {
+            "id": "s5",
+            "purpose": "cta",
+            "narration": "Is soft skills just elite slacking? Tell me below.",
+            "onScreenText": "Is slacking a skill?"
+          }
+        ],
+        "cta": "Is soft skills just elite slacking? Tell me below.",
+        "caption": "The ultimate corporate mystery solved. #collegelife #placements #groupproject #hostel",
+        "estDurationSec": 35
+      },
+      "plan": {
+        "global": {
+          "stylePrompt": "Vibrant 3d cartoon style, humorous expressive college student characters, modern lighting, clean background",
+          "palette": [
+            "#1a1a2e",
+            "#e94560",
+            "#0f3460",
+            "#f0a500"
+          ],
+          "musicMood": "upbeat"
+        },
+        "shots": [
+          {
+            "sceneId": "s1",
+            "layout": "full_image",
+            "visualPrompt": "A smug college student relaxing while others stress over laptops",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "zero-work",
+              "always wins"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s2",
+            "layout": "full_image",
+            "visualPrompt": "Exhausted college student working on a laptop at 3am with coffee cups everywhere",
+            "camera": "pan_left",
+            "transition": "slide",
+            "captionStyle": "karaoke",
+            "emphasisWords": [
+              "all night",
+              "slept"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s3",
+            "layout": "stat_card",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "CGPA",
+              "placement"
+            ],
+            "statValue": "9.2",
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s4",
+            "layout": "full_image",
+            "visualPrompt": "A cartoon student shaking hands in a corporate office wearing a suit",
+            "camera": "zoom_out",
+            "transition": "zoom",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "corporate",
+              "delegate"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s5",
+            "layout": "text_card",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "soft skills",
+              "slacking"
+            ],
+            "useHeroClip": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "mura2cj5-fjv6o",
+    "engine": "pulse-lm",
+    "output": {
+      "script": {
+        "title": "Working Nights and Ranked Grind",
+        "hook": "Your job is demanding, but your squad is waiting.",
+        "scenes": [
+          {
+            "id": "s1",
+            "purpose": "hook",
+            "narration": "Your job is demanding, but your squad is waiting.",
+            "onScreenText": "Job demands"
+          },
+          {
+            "id": "s2",
+            "purpose": "context",
+            "narration": "You wake up late and rush to finish your daily grind.",
+            "onScreenText": "Late night grind"
+          },
+          {
+            "id": "s3",
+            "purpose": "point",
+            "narration": "You sacrifice sleep just to keep your rank points alive.",
+            "onScreenText": "Sacrificing sleep"
+          },
+          {
+            "id": "s4",
+            "purpose": "twist",
+            "narration": "Your ping is actually the real enemy in ranked matches.",
+            "onScreenText": "Ping is the enemy"
+          },
+          {
+            "id": "s5",
+            "purpose": "point",
+            "narration": "You keep playing just to prove you are still a serious player.",
+            "onScreenText": "Proving seriousness"
+          },
+          {
+            "id": "s6",
+            "purpose": "cta",
+            "narration": "How many hours do you actually spend grinding late at night?",
+            "onScreenText": "How many hours?"
+          }
+        ],
+        "cta": "How many hours do you actually spend grinding late at night?",
+        "caption": "Balancing work and gaming is tough. #gaming #ranked #grind #squad #worklife",
+        "estDurationSec": 35
+      },
+      "plan": {
+        "global": {
+          "stylePrompt": "cinematic smartphone screen glow, purple and neon accents, shallow depth of field",
+          "palette": [
+            "#1a0b3c",
+            "#ff006e",
+            "#00d4ff",
+            "#ff8c00"
+          ],
+          "musicMood": "upbeat"
+        },
+        "shots": [
+          {
+            "sceneId": "s1",
+            "layout": "full_image",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "job",
+              "waiting"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s2",
+            "layout": "full_image",
+            "camera": "pan_right",
+            "transition": "slide",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "wake",
+              "rush"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s3",
+            "layout": "full_image",
+            "camera": "zoom_out",
+            "transition": "fade",
+            "captionStyle": "karaoke",
+            "emphasisWords": [
+              "sleep",
+              "rank"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s4",
+            "layout": "full_image",
+            "camera": "zoom_in",
+            "transition": "zoom",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "ping",
+              "enemy"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s5",
+            "layout": "full_image",
+            "camera": "pan_left",
+            "transition": "cut",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "playing",
+              "prove"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s6",
+            "layout": "text_card",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "hours"
+            ],
+            "useHeroClip": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "mura2cj5-fjv6o",
+    "engine": "gemini",
+    "output": {
+      "script": {
+        "title": "Balancing Jobs and Ranked",
+        "hook": "Working all day just to grind ranked all night?",
+        "scenes": [
+          {
+            "id": "s1",
+            "purpose": "hook",
+            "narration": "Working all day just to grind ranked all night?",
+            "onScreenText": "Working and ranked?"
+          },
+          {
+            "id": "s2",
+            "purpose": "context",
+            "narration": "You survive office meetings just to clutch matches with the squad.",
+            "onScreenText": "Office to squad"
+          },
+          {
+            "id": "s3",
+            "purpose": "point",
+            "narration": "Your sleep schedule is totally fried from endless budget build gaming sessions.",
+            "onScreenText": "Fried sleep schedule"
+          },
+          {
+            "id": "s4",
+            "purpose": "twist",
+            "narration": "Plot twist: your boss has a higher rank than you.",
+            "onScreenText": "Plot twist!"
+          },
+          {
+            "id": "s5",
+            "purpose": "cta",
+            "narration": "How many hours of sleep do you actually get? Tell us below.",
+            "onScreenText": "Sleep hours?"
+          }
+        ],
+        "cta": "How many hours of sleep do you actually get? Tell us below.",
+        "caption": "The true gamer struggle. How do you survive the morning after? #IndieGamers #RankedGrind #GamingLife #MobileGaming",
+        "estDurationSec": 35
+      },
+      "plan": {
+        "global": {
+          "stylePrompt": "Vibrant cyberpunk neon aesthetic, highly detailed, vertical 9:16 format, cinematic lighting",
+          "palette": [
+            "#121212",
+            "#00ffcc",
+            "#ff007f",
+            "#333333"
+          ],
+          "musicMood": "upbeat"
+        },
+        "shots": [
+          {
+            "sceneId": "s1",
+            "layout": "full_image",
+            "visualPrompt": "A tired office worker staring at a glowing smartphone screen under a desk",
+            "negativePrompt": "text, blurry",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "Working",
+              "ranked"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s2",
+            "layout": "full_image",
+            "visualPrompt": "Four friends laughing while playing mobile games together in a dim room",
+            "negativePrompt": "text, blurry",
+            "camera": "pan_left",
+            "transition": "fade",
+            "captionStyle": "karaoke",
+            "emphasisWords": [
+              "clutch",
+              "squad"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s3",
+            "layout": "full_image",
+            "visualPrompt": "A messy desk setup with glowing keyboard and multiple empty coffee cups at night",
+            "negativePrompt": "text, blurry",
+            "camera": "zoom_out",
+            "transition": "slide",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "sleep",
+              "budget build"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s4",
+            "layout": "full_image",
+            "visualPrompt": "A funny shocked gamer face illuminated by bright neon monitor lights",
+            "negativePrompt": "text, blurry",
+            "camera": "static",
+            "transition": "zoom",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "Plot twist",
+              "boss"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s5",
+            "layout": "text_card",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "sleep",
+              "Tell us"
+            ],
+            "useHeroClip": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "mura2m53-o8nym",
+    "engine": "pulse-lm",
+    "output": {
+      "script": {
+        "title": "Collaboration is the secret weapon for small creators",
+        "hook": "Stop working alone when you can grow with your peers.",
+        "scenes": [
+          {
+            "id": "s1",
+            "purpose": "hook",
+            "narration": "Stop working alone when you can grow with your peers.",
+            "onScreenText": "Stop working alone"
+          },
+          {
+            "id": "s2",
+            "purpose": "context",
+            "narration": "You think your music is too niche for anyone to connect with.",
+            "onScreenText": "Your music is too niche"
+          },
+          {
+            "id": "s3",
+            "purpose": "twist",
+            "narration": "A simple collab with a local artist instantly brought you new fans.",
+            "onScreenText": "Instant new fans"
+          },
+          {
+            "id": "s4",
+            "purpose": "point",
+            "narration": "Sharing your creative process with someone who understands your journey is priceless.",
+            "onScreenText": "Sharing your journey"
+          },
+          {
+            "id": "s5",
+            "purpose": "cta",
+            "narration": "Who is your dream collaborator right now?",
+            "onScreenText": "Who is your dream collab?"
+          }
+        ],
+        "cta": "Who is your dream collaborator right now?",
+        "caption": "Collaboration is the secret weapon for small creators. #collab #creators #music #writers #growth",
+        "estDurationSec": 35
+      },
+      "plan": {
+        "global": {
+          "stylePrompt": "cinematic late-night music room, warm desk lamps, purple and amber tones",
+          "palette": [
+            "#1a0a2e",
+            "#4a154b",
+            "#f72585",
+            "#ffffff"
+          ],
+          "musicMood": "inspiring"
+        },
+        "shots": [
+          {
+            "sceneId": "s1",
+            "layout": "full_image",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "Stop",
+              "working",
+              "alone"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s2",
+            "layout": "full_image",
+            "camera": "pan_left",
+            "transition": "slide",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "too",
+              "niche"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s3",
+            "layout": "full_image",
+            "camera": "zoom_out",
+            "transition": "fade",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "instantly",
+              "brought"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s4",
+            "layout": "full_image",
+            "camera": "static",
+            "transition": "cut",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "priceless"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s5",
+            "layout": "text_card",
+            "camera": "static",
+            "transition": "zoom",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "dream",
+              "collaborator"
+            ],
+            "useHeroClip": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "mura2m53-o8nym",
+    "engine": "gemini",
+    "output": {
+      "script": {
+        "title": "Collabs Save Creators",
+        "hook": "Collabs saved us from the creator lonely zone.",
+        "scenes": [
+          {
+            "id": "s1",
+            "purpose": "hook",
+            "narration": "Collabs saved us from the creator lonely zone.",
+            "onScreenText": "Stop creating alone"
+          },
+          {
+            "id": "s2",
+            "purpose": "context",
+            "narration": "Building alone leads straight to burnout and silence.",
+            "onScreenText": "The solo grind"
+          },
+          {
+            "id": "s3",
+            "purpose": "point",
+            "narration": "When you share your draft with a peer magic happens.",
+            "onScreenText": "Share your draft"
+          },
+          {
+            "id": "s4",
+            "purpose": "twist",
+            "narration": "Small creators actually grow faster together than apart.",
+            "onScreenText": "Grow together"
+          },
+          {
+            "id": "s5",
+            "purpose": "cta",
+            "narration": "Who is your dream collab partner right now?",
+            "onScreenText": "Tag your partner"
+          }
+        ],
+        "cta": "Who is your dream collab partner right now?",
+        "caption": "Find your peer and grow together. #Collab #Creators #Community #Growth",
+        "estDurationSec": 35
+      },
+      "plan": {
+        "global": {
+          "stylePrompt": "Vibrant modern vector art in warm pastel tones, cozy creative workspace",
+          "palette": [
+            "#FF5722",
+            "#3F51B5",
+            "#4CAF50",
+            "#FFC107"
+          ],
+          "musicMood": "upbeat"
+        },
+        "shots": [
+          {
+            "sceneId": "s1",
+            "layout": "full_image",
+            "visualPrompt": "Two diverse young creators working together on laptops in a cozy room",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "Collabs",
+              "saved"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s2",
+            "layout": "full_image",
+            "visualPrompt": "A lonely creator staring at a glowing laptop screen in a dark room",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "burnout",
+              "silence"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s3",
+            "layout": "full_image",
+            "visualPrompt": "Two smiling musicians sharing notes over a coffee table",
+            "camera": "pan_left",
+            "transition": "slide",
+            "captionStyle": "karaoke",
+            "emphasisWords": [
+              "draft",
+              "magic"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s4",
+            "layout": "stat_card",
+            "camera": "zoom_out",
+            "transition": "zoom",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "faster",
+              "together"
+            ],
+            "statValue": "2x",
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s5",
+            "layout": "text_card",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "dream",
+              "collab"
+            ],
+            "useHeroClip": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "mur9xg2e-kr6je",
+    "engine": "pulse-lm",
+    "output": {
+      "script": {
+        "title": "Why Money Talks Are So Awkward",
+        "hook": "We all know the exact moment when money comes up in a conversation.",
+        "scenes": [
+          {
+            "id": "s1",
+            "purpose": "hook",
+            "narration": "We all know the exact moment when money comes up in a conversation.",
+            "onScreenText": "Money talks are awkward"
+          },
+          {
+            "id": "s2",
+            "purpose": "context",
+            "narration": "It feels like we are revealing a secret that could ruin our friendship instantly.",
+            "onScreenText": "Revealing a secret"
+          },
+          {
+            "id": "s3",
+            "purpose": "point",
+            "narration": "We worry about being judged for our salary or our expensive lifestyle choices.",
+            "onScreenText": "Worry about judgment"
+          },
+          {
+            "id": "s4",
+            "purpose": "twist",
+            "narration": "And yet, we keep asking friends for financial advice without ever telling them our own numbers.",
+            "onScreenText": "We keep asking for advice"
+          },
+          {
+            "id": "s5",
+            "purpose": "point",
+            "narration": "Talking about money makes us feel exposed and vulnerable.",
+            "onScreenText": "Feeling exposed"
+          },
+          {
+            "id": "s6",
+            "purpose": "cta",
+            "narration": "How do you handle awkward money conversations with friends?",
+            "onScreenText": "How do you handle it?"
+          }
+        ],
+        "cta": "How do you handle awkward money conversations with friends?",
+        "caption": "Talking about money is hard. #moneytalks #friendship #broke #salaryday #budget",
+        "estDurationSec": 35
+      },
+      "plan": {
+        "global": {
+          "stylePrompt": "cinematic documentary, Indian urban lifestyle, warm lighting, shallow depth of field",
+          "palette": [
+            "#2c180a",
+            "#f7931e",
+            "#4a5568",
+            "#d1fae5"
+          ],
+          "musicMood": "upbeat"
+        },
+        "shots": [
+          {
+            "sceneId": "s1",
+            "layout": "full_image",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "money",
+              "conversation"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s2",
+            "layout": "full_image",
+            "camera": "pan_left",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "judgment",
+              "friendship"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s3",
+            "layout": "full_image",
+            "camera": "zoom_out",
+            "transition": "slide",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "salary",
+              "lifestyle"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s4",
+            "layout": "full_image",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "asking",
+              "numbers"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s5",
+            "layout": "full_image",
+            "camera": "pan_right",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "exposed",
+              "vulnerable"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s6",
+            "layout": "text_card",
+            "camera": "static",
+            "transition": "zoom",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "awkward",
+              "conversations"
+            ],
+            "useHeroClip": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "mur9xg2e-kr6je",
+    "engine": "gemini",
+    "output": {
+      "script": {
+        "title": "Why Money Talk With Friends Is Awkward",
+        "hook": "Why is it so weird to talk money with friends?",
+        "scenes": [
+          {
+            "id": "s1",
+            "purpose": "hook",
+            "narration": "Why is it so weird to talk money with friends?",
+            "onScreenText": "Why is money so awkward?"
+          },
+          {
+            "id": "s2",
+            "purpose": "context",
+            "narration": "We can share literally everything else, but salary day is top secret.",
+            "onScreenText": "Salary is a secret"
+          },
+          {
+            "id": "s3",
+            "purpose": "point",
+            "narration": "Someone orders a basic chai and someone else orders expensive cold brew.",
+            "onScreenText": "The cafe bill split"
+          },
+          {
+            "id": "s4",
+            "purpose": "twist",
+            "narration": "Turns out, keeping it secret actually helps nobody and keeps us stressed.",
+            "onScreenText": "Keeping secrets hurts"
+          },
+          {
+            "id": "s5",
+            "purpose": "cta",
+            "narration": "Do you know what your best friend earns? Tell us below.",
+            "onScreenText": "Do you know their salary?"
+          }
+        ],
+        "cta": "Do you know what your best friend earns?",
+        "caption": "Let us normalize talking about our budget without feeling weird. #MoneyBasics #SalaryDay #MonthEnd #Friendship",
+        "estDurationSec": 35
+      },
+      "plan": {
+        "global": {
+          "stylePrompt": "Clean minimalist flat vector illustration, calm pastel tones, friendly modern aesthetic",
+          "palette": [
+            "#111827",
+            "#3B82F6",
+            "#10B981",
+            "#F3F4F6"
+          ],
+          "musicMood": "calm"
+        },
+        "shots": [
+          {
+            "sceneId": "s1",
+            "layout": "full_image",
+            "visualPrompt": "Two young friends sitting at a cafe table looking confused at their phones",
+            "negativePrompt": "blurry, text, ugly, distorted",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "weird",
+              "talk money"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s2",
+            "layout": "full_image",
+            "visualPrompt": "A smartphone screen graphic showing a locked padlock icon with money symbols",
+            "negativePrompt": "blurry, text, ugly",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "top secret"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s3",
+            "layout": "full_image",
+            "visualPrompt": "A restaurant bill on a wooden table with multiple cards next to it",
+            "negativePrompt": "blurry, text",
+            "camera": "pan_left",
+            "transition": "slide",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "expensive"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s4",
+            "layout": "full_image",
+            "visualPrompt": "A person looking relieved while holding a coffee cup in a sunny room",
+            "negativePrompt": "blurry, text",
+            "camera": "zoom_out",
+            "transition": "zoom",
+            "captionStyle": "karaoke",
+            "emphasisWords": [
+              "helps nobody"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s5",
+            "layout": "text_card",
+            "negativePrompt": "blurry",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "best friend earns"
+            ],
+            "useHeroClip": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "mura3p12-0xn9m",
+    "engine": "pulse-lm",
+    "output": {
+      "script": {
+        "title": "Beat Soreness Without Spending A Penny",
+        "hook": "Stop buying expensive gear for sore muscles.",
+        "scenes": [
+          {
+            "id": "s1",
+            "purpose": "hook",
+            "narration": "Stop buying expensive gear for sore muscles.",
+            "onScreenText": "Stop expensive gear"
+          },
+          {
+            "id": "s2",
+            "purpose": "context",
+            "narration": "You know that deep ache after every heavy lift.",
+            "onScreenText": "Deep post workout ache"
+          },
+          {
+            "id": "s3",
+            "purpose": "point",
+            "narration": "The real secret is simple salt and ice.",
+            "onScreenText": "Salt and ice secret"
+          },
+          {
+            "id": "s4",
+            "purpose": "twist",
+            "narration": "No fancy foam rollers or massage guns needed.",
+            "onScreenText": "No fancy tools"
+          },
+          {
+            "id": "s5",
+            "purpose": "point",
+            "narration": "Just a few minutes of cold therapy beats any gadget.",
+            "onScreenText": "Cold therapy beats gadgets"
+          },
+          {
+            "id": "s6",
+            "purpose": "cta",
+            "narration": "What is your go to cold therapy routine?",
+            "onScreenText": "What is your routine?"
+          }
+        ],
+        "cta": "What is your go to cold therapy routine?",
+        "caption": "Beat soreness without spending a penny. #gymtips #postworkouts #fitnessmotivation #homegym #soremuscles",
+        "estDurationSec": 35
+      },
+      "plan": {
+        "global": {
+          "stylePrompt": "dynamic sports photography, early morning light, strong contrast, cinematic close-ups",
+          "palette": [
+            "#1a1a1a",
+            "#ff6b35",
+            "#ffffff",
+            "#2c3e50"
+          ],
+          "musicMood": "upbeat"
+        },
+        "shots": [
+          {
+            "sceneId": "s1",
+            "layout": "full_image",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "Stop",
+              "expensive"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s2",
+            "layout": "full_image",
+            "camera": "pan_left",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "deep",
+              "ache"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s3",
+            "layout": "full_image",
+            "camera": "zoom_out",
+            "transition": "slide",
+            "captionStyle": "karaoke",
+            "emphasisWords": [
+              "secret"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s4",
+            "layout": "full_image",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "fancy",
+              "tools"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s5",
+            "layout": "full_image",
+            "camera": "pan_right",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "cold",
+              "therapy"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s6",
+            "layout": "text_card",
+            "camera": "static",
+            "transition": "zoom",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "routine"
+            ],
+            "useHeroClip": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "mura3p12-0xn9m",
+    "engine": "gemini",
+    "output": {
+      "script": {
+        "title": "Beat Soreness Without Fancy Gear",
+        "hook": "Sore after leg day? Stop buying expensive massage guns.",
+        "scenes": [
+          {
+            "id": "s1",
+            "purpose": "hook",
+            "narration": "Sore after leg day? Stop buying expensive massage guns.",
+            "onScreenText": "Stop buying massage guns"
+          },
+          {
+            "id": "s2",
+            "purpose": "context",
+            "narration": "That muscle pain is normal, but you do not need gadgets to fix it.",
+            "onScreenText": "No gadgets needed"
+          },
+          {
+            "id": "s3",
+            "purpose": "point",
+            "narration": "Grab a simple rolling pin from your kitchen instead.",
+            "onScreenText": "Use a rolling pin"
+          },
+          {
+            "id": "s4",
+            "purpose": "twist",
+            "narration": "Wait, even better? A brisk walk does more than stretching.",
+            "onScreenText": "A brisk walk"
+          },
+          {
+            "id": "s5",
+            "purpose": "cta",
+            "narration": "How do you survive leg day soreness? Tell us below.",
+            "onScreenText": "How do you survive?"
+          }
+        ],
+        "cta": "How do you survive leg day soreness? Tell us below.",
+        "caption": "Save your money and your muscles. #FitTogether #LegDay #FitnessTips #Recovery",
+        "estDurationSec": 35
+      },
+      "plan": {
+        "global": {
+          "stylePrompt": "Vibrant modern flat vector illustration style, energetic fitness theme",
+          "palette": [
+            "#111827",
+            "#3B82F6",
+            "#10B981",
+            "#F3F4F6"
+          ],
+          "musicMood": "upbeat"
+        },
+        "shots": [
+          {
+            "sceneId": "s1",
+            "layout": "full_image",
+            "visualPrompt": "A person looking at their sore legs in a brightly lit room",
+            "negativePrompt": "blurry, text, watermark",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "expensive",
+              "massage guns"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s2",
+            "layout": "full_image",
+            "visualPrompt": "A dumbbell resting on a gym floor with soft morning light",
+            "negativePrompt": "blurry, text, watermark",
+            "camera": "pan_left",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "normal"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s3",
+            "layout": "full_image",
+            "visualPrompt": "A wooden rolling pin on a clean kitchen counter",
+            "negativePrompt": "blurry, text, watermark",
+            "camera": "static",
+            "transition": "slide",
+            "captionStyle": "karaoke",
+            "emphasisWords": [
+              "rolling pin"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s4",
+            "layout": "full_image",
+            "visualPrompt": "A person walking outdoors in a sunny park wearing sneakers",
+            "negativePrompt": "blurry, text, watermark",
+            "camera": "zoom_out",
+            "transition": "zoom",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "brisk walk"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s5",
+            "layout": "text_card",
+            "negativePrompt": "blurry",
+            "camera": "static",
+            "transition": "cut",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "Tell us below"
+            ],
+            "useHeroClip": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "mura154h-a1u50",
+    "engine": "pulse-lm",
+    "output": {
+      "script": {
+        "title": "Stop copying US pricing models",
+        "hook": "Your Indian customers will not pay US prices.",
+        "scenes": [
+          {
+            "id": "s1",
+            "purpose": "hook",
+            "narration": "Your Indian customers will not pay US prices.",
+            "onScreenText": "Stop copying US prices"
+          },
+          {
+            "id": "s2",
+            "purpose": "context",
+            "narration": "You are building for Indian users who have different budgets.",
+            "onScreenText": "Indian budgets are different"
+          },
+          {
+            "id": "s3",
+            "purpose": "point",
+            "narration": "Your MVP should solve a real pain point for local users.",
+            "onScreenText": "Solve local pain points"
+          },
+          {
+            "id": "s4",
+            "purpose": "twist",
+            "narration": "Pricing is not about making money, it is about making customers.",
+            "onScreenText": "Pricing is about customers"
+          },
+          {
+            "id": "s5",
+            "purpose": "point",
+            "narration": "Start with a simple, affordable tier for early adopters.",
+            "onScreenText": "Start simple and cheap"
+          },
+          {
+            "id": "s6",
+            "purpose": "cta",
+            "narration": "What is the cheapest tier you offer right now?",
+            "onScreenText": "What is your cheapest tier?"
+          }
+        ],
+        "cta": "What is the cheapest tier you offer right now?",
+        "caption": "Pricing is not about making money, it is about making customers. #pricing #startups #india #founders #mvp",
+        "estDurationSec": 35
+      },
+      "plan": {
+        "global": {
+          "stylePrompt": "Cinematic late-night co-working space, warm desk lamps, purple and amber tones",
+          "palette": [
+            "#1a0d2e",
+            "#3a1e4a",
+            "#ff6b6b",
+            "#ffffff"
+          ],
+          "musicMood": "inspiring"
+        },
+        "shots": [
+          {
+            "sceneId": "s1",
+            "layout": "full_image",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "US prices"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s2",
+            "layout": "full_image",
+            "camera": "pan_left",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "Indian users"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s3",
+            "layout": "full_image",
+            "camera": "zoom_out",
+            "transition": "slide",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "real pain point"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s4",
+            "layout": "full_image",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "Pricing is about customers"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s5",
+            "layout": "full_image",
+            "camera": "pan_right",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "simple and cheap"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s6",
+            "layout": "text_card",
+            "camera": "static",
+            "transition": "zoom",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "cheapest tier"
+            ],
+            "useHeroClip": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "mura154h-a1u50",
+    "engine": "gemini",
+    "output": {
+      "script": {
+        "title": "US Pricing vs Indian Reality",
+        "hook": "Stop copy-pasting Silicon Valley pricing strategies into India.",
+        "scenes": [
+          {
+            "id": "s1",
+            "purpose": "hook",
+            "narration": "Stop copy-pasting Silicon Valley pricing strategies into India.",
+            "onScreenText": "Stop US pricing models"
+          },
+          {
+            "id": "s2",
+            "purpose": "context",
+            "narration": "You are charging 50 dollars a month for a B2B SaaS tool.",
+            "onScreenText": "50 dollars a month?"
+          },
+          {
+            "id": "s3",
+            "purpose": "point",
+            "narration": "Meanwhile, the average Indian business is looking for a lifetime deal.",
+            "onScreenText": "They want lifetime deals"
+          },
+          {
+            "id": "s4",
+            "purpose": "twist",
+            "narration": "Here is the twist: your high price isn't premium, it's just invisible.",
+            "onScreenText": "Your price is invisible"
+          },
+          {
+            "id": "s5",
+            "purpose": "point",
+            "narration": "Unless you are solving a critical pain, don't expect global margins.",
+            "onScreenText": "Solve critical pain first"
+          },
+          {
+            "id": "s6",
+            "purpose": "cta",
+            "narration": "Are you struggling to get your first paying customer in India?",
+            "onScreenText": "Pricing challenge?"
+          }
+        ],
+        "cta": "Are you struggling to get your first paying customer in India?",
+        "caption": "Stop trying to be SF in Bangalore. The market is not the same. What's the weirdest pricing feedback you've received? #StartupIndia #SaaS #Bootstrapped #IndiaStartups",
+        "estDurationSec": 35
+      },
+      "plan": {
+        "global": {
+          "stylePrompt": "Cinematic street photography style, high contrast, warm lighting, urban Indian office setting, sharp focus, professional yet raw aesthetic",
+          "palette": [
+            "#FF9933",
+            "#FFFFFF",
+            "#138808",
+            "#000080"
+          ],
+          "musicMood": "upbeat"
+        },
+        "shots": [
+          {
+            "sceneId": "s1",
+            "layout": "full_image",
+            "visualPrompt": "A close-up of a frustrated founder looking at a laptop screen in a bright co-working space, shallow depth of field",
+            "negativePrompt": "blurry, generic stock photo, smiling",
+            "camera": "static",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "Stop",
+              "copy-pasting"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s2",
+            "layout": "stat_card",
+            "camera": "static",
+            "transition": "slide",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "50 dollars"
+            ],
+            "statValue": "$50",
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s3",
+            "layout": "full_image",
+            "visualPrompt": "A busy Indian market scene juxtaposed with a sleek tech office interior",
+            "negativePrompt": "night, rainy",
+            "camera": "pan_left",
+            "transition": "cut",
+            "captionStyle": "karaoke",
+            "emphasisWords": [
+              "lifetime deal"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s4",
+            "layout": "quote_card",
+            "camera": "static",
+            "transition": "zoom",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "invisible"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s5",
+            "layout": "full_image",
+            "visualPrompt": "A hand writing complex math on a glass whiteboard, blurred office background",
+            "negativePrompt": "messy, messy handwriting",
+            "camera": "zoom_in",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "critical pain"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s6",
+            "layout": "text_card",
+            "camera": "static",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "first paying customer"
+            ],
+            "useHeroClip": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "mura1f2v-ybz1v",
+    "engine": "pulse-lm",
+    "output": {
+      "script": {
+        "title": "Hostel Kettle Magic",
+        "hook": "We only have an electric kettle and a microwave.",
+        "scenes": [
+          {
+            "id": "s1",
+            "purpose": "hook",
+            "narration": "We only have an electric kettle and a microwave.",
+            "onScreenText": "Kettle and microwave"
+          },
+          {
+            "id": "s2",
+            "purpose": "context",
+            "narration": "And somehow we manage to survive on instant noodles and tea.",
+            "onScreenText": "Instant noodles and tea"
+          },
+          {
+            "id": "s3",
+            "purpose": "point",
+            "narration": "Then one day we discovered the secret ingredient that turns tea into a liquid gold.",
+            "onScreenText": "Tea turns into gold"
+          },
+          {
+            "id": "s4",
+            "purpose": "twist",
+            "narration": "We used a spoon and a piece of aluminum foil to create a perfect curry.",
+            "onScreenText": "Curry with foil"
+          },
+          {
+            "id": "s5",
+            "purpose": "point",
+            "narration": "It tasted like a five-star restaurant and we called it hostel magic.",
+            "onScreenText": "Hostel magic"
+          },
+          {
+            "id": "s6",
+            "purpose": "cta",
+            "narration": "What is your most genius hostel food invention?",
+            "onScreenText": "Hostel food genius?"
+          }
+        ],
+        "cta": "What is your most genius hostel food invention?",
+        "caption": "Hostel food is where science meets survival. #hostel #kettle #college #food #campus #studentlife",
+        "estDurationSec": 35
+      },
+      "plan": {
+        "global": {
+          "stylePrompt": "Cinematic late-night college hostel room, warm desk lamp, purple and amber tones, shallow depth of field",
+          "palette": [
+            "#1a0b2e",
+            "#ff6b6b",
+            "#4ecdc4",
+            "#2c3e50"
+          ],
+          "musicMood": "inspiring"
+        },
+        "shots": [
+          {
+            "sceneId": "s1",
+            "layout": "full_image",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "kettle",
+              "microwave"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s2",
+            "layout": "full_image",
+            "camera": "pan_left",
+            "transition": "slide",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "instant noodles",
+              "tea"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s3",
+            "layout": "full_image",
+            "camera": "zoom_out",
+            "transition": "fade",
+            "captionStyle": "karaoke",
+            "emphasisWords": [
+              "secret ingredient",
+              "gold"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s4",
+            "layout": "full_image",
+            "camera": "zoom_in",
+            "transition": "zoom",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "spoon",
+              "aluminum foil"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s5",
+            "layout": "full_image",
+            "camera": "pan_right",
+            "transition": "cut",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "five-star restaurant",
+              "magic"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s6",
+            "layout": "text_card",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "genius"
+            ],
+            "useHeroClip": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "mura1f2v-ybz1v",
+    "engine": "gemini",
+    "output": {
+      "script": {
+        "title": "Midnight Hostel Chef",
+        "hook": "Electric kettles in hostels are not for boiling water.",
+        "scenes": [
+          {
+            "id": "s1",
+            "purpose": "hook",
+            "narration": "Electric kettles in hostels are not for boiling water.",
+            "onScreenText": "Not for water"
+          },
+          {
+            "id": "s2",
+            "purpose": "context",
+            "narration": "At 2 AM during exam week, this becomes a five-star kitchen.",
+            "onScreenText": "2 AM kitchen"
+          },
+          {
+            "id": "s3",
+            "purpose": "point",
+            "narration": "We are making hostel magic with instant noodles and crushed chips.",
+            "onScreenText": "Hostel magic"
+          },
+          {
+            "id": "s4",
+            "purpose": "twist",
+            "narration": "Until the warden walks in and snatches your survival gear.",
+            "onScreenText": "Warden raid"
+          },
+          {
+            "id": "s5",
+            "purpose": "cta",
+            "narration": "What is the weirdest thing you cooked in your kettle?",
+            "onScreenText": "What did you cook?"
+          }
+        ],
+        "cta": "What is the weirdest thing you cooked in your kettle?",
+        "caption": "Only hostelites know the real power of an electric kettle. #HostelLife #MidnightCravings #CollegeDays #HostelCooking",
+        "estDurationSec": 35
+      },
+      "plan": {
+        "global": {
+          "stylePrompt": "Vibrant and moody cinematic vertical shot, grainy film look, relatable student aesthetic",
+          "palette": [
+            "#1a1a1a",
+            "#ff4500",
+            "#ffcc00",
+            "#ffffff"
+          ],
+          "musicMood": "upbeat"
+        },
+        "shots": [
+          {
+            "sceneId": "s1",
+            "layout": "full_image",
+            "visualPrompt": "A battered electric kettle glowing dimly on a messy hostel desk at night",
+            "negativePrompt": "blurry, photorealistic, bright lighting",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "electric",
+              "kettles"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s2",
+            "layout": "full_image",
+            "visualPrompt": "Stacks of engineering textbooks and open notebooks under a desk lamp",
+            "negativePrompt": "clean desk, daytime",
+            "camera": "pan_left",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "exam",
+              "week"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s3",
+            "layout": "full_image",
+            "visualPrompt": "Packets of instant noodles and spices scattered around a dorm bed",
+            "negativePrompt": "luxury kitchen, clean",
+            "camera": "zoom_out",
+            "transition": "slide",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "hostel",
+              "magic"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s4",
+            "layout": "full_image",
+            "visualPrompt": "A flashlight beam cutting through a dark hostel hallway corridor",
+            "negativePrompt": "daylight, bright",
+            "camera": "pan_right",
+            "transition": "zoom",
+            "captionStyle": "karaoke",
+            "emphasisWords": [
+              "warden",
+              "walks"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s5",
+            "layout": "text_card",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "weirdest",
+              "thing"
+            ],
+            "useHeroClip": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "mura0axv-cn52u",
+    "engine": "pulse-lm",
+    "output": {
+      "script": {
+        "title": "Mobile vs PC Gaming Specs",
+        "hook": "Your aim is fine. Your ping is the villain.",
+        "scenes": [
+          {
+            "id": "s1",
+            "purpose": "hook",
+            "narration": "Your aim is fine. Your ping is the villain.",
+            "onScreenText": "Ping is the villain"
+          },
+          {
+            "id": "s2",
+            "purpose": "context",
+            "narration": "Mobile gaming is taking over because you can play anywhere.",
+            "onScreenText": "Mobile is everywhere"
+          },
+          {
+            "id": "s3",
+            "purpose": "point",
+            "narration": "But mobile games cannot match the precision of a PC setup.",
+            "onScreenText": "PC has better precision"
+          },
+          {
+            "id": "s4",
+            "purpose": "twist",
+            "narration": "PC master race always wins, no matter the budget.",
+            "onScreenText": "PC master race"
+          },
+          {
+            "id": "s5",
+            "purpose": "cta",
+            "narration": "Which platform do you prefer for serious gaming?",
+            "onScreenText": "PC or mobile?"
+          }
+        ],
+        "cta": "Which platform do you prefer for serious gaming?",
+        "caption": "PC or mobile? #gaming #mobilegaming #pcgaming #spec",
+        "estDurationSec": 35
+      },
+      "plan": {
+        "global": {
+          "stylePrompt": "neon-lit gaming desk, RGB glow, cinematic close-ups, shallow depth of field",
+          "palette": [
+            "#0f0c29",
+            "#ff3d00",
+            "#1a1a2e",
+            "#ffffff"
+          ],
+          "musicMood": "inspiring"
+        },
+        "shots": [
+          {
+            "sceneId": "s1",
+            "layout": "full_image",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "ping",
+              "villain"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s2",
+            "layout": "full_image",
+            "camera": "pan_right",
+            "transition": "slide",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "anywhere"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s3",
+            "layout": "full_image",
+            "camera": "zoom_out",
+            "transition": "fade",
+            "captionStyle": "karaoke",
+            "emphasisWords": [
+              "precision"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s4",
+            "layout": "full_image",
+            "camera": "zoom_in",
+            "transition": "zoom",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "master race"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s5",
+            "layout": "text_card",
+            "camera": "static",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "prefer"
+            ],
+            "useHeroClip": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "mura0axv-cn52u",
+    "engine": "gemini",
+    "output": {
+      "script": {
+        "title": "Mobile vs PC Gaming",
+        "hook": "Mobile gaming is taking over, but is it true?",
+        "scenes": [
+          {
+            "id": "s1",
+            "purpose": "hook",
+            "narration": "Mobile gaming is taking over because you can play anywhere.",
+            "onScreenText": "Mobile vs PC"
+          },
+          {
+            "id": "s2",
+            "purpose": "context",
+            "narration": "Bro, mobile games cannot match the precision of a PC setup.",
+            "onScreenText": "Zero Precision"
+          },
+          {
+            "id": "s3",
+            "purpose": "point",
+            "narration": "But look at the battery and heating issues on phones.",
+            "onScreenText": "Battery Drain"
+          },
+          {
+            "id": "s4",
+            "purpose": "twist",
+            "narration": "PC master race always wins, no matter the budget.",
+            "onScreenText": "Budget Build"
+          },
+          {
+            "id": "s5",
+            "purpose": "cta",
+            "narration": "Do you prefer mobile or PC for your daily grind?",
+            "onScreenText": "Mobile or PC?"
+          }
+        ],
+        "cta": "Do you prefer mobile or PC for your daily grind?",
+        "caption": "Are you team mobile or team PC? Drop your thoughts below! #MobileGaming #PCGaming #GamingSetup #IndieGamers #Gamers",
+        "estDurationSec": 35
+      },
+      "plan": {
+        "global": {
+          "stylePrompt": "Vibrant cyberpunk gaming aesthetic with neon lighting and high contrast, 8k resolution, vertical orientation",
+          "palette": [
+            "#0f0c29",
+            "#302b63",
+            "#24243e",
+            "#00ffcc"
+          ],
+          "musicMood": "upbeat"
+        },
+        "shots": [
+          {
+            "sceneId": "s1",
+            "layout": "full_image",
+            "visualPrompt": "A person playing a high-end mobile game in a dimly lit room with neon lights",
+            "negativePrompt": "blurry, low quality, text",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "mobile",
+              "gaming"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s2",
+            "layout": "full_image",
+            "visualPrompt": "Close up of hands on a mechanical keyboard and mouse gaming setup with RGB lighting",
+            "negativePrompt": "blurry, low quality, text",
+            "camera": "pan_left",
+            "transition": "slide",
+            "captionStyle": "karaoke",
+            "emphasisWords": [
+              "precision",
+              "PC setup"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s3",
+            "layout": "full_image",
+            "visualPrompt": "A smartphone glowing intensely with warning heat graphics around it",
+            "negativePrompt": "blurry, low quality, text",
+            "camera": "zoom_out",
+            "transition": "cut",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "battery",
+              "heating"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s4",
+            "layout": "full_image",
+            "visualPrompt": "An epic multi-monitor gaming battle station glowing in purple and blue",
+            "negativePrompt": "blurry, low quality, text",
+            "camera": "static",
+            "transition": "zoom",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "master race",
+              "budget"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s5",
+            "layout": "text_card",
+            "negativePrompt": "blurry, low quality",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "mobile",
+              "PC",
+              "grind"
+            ],
+            "useHeroClip": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "mur9x6re-rnwon",
+    "engine": "pulse-lm",
+    "output": {
+      "script": {
+        "title": "The Silent Posting Secret",
+        "hook": "Posting when no one watches is actually your best training ground.",
+        "scenes": [
+          {
+            "id": "s1",
+            "purpose": "hook",
+            "narration": "Posting when no one watches is actually your best training ground.",
+            "onScreenText": "Silent posting is training ground"
+          },
+          {
+            "id": "s2",
+            "purpose": "context",
+            "narration": "You think your audience is watching every single post you make.",
+            "onScreenText": "Audience watching every post"
+          },
+          {
+            "id": "s3",
+            "purpose": "point",
+            "narration": "That is not true. Your real audience is watching only when they feel something.",
+            "onScreenText": "Real audience watches only when they feel something"
+          },
+          {
+            "id": "s4",
+            "purpose": "twist",
+            "narration": "The silence is where you learn your craft and build your confidence.",
+            "onScreenText": "Silence builds confidence"
+          },
+          {
+            "id": "s5",
+            "purpose": "point",
+            "narration": "Every single post you make when nobody is watching is a draft that counts.",
+            "onScreenText": "Every draft counts"
+          },
+          {
+            "id": "s6",
+            "purpose": "cta",
+            "narration": "How many silent posts have you made without expecting any likes?",
+            "onScreenText": "How many silent posts?"
+          }
+        ],
+        "cta": "How many silent posts have you made without expecting any likes?",
+        "caption": "Silent posting is where real growth happens. #silentposting #creatorjourney #growthhacks #creatorslife",
+        "estDurationSec": 35
+      },
+      "plan": {
+        "global": {
+          "stylePrompt": "cinematic close-ups, warm desk lamps, creative workspace, purple and amber tones",
+          "palette": [
+            "#1a0b2e",
+            "#4a154b",
+            "#ff6b6b",
+            "#f7f9fc"
+          ],
+          "musicMood": "inspiring"
+        },
+        "shots": [
+          {
+            "sceneId": "s1",
+            "layout": "full_image",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "best",
+              "training"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s2",
+            "layout": "full_image",
+            "camera": "pan_left",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "watching",
+              "every"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s3",
+            "layout": "full_image",
+            "camera": "zoom_out",
+            "transition": "slide",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "silence",
+              "craft"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s4",
+            "layout": "full_image",
+            "camera": "static",
+            "transition": "zoom",
+            "captionStyle": "karaoke",
+            "emphasisWords": [
+              "silence",
+              "confidence"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s5",
+            "layout": "full_image",
+            "camera": "zoom_in",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "draft",
+              "counts"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s6",
+            "layout": "text_card",
+            "camera": "static",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "silent",
+              "posts"
+            ],
+            "useHeroClip": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "mur9x6re-rnwon",
+    "engine": "gemini",
+    "output": {
+      "script": {
+        "title": "The Secret Training Ground",
+        "hook": "Posting when nobody watches is your ultimate superpower.",
+        "scenes": [
+          {
+            "id": "s1",
+            "purpose": "hook",
+            "narration": "Posting when nobody watches is your ultimate superpower.",
+            "onScreenText": "Zero views superpower"
+          },
+          {
+            "id": "s2",
+            "purpose": "context",
+            "narration": "When you have no audience, you can experiment without fear.",
+            "onScreenText": "No audience, no fear"
+          },
+          {
+            "id": "s3",
+            "purpose": "point",
+            "narration": "This quiet phase is your actual drafting ground.",
+            "onScreenText": "Your drafting ground"
+          },
+          {
+            "id": "s4",
+            "purpose": "twist",
+            "narration": "The algorithm isn't ignoring you, it is protecting your growth.",
+            "onScreenText": "Algorithm is protecting you"
+          },
+          {
+            "id": "s5",
+            "purpose": "context",
+            "narration": "Build your posting streak before the noise arrives.",
+            "onScreenText": "Build your streak"
+          },
+          {
+            "id": "s6",
+            "purpose": "cta",
+            "narration": "How many drafts are sitting in your phone right now?",
+            "onScreenText": "How many drafts?"
+          }
+        ],
+        "cta": "How many drafts are sitting in your phone right now?",
+        "caption": "Embrace the quiet phase of your creative journey. #CreatorCircle #PostingStreak #Drafts #SmallCreators #ContentCreation",
+        "estDurationSec": 35
+      },
+      "plan": {
+        "global": {
+          "stylePrompt": "Cinematic moody aesthetic, lo-fi lighting, minimalist creator desk setup, warm indie tones",
+          "palette": [
+            "#1a1a1a",
+            "#ff6b6b",
+            "#ffd93d",
+            "#f7f7f7"
+          ],
+          "musicMood": "calm"
+        },
+        "shots": [
+          {
+            "sceneId": "s1",
+            "layout": "full_image",
+            "visualPrompt": "A dimly lit room with a glowing laptop screen on a wooden desk, cozy indie vibe",
+            "negativePrompt": "bright, noisy, people, text",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "ultimate",
+              "superpower"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s2",
+            "layout": "full_image",
+            "visualPrompt": "Close up of a notebook with handwritten creative ideas and coffee cup",
+            "negativePrompt": "messy, chaotic, text",
+            "camera": "pan_left",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "without",
+              "fear"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s3",
+            "layout": "full_image",
+            "visualPrompt": "A pair of headphones resting on a minimalist mechanical keyboard",
+            "negativePrompt": "busy, bright daylight",
+            "camera": "static",
+            "transition": "slide",
+            "captionStyle": "karaoke",
+            "emphasisWords": [
+              "drafting",
+              "ground"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s4",
+            "layout": "full_image",
+            "visualPrompt": "Abstract neon lights reflecting on a dark window pane",
+            "negativePrompt": "daytime, harsh lighting",
+            "camera": "zoom_out",
+            "transition": "zoom",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "protecting",
+              "growth"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s5",
+            "layout": "full_image",
+            "visualPrompt": "A minimalist calendar on a clean desk with a pen marking a streak",
+            "negativePrompt": "clutter, bright colors",
+            "camera": "pan_right",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "posting",
+              "streak"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s6",
+            "layout": "text_card",
+            "negativePrompt": "images",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "many",
+              "drafts"
+            ],
+            "useHeroClip": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "mur9q1gy-3toh6",
+    "engine": "pulse-lm",
+    "output": {
+      "script": {
+        "title": "The Midnight Shopping Cart",
+        "hook": "Your online cart is full of things you never needed.",
+        "scenes": [
+          {
+            "id": "s1",
+            "purpose": "hook",
+            "narration": "Your online cart is full of things you never needed.",
+            "onScreenText": "Midnight cart chaos"
+          },
+          {
+            "id": "s2",
+            "purpose": "context",
+            "narration": "You open your phone just before midnight and click on a random product.",
+            "onScreenText": "Clicking at 11:59"
+          },
+          {
+            "id": "s3",
+            "purpose": "point",
+            "narration": "That tiny gadget suddenly becomes a life changing necessity.",
+            "onScreenText": "Suddenly essential"
+          },
+          {
+            "id": "s4",
+            "purpose": "twist",
+            "narration": "You realize you already own that exact same gadget.",
+            "onScreenText": "Duplicate purchase"
+          },
+          {
+            "id": "s5",
+            "purpose": "point",
+            "narration": "Your budget is already tight and your savings are low.",
+            "onScreenText": "Budget is already tight"
+          },
+          {
+            "id": "s6",
+            "purpose": "cta",
+            "narration": "What is the most random item you bought online at midnight?",
+            "onScreenText": "Random midnight purchase"
+          }
+        ],
+        "cta": "What is the most random item you bought online at midnight?",
+        "caption": "Stop buying things you don't need. #Budgeting #Savings #MoneyBasics #OnlineShopping #MidnightShopping",
+        "estDurationSec": 35
+      },
+      "plan": {
+        "global": {
+          "stylePrompt": "neon-lit smartphone screen, dark room, cinematic close-ups, shallow depth of field",
+          "palette": [
+            "#1a1a2e",
+            "#3a0ca3",
+            "#ff6b6b",
+            "#ffffff"
+          ],
+          "musicMood": "upbeat"
+        },
+        "shots": [
+          {
+            "sceneId": "s1",
+            "layout": "full_image",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "full",
+              "needed"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s2",
+            "layout": "full_image",
+            "camera": "pan_right",
+            "transition": "slide",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "midnight",
+              "click"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s3",
+            "layout": "full_image",
+            "camera": "zoom_out",
+            "transition": "zoom",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "tiny",
+              "necessity"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s",
+            "layout": "full_image",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "duplicate",
+              "purchase"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s5",
+            "layout": "full_image",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "tight",
+              "low"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s6",
+            "layout": "text_card",
+            "camera": "static",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "random",
+              "midnight"
+            ],
+            "useHeroClip": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "mur9q1gy-3toh6",
+    "engine": "gemini",
+    "output": {
+      "script": {
+        "title": "The Midnight Cart Trap",
+        "hook": "Ever filled an online shopping cart at 2 AM?",
+        "scenes": [
+          {
+            "id": "s1",
+            "purpose": "hook",
+            "narration": "Ever filled an online shopping cart at 2 AM?",
+            "onScreenText": "2 AM Cart Fills"
+          },
+          {
+            "id": "s2",
+            "purpose": "context",
+            "narration": "You add random gadgets and clothes when you cannot sleep.",
+            "onScreenText": "Random Additions"
+          },
+          {
+            "id": "s3",
+            "purpose": "point",
+            "narration": "It feels like a great idea late at night.",
+            "onScreenText": "Seems Like A Plan"
+          },
+          {
+            "id": "s4",
+            "purpose": "twist",
+            "narration": "Then you wake up and realize your salary is already gone.",
+            "onScreenText": "Morning Regret"
+          },
+          {
+            "id": "s5",
+            "purpose": "cta",
+            "narration": "What is the weirdest thing in your cart right now?",
+            "onScreenText": "Check Your Cart"
+          }
+        ],
+        "cta": "What is the weirdest thing in your cart right now?",
+        "caption": "We have all been victims of the 2 AM cart fill. #MoneyBasics #MonthEnd #OnlineShopping #Budgeting",
+        "estDurationSec": 35
+      },
+      "plan": {
+        "global": {
+          "stylePrompt": "Clean minimalist 3d vector illustration with soft lighting and a modern aesthetic",
+          "palette": [
+            "#111827",
+            "#3B82F6",
+            "#F3F4F6",
+            "#EF4444"
+          ],
+          "musicMood": "calm"
+        },
+        "shots": [
+          {
+            "sceneId": "s1",
+            "layout": "full_image",
+            "visualPrompt": "A smartphone glowing in a dark bedroom showing a shopping app",
+            "negativePrompt": "blurry, distorted",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "shopping",
+              "cart"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s2",
+            "layout": "full_image",
+            "visualPrompt": "Abstract floating shopping bags and icons in a dreamy night setting",
+            "negativePrompt": "blurry, distorted",
+            "camera": "pan_left",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "random",
+              "gadgets"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s3",
+            "layout": "text_card",
+            "negativePrompt": "blurry",
+            "camera": "static",
+            "transition": "slide",
+            "captionStyle": "karaoke",
+            "emphasisWords": [
+              "great idea"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s4",
+            "layout": "full_image",
+            "visualPrompt": "A person looking shocked at a smartphone screen with empty wallet nearby",
+            "negativePrompt": "blurry, distorted",
+            "camera": "zoom_out",
+            "transition": "zoom",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "salary",
+              "gone"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s5",
+            "layout": "text_card",
+            "negativePrompt": "blurry",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "weirdest thing"
+            ],
+            "useHeroClip": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "mura3p12-zmckw",
+    "engine": "pulse-lm",
+    "output": {
+      "script": {
+        "title": "Walking Beats the Treadmill",
+        "hook": "You are not lazy. Your plan is just too big.",
+        "scenes": [
+          {
+            "id": "s1",
+            "purpose": "hook",
+            "narration": "You are not lazy. Your plan is just too big.",
+            "onScreenText": "Stop overcomplicating"
+          },
+          {
+            "id": "s2",
+            "purpose": "context",
+            "narration": "Treadmills feel like a prison with a blinking light.",
+            "onScreenText": "Treadmill prison"
+          },
+          {
+            "id": "s3",
+            "purpose": "point",
+            "narration": "Walking outside gives you fresh air and real scenery.",
+            "onScreenText": "Real world beauty"
+          },
+          {
+            "id": "s4",
+            "purpose": "twist",
+            "narration": "Your step count will actually go up dramatically.",
+            "onScreenText": "Step count wins"
+          },
+          {
+            "id": "s5",
+            "purpose": "point",
+            "narration": "Just put on your shoes and go wherever you feel like.",
+            "onScreenText": "Go wherever you feel"
+          },
+          {
+            "id": "s6",
+            "purpose": "cta",
+            "narration": "Where do you walk for your daily steps?",
+            "onScreenText": "Where do you walk?"
+          }
+        ],
+        "cta": "Where do you walk for your daily steps?",
+        "caption": "Walking outside beats the treadmill for real gains. #fitness #stepcount #outdoorworkout #gymlife #walkmore",
+        "estDurationSec": 35
+      },
+      "plan": {
+        "global": {
+          "stylePrompt": "cinematic sports documentary, early morning light, dynamic camera cuts",
+          "palette": [
+            "#2c180a",
+            "#f59e0b",
+            "#10b981",
+            "#3b82f6"
+          ],
+          "musicMood": "upbeat"
+        },
+        "shots": [
+          {
+            "sceneId": "s1",
+            "layout": "full_image",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "You are not lazy"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s2",
+            "layout": "full_image",
+            "camera": "pan_left",
+            "transition": "slide",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "prison"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s3",
+            "layout": "full_image",
+            "camera": "zoom_out",
+            "transition": "zoom",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "scenery"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s4",
+            "layout": "stat_card",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "dramatically"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s5",
+            "layout": "full_image",
+            "camera": "pan_right",
+            "transition": "cut",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "Go wherever"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s6",
+            "layout": "text_card",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "Where do you walk"
+            ],
+            "useHeroClip": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "mura3p12-zmckw",
+    "engine": "gemini",
+    "output": {
+      "script": {
+        "title": "Walking Outside Beats Treadmill",
+        "hook": "Stop staring at the gym wall.",
+        "scenes": [
+          {
+            "id": "s1",
+            "purpose": "hook",
+            "narration": "Stop staring at the gym wall.",
+            "onScreenText": "Stop staring at walls"
+          },
+          {
+            "id": "s2",
+            "purpose": "context",
+            "narration": "Treadmills feel like running nowhere fast.",
+            "onScreenText": "Nowhere fast"
+          },
+          {
+            "id": "s3",
+            "purpose": "point",
+            "narration": "Outdoor steps stack up without you even noticing.",
+            "onScreenText": "Outdoor steps win"
+          },
+          {
+            "id": "s4",
+            "purpose": "twist",
+            "narration": "Fresh air actually boosts your step count effortlessly.",
+            "onScreenText": "Effortless steps"
+          },
+          {
+            "id": "s5",
+            "purpose": "cta",
+            "narration": "Do you prefer the treadmill or the streets?",
+            "onScreenText": "Treadmill or streets?"
+          }
+        ],
+        "cta": "Do you prefer the treadmill or the streets?",
+        "caption": "Treadmill vs outside walk - which one are you picking today? #FitTogether #StepCount #OutdoorWalk #Consistency",
+        "estDurationSec": 35
+      },
+      "plan": {
+        "global": {
+          "stylePrompt": "Cinematic vibrant photography of outdoor walking in India, warm morning light, highly detailed",
+          "palette": [
+            "#FF5722",
+            "#FFC107",
+            "#212121",
+            "#FFFFFF"
+          ],
+          "musicMood": "upbeat"
+        },
+        "shots": [
+          {
+            "sceneId": "s1",
+            "layout": "full_image",
+            "visualPrompt": "Person looking bored on a indoor gym treadmill facing a blank wall",
+            "negativePrompt": "text, blurry, ugly",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "gym",
+              "wall"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s2",
+            "layout": "full_image",
+            "visualPrompt": "Close up of treadmill digital display showing miles",
+            "negativePrompt": "text, blurry",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "nowhere",
+              "fast"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s3",
+            "layout": "full_image",
+            "visualPrompt": "Feet walking on a sunny park pathway with green trees",
+            "negativePrompt": "text, blurry",
+            "camera": "pan_right",
+            "transition": "slide",
+            "captionStyle": "karaoke",
+            "emphasisWords": [
+              "outdoor",
+              "steps"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s4",
+            "layout": "full_image",
+            "visualPrompt": "Happy person walking outdoors in a neighborhood street during sunset",
+            "negativePrompt": "text, blurry",
+            "camera": "zoom_out",
+            "transition": "zoom",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "effortlessly"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s5",
+            "layout": "text_card",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "treadmill",
+              "streets"
+            ],
+            "useHeroClip": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "mura154h-2eub9",
+    "engine": "pulse-lm",
+    "output": {
+      "script": {
+        "title": "Hiring Expensive Leaders Before PMF",
+        "hook": "Stop hiring expensive senior leaders before you have product market fit.",
+        "scenes": [
+          {
+            "id": "s1",
+            "purpose": "hook",
+            "narration": "Stop hiring expensive senior leaders before you have product market fit.",
+            "onScreenText": "Stop hiring expensive leaders"
+          },
+          {
+            "id": "s2",
+            "purpose": "context",
+            "narration": "You are building a product for a market that doesn't exist yet.",
+            "onScreenText": "Market doesn't exist"
+          },
+          {
+            "id": "s3",
+            "purpose": "twist",
+            "narration": "You are paying senior engineers for a job that will never be done.",
+            "onScreenText": "Paying senior engineers"
+          },
+          {
+            "id": "s4",
+            "purpose": "point",
+            "narration": "Your runway is burning faster than your actual customer acquisition.",
+            "onScreenText": "Runway is burning"
+          },
+          {
+            "id": "s5",
+            "purpose": "cta",
+            "narration": "What is the most expensive senior role you have hired yet?",
+            "onScreenText": "What is your most expensive hire?"
+          }
+        ],
+        "cta": "What is the most expensive senior role you have hired yet?",
+        "caption": "Hiring expensive senior leaders before PMF is a classic mistake. #Startups #ProductMarketFit #Hiring #MVP #Bootstrapping",
+        "estDurationSec": 35
+      },
+      "plan": {
+        "global": {
+          "stylePrompt": "Cinematic late-night co-working space, warm desk lamps, purple and amber tones, shallow depth of field",
+          "palette": [
+            "#1a0b2e",
+            "#4a154b",
+            "#ff6b6b",
+            "#ffffff"
+          ],
+          "musicMood": "dramatic"
+        },
+        "shots": [
+          {
+            "sceneId": "s1",
+            "layout": "full_image",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "Stop",
+              "expensive"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s2",
+            "layout": "full_image",
+            "camera": "pan_right",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "Market",
+              "doesn't"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s3",
+            "layout": "full_image",
+            "camera": "zoom_out",
+            "transition": "zoom",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "Paying",
+              "senior"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s4",
+            "layout": "full_image",
+            "camera": "static",
+            "transition": "slide",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "Runway",
+              "burning"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s5",
+            "layout": "text_card",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "What",
+              "expensive"
+            ],
+            "useHeroClip": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "mura154h-2eub9",
+    "engine": "gemini",
+    "output": {
+      "script": {
+        "title": "Hiring too early",
+        "hook": "Hiring a expensive VP before PMF is startup suicide.",
+        "scenes": [
+          {
+            "id": "s1",
+            "purpose": "hook",
+            "narration": "Hiring a expensive VP before PMF is startup suicide.",
+            "onScreenText": "Stop hiring senior leaders early!"
+          },
+          {
+            "id": "s2",
+            "purpose": "context",
+            "narration": "You burn fifty lakhs on salaries while your MVP is still broken.",
+            "onScreenText": "Burning cash on salaries"
+          },
+          {
+            "id": "s3",
+            "purpose": "point",
+            "narration": "An expensive leader cannot fix a product nobody wants to buy.",
+            "onScreenText": "No product market fit"
+          },
+          {
+            "id": "s4",
+            "purpose": "twist",
+            "narration": "You do not need a scaling guru. You need jugaad and first users.",
+            "onScreenText": "You need jugaad not gurus"
+          },
+          {
+            "id": "s5",
+            "purpose": "cta",
+            "narration": "At what month did you hire your first employee? Tell us below.",
+            "onScreenText": "When was your first hire?"
+          }
+        ],
+        "cta": "At what month did you hire your first employee? Tell us below.",
+        "caption": "Save your runway. #Startups #FounderLife #Bootstrap #Hiring",
+        "estDurationSec": 35
+      },
+      "plan": {
+        "global": {
+          "stylePrompt": "Modern minimalist corporate Memphis vector illustration style, clean lines, flat colors",
+          "palette": [
+            "#111827",
+            "#3B82F6",
+            "#EF4444",
+            "#F3F4F6"
+          ],
+          "musicMood": "upbeat"
+        },
+        "shots": [
+          {
+            "sceneId": "s1",
+            "layout": "full_image",
+            "visualPrompt": "A stressed founder looking at a burning pile of money on a desk",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "startup suicide"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s2",
+            "layout": "full_image",
+            "visualPrompt": "A bank account showing a rapidly decreasing balance graph",
+            "camera": "pan_left",
+            "transition": "slide",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "fifty lakhs",
+              "salaries"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s3",
+            "layout": "full_image",
+            "visualPrompt": "A locked office door with a closed sign hanging on it",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "nobody wants"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s4",
+            "layout": "full_image",
+            "visualPrompt": "A developer coding late at night with empty coffee cups around",
+            "camera": "zoom_out",
+            "transition": "zoom",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "jugaad",
+              "first users"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s5",
+            "layout": "text_card",
+            "camera": "static",
+            "transition": "cut",
+            "captionStyle": "karaoke",
+            "emphasisWords": [
+              "first employee"
+            ],
+            "useHeroClip": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "mur9zq04-49d5w",
+    "engine": "pulse-lm",
+    "output": {
+      "script": {
+        "title": "The Attendance Fiasco",
+        "hook": "The attendance notice board dropped your name today.",
+        "scenes": [
+          {
+            "id": "s1",
+            "purpose": "hook",
+            "narration": "The attendance notice board dropped your name today.",
+            "onScreenText": "Attendance dropped"
+          },
+          {
+            "id": "s2",
+            "purpose": "context",
+            "narration": "Everyone is panicking over the seventy five percent threshold.",
+            "onScreenText": "75 percent rule"
+          },
+          {
+            "id": "s3",
+            "purpose": "twist",
+            "narration": "We all know the fake medical certificate is the only real option.",
+            "onScreenText": "Fake certificate"
+          },
+          {
+            "id": "s4",
+            "purpose": "point",
+            "narration": "The dean called parents and banned all medical certificates.",
+            "onScreenText": "Parents called"
+          },
+          {
+            "id": "s5",
+            "purpose": "cta",
+            "narration": "How do you survive without a medical certificate?",
+            "onScreenText": "How do you survive?"
+          }
+        ],
+        "cta": "How do you survive without a medical certificate?",
+        "caption": "Surviving college without a medical certificate. #attendance #college #hostel #backlog #placement",
+        "estDurationSec": 35
+      },
+      "plan": {
+        "global": {
+          "stylePrompt": "cinematic documentary photo, Indian college campus, late night, warm light, dramatic shadows, shallow depth of field",
+          "palette": [
+            "#1a0b2e",
+            "#ff6b35",
+            "#3a0ca3",
+            "#f7f7f7"
+          ],
+          "musicMood": "dramatic"
+        },
+        "shots": [
+          {
+            "sceneId": "s1",
+            "layout": "full_image",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "attendance",
+              "notice"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s2",
+            "layout": "full_image",
+            "camera": "pan_right",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "seventy five",
+              "threshold"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s3",
+            "layout": "full_image",
+            "camera": "zoom_out",
+            "transition": "zoom",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "fake",
+              "certificate"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s4",
+            "layout": "full_image",
+            "camera": "static",
+            "transition": "slide",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "dean",
+              "parents"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s5",
+            "layout": "text_card",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "survive"
+            ],
+            "useHeroClip": false
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "mur9zq04-49d5w",
+    "engine": "gemini",
+    "output": {
+      "script": {
+        "title": "The Attendance Shortage Scare",
+        "hook": "Your name is on the under seventy five percent list.",
+        "scenes": [
+          {
+            "id": "s1",
+            "purpose": "hook",
+            "narration": "Your name is on the under seventy five percent list.",
+            "onScreenText": "Attendance shortage panic"
+          },
+          {
+            "id": "s2",
+            "purpose": "context",
+            "narration": "The department notice board just dropped the dreaded warning for everyone.",
+            "onScreenText": "Notice board terror"
+          },
+          {
+            "id": "s3",
+            "purpose": "point",
+            "narration": "Everyone immediately starts panicking and stressing about their hostel future.",
+            "onScreenText": "Pure panic"
+          },
+          {
+            "id": "s4",
+            "purpose": "twist",
+            "narration": "Then someone casually suggests submitting a fake medical certificate right now.",
+            "onScreenText": "The fake medical trick"
+          },
+          {
+            "id": "s5",
+            "purpose": "cta",
+            "narration": "The dean called parents yesterday so medical certificates are officially banned forever. How low is your attendance right now?",
+            "onScreenText": "What is your attendance?"
+          }
+        ],
+        "cta": "How low is your attendance right now?",
+        "caption": "True story from the hostel corridor at 2 AM. #attendance #collegelife #hostel #examweek",
+        "estDurationSec": 35
+      },
+      "plan": {
+        "global": {
+          "stylePrompt": "Cinematic vertical 9:16, moody hostel room lighting, realistic Indian college aesthetic",
+          "palette": [
+            "#1a1a2e",
+            "#e94560",
+            "#0f3460",
+            "#f0f0f0"
+          ],
+          "musicMood": "upbeat"
+        },
+        "shots": [
+          {
+            "sceneId": "s1",
+            "layout": "full_image",
+            "visualPrompt": "A stressed Indian college student looking at a smartphone screen in a dark hostel room at night",
+            "negativePrompt": "blurry, deformed, text",
+            "camera": "zoom_in",
+            "transition": "cut",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "seventy",
+              "five"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s2",
+            "layout": "full_image",
+            "visualPrompt": "A crowded college department notice board with papers pinned on it",
+            "negativePrompt": "blurry, deformed, text",
+            "camera": "pan_left",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "notice",
+              "board"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s3",
+            "layout": "full_image",
+            "visualPrompt": "Messy hostel room with a laptop open and scattered college textbooks",
+            "negativePrompt": "blurry, deformed, text",
+            "camera": "static",
+            "transition": "slide",
+            "captionStyle": "karaoke",
+            "emphasisWords": [
+              "panicking"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s4",
+            "layout": "full_image",
+            "visualPrompt": "Two college students whispering secretively in a dimly lit hostel corridor",
+            "negativePrompt": "blurry, deformed, text",
+            "camera": "zoom_out",
+            "transition": "zoom",
+            "captionStyle": "pop",
+            "emphasisWords": [
+              "fake",
+              "medical"
+            ],
+            "useHeroClip": false
+          },
+          {
+            "sceneId": "s5",
+            "layout": "text_card",
+            "negativePrompt": "blurry, deformed",
+            "camera": "static",
+            "transition": "fade",
+            "captionStyle": "minimal",
+            "emphasisWords": [
+              "attendance"
+            ],
+            "useHeroClip": false
+          }
+        ]
+      }
+    }
+  }
+]
