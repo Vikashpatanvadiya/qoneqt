@@ -72,29 +72,35 @@ export const cloudflareImage: ImageProvider = {
   },
 };
 
-// Pollinations: free, no card. Without a token it uses a smaller model and adds a small logo in the corner.
-// A free token (POLLINATIONS_TOKEN) is sent when set.
+// Pollinations: free, no card. With a token (POLLINATIONS_TOKEN) it uses the newer API: real 9:16 images,
+// a choice of models (flux, zimage, klein) and no logo. Without one it falls back to the anonymous endpoint,
+// which is slow, rate limited and adds a small logo.
 export const pollinationsImage: ImageProvider = {
   name: "pollinations",
   async generate(prompt) {
-    const model = config.pollinations.model() ?? "default";
+    const token = config.pollinations.token();
+    const model = token ? (config.pollinations.model() ?? "flux") : "anonymous";
     const file = cacheFile(prompt, "pollinations", model);
     if (fs.existsSync(file)) return { file, cached: true, provider: this.name, model, steps: 0, ms: 0 };
 
     const start = Date.now();
     const params = new URLSearchParams({ width: "768", height: "1344", nologo: "true", seed: String(parseInt(sha(prompt).slice(0, 8), 16) % 1_000_000) });
-    if (config.pollinations.model()) params.set("model", config.pollinations.model()!);
-    const token = config.pollinations.token();
-    const bytes = await oneAtATime(() => withRetry("image pollinations", async () => {
-      const res = await fetch(`https://image.pollinations.ai/prompt/${encodeURIComponent(prompt.slice(0, 900))}?${params}`, {
-        headers: { "User-Agent": "qoneqt-pulse", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-        signal: AbortSignal.timeout(120_000),
+    if (token) params.set("model", model);
+    const url = token
+      ? `https://gen.pollinations.ai/image/${encodeURIComponent(prompt.slice(0, 900))}?${params}`
+      : `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt.slice(0, 900))}?${params}`;
+    const request = () =>
+      withRetry(`image pollinations ${model}`, async () => {
+        const res = await fetch(url, { headers: { "User-Agent": "qoneqt-pulse", ...(token ? { Authorization: `Bearer ${token}` } : {}) }, signal: AbortSignal.timeout(120_000) });
+        const body = res.ok ? null : await res.text();
+        if (res.status === 402 && token) throw new QuotaError(`Pollinations: out of free pollen for today (${body?.slice(0, 120)})`);
+        // Anonymous callers get 402 or 429 when the queue is busy, so those are retried like a rate limit.
+        if (!res.ok) throw new HttpError(res.status === 402 ? 429 : res.status, body ?? "", "Pollinations");
+        if (!(res.headers.get("content-type") ?? "").startsWith("image/")) throw new Error("Pollinations did not return an image");
+        return Buffer.from(await res.arrayBuffer());
       });
-      // 402 and 429 mean "busy" for anonymous callers, so they are retried like a rate limit.
-      if (!res.ok) throw new HttpError(res.status === 402 ? 429 : res.status, await res.text(), "Pollinations");
-      if (!(res.headers.get("content-type") ?? "").startsWith("image/")) throw new Error("Pollinations did not return an image");
-      return Buffer.from(await res.arrayBuffer());
-    }));
+    // Anonymous use allows one request at a time. With a token, requests run in parallel.
+    const bytes = token ? await request() : await oneAtATime(request);
     fs.writeFileSync(file, bytes);
     return { file, cached: false, provider: this.name, model, steps: 0, ms: Date.now() - start };
   },
@@ -127,4 +133,11 @@ export function chainImages(providers: ImageProvider[]): ImageProvider {
   };
 }
 
-export const defaultImages = chainImages([cloudflareImage, pollinationsImage]);
+// Order comes from IMAGE_PROVIDERS (for example "pollinations,cloudflare"). By default Pollinations goes first
+// when a token is set, because it returns real 9:16 images and has a separate free allowance.
+const registry: Record<string, ImageProvider> = { cloudflare: cloudflareImage, pollinations: pollinationsImage };
+const order = (config.images.order() ?? (config.pollinations.token() ? "pollinations,cloudflare" : "cloudflare,pollinations"))
+  .split(",")
+  .map((n) => registry[n.trim()])
+  .filter(Boolean);
+export const defaultImages = chainImages(order.length ? order : [cloudflareImage, pollinationsImage]);

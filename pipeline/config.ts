@@ -43,7 +43,10 @@ export const config = {
     imageModel: () => env("CF_IMAGE_MODEL"),
     imageSteps: () => Number(optional("CF_IMAGE_STEPS") ?? 4),
   },
-  // Backup image provider. A free token removes the logo and unlocks better models.
+  images: {
+    order: () => optional("IMAGE_PROVIDERS"),
+  },
+  // Image provider with a free token: removes the logo and unlocks better models.
   pollinations: {
     token: () => optional("POLLINATIONS_TOKEN"),
     model: () => optional("POLLINATIONS_MODEL"),
