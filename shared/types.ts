@@ -2,6 +2,7 @@
 // Agent types come straight from the zod schemas so they never drift.
 import type { Shot, ShotPlan } from "../pipeline/schemas";
 
+export type { ThemeId } from "../pipeline/schemas";
 export type { CommunityProfile, Critique, InputType, Research, Script, ScriptVersion, Shot, ShotPlan } from "../pipeline/schemas";
 
 export type WordTiming = {

@@ -39,9 +39,9 @@ async function main() {
   console.log(`Governor: ${m.governor_actions} actions, over limit: ${m.over_limit}`);
   for (const c of result.qa) console.log(`QA ${c.status.padEnd(7)} ${c.label}: ${c.detail}${c.before ? ` [${c.before} -> ${c.after}]` : ""}`);
   console.log(
-    m.images
-      ? `Images: ${m.images} new, ~${(m.neurons_est / m.images).toFixed(1)} neurons each (estimate), ~${Math.floor(cloudflare.freeNeuronsPerDay / (m.neurons_est / m.images))} images per day on the free tier`
-      : "Images: none generated (cached or designed scenes only)",
+    m.neurons_est > 0
+      ? `Cloudflare images: ${m.images} new, ~${(m.neurons_est / m.images).toFixed(1)} neurons each (estimate), ~${Math.floor(cloudflare.freeNeuronsPerDay / (m.neurons_est / m.images))} images per day on the free tier`
+      : `Images: ${m.images} new, none from Cloudflare (no neurons used)`,
   );
 }
 

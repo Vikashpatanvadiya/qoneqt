@@ -7,6 +7,7 @@ import { FilmLook, ProgressBar } from "./Overlays";
 import { CardScene } from "./scenes/CardScene";
 import { ImageScene } from "./scenes/ImageScene";
 import { toPalette, type Palette } from "./theme";
+import { themeFor, type Theme } from "./themes";
 
 export const sceneFrames = (scene: RenderScene) => Math.max(1, Math.round(scene.durationSec * FPS));
 export const OUTRO_FRAMES = Math.round(OUTRO_SEC * FPS);
@@ -32,8 +33,8 @@ const Entrance: React.FC<{ transition: RenderScene["transition"]; children: Reac
   return <AbsoluteFill style={style}>{children}</AbsoluteFill>;
 };
 
-const SceneVisual: React.FC<{ scene: RenderScene; palette: Palette; isHook: boolean; frames: number }> = ({ scene, palette, isHook, frames }) =>
-  scene.layout === "full_image" && scene.imageFile ? <ImageScene scene={scene} isHook={isHook} frames={frames} /> : <CardScene scene={scene} palette={palette} isHook={isHook} frames={frames} />;
+const SceneVisual: React.FC<{ scene: RenderScene; palette: Palette; isHook: boolean; frames: number; theme: Theme }> = ({ scene, palette, isHook, frames, theme }) =>
+  scene.layout === "full_image" && scene.imageFile ? <ImageScene scene={scene} isHook={isHook} frames={frames} theme={theme} palette={palette} /> : <CardScene scene={scene} palette={palette} isHook={isHook} frames={frames} theme={theme} />;
 
 const Music: React.FC<{ file: string; voiceFrames: number }> = ({ file, voiceFrames }) => {
   const { durationInFrames } = useVideoConfig();
@@ -51,8 +52,10 @@ const Music: React.FC<{ file: string; voiceFrames: number }> = ({ file, voiceFra
   );
 };
 
-export const PulseVideo: React.FC<PulseVideoProps> = ({ scenes, global, communityName, cta, musicFile, logoFile, grainFile }) => {
-  const palette = toPalette(global?.palette ?? []);
+export const PulseVideo: React.FC<PulseVideoProps> = ({ title, scenes, global, communityName, cta, musicFile, logoFile, grainFile }) => {
+  const theme = themeFor(global?.theme, title);
+  const directed = toPalette(global?.palette ?? []);
+  const palette = theme.palette ? theme.palette(directed) : directed;
   const starts: number[] = [];
   let cursor = 0;
   for (const scene of scenes) {
@@ -69,7 +72,7 @@ export const PulseVideo: React.FC<PulseVideoProps> = ({ scenes, global, communit
         return (
           <Sequence key={scene.id} from={starts[i]} durationInFrames={frames + TRANSITION_FRAMES} name={`${scene.id} ${scene.layout}`}>
             <Entrance transition={i === 0 ? "cut" : scene.transition}>
-              <SceneVisual scene={scene} palette={palette} isHook={i === 0} frames={frames + TRANSITION_FRAMES} />
+              <SceneVisual scene={scene} palette={palette} isHook={i === 0} frames={frames + TRANSITION_FRAMES} theme={theme} />
             </Entrance>
           </Sequence>
         );
@@ -77,7 +80,7 @@ export const PulseVideo: React.FC<PulseVideoProps> = ({ scenes, global, communit
 
       <Sequence from={voiceFrames} durationInFrames={OUTRO_FRAMES} name="outro">
         <Entrance transition="fade">
-          <Outro communityName={communityName} cta={cta} logoFile={logoFile} palette={palette} />
+          <Outro communityName={communityName} cta={cta} logoFile={logoFile} palette={palette} theme={theme} />
         </Entrance>
       </Sequence>
 
@@ -86,7 +89,7 @@ export const PulseVideo: React.FC<PulseVideoProps> = ({ scenes, global, communit
       {/* Captions and voice follow the exact scene timing, with no overlap */}
       {scenes.map((scene, i) => (
         <Sequence key={scene.id} from={starts[i]} durationInFrames={sceneFrames(scene)} name={`${scene.id} voice + captions`}>
-          <Captions scene={scene} accent={palette.accent} />
+          <Captions scene={scene} accent={palette.accent} theme={theme} />
           <Audio src={staticFile(scene.audioFile)} />
         </Sequence>
       ))}

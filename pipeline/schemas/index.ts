@@ -103,6 +103,9 @@ export const CameraSchema = z.enum(["zoom_in", "zoom_out", "pan_left", "pan_righ
 export const TransitionSchema = z.enum(["cut", "fade", "slide", "zoom"]);
 export const CaptionStyleSchema = z.enum(["pop", "karaoke", "minimal"]);
 export const MusicMoodSchema = z.enum(["upbeat", "calm", "dramatic", "inspiring"]);
+// Visual themes the renderer knows. Each changes fonts, backgrounds, image framing and captions.
+export const ThemeSchema = z.enum(["midnight", "paper", "neon", "editorial", "pop"]);
+export type ThemeId = z.infer<typeof ThemeSchema>;
 
 export const ShotSchema = z.object({
   sceneId: z.string(),
@@ -123,6 +126,7 @@ export const ShotPlanSchema = z.object({
     stylePrompt: z.string().describe("Added to every image prompt for visual consistency"),
     palette: z.array(z.string().regex(/^#[0-9a-fA-F]{6}$/)).min(3).max(4),
     musicMood: MusicMoodSchema,
+    theme: ThemeSchema.optional().describe("The visual theme for the whole video"),
   }),
   shots: z.array(ShotSchema).min(1),
 });

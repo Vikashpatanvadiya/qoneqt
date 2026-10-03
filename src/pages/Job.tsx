@@ -213,6 +213,7 @@ function StageDetail({ name, output }: { name: string; output: any }) {
       <div className="space-y-3 text-sm">
         <div className="flex flex-wrap items-center gap-2">
           {p.global.palette.map((c: string) => <span key={c} className="h-6 w-6 rounded-full border border-white/10" style={{ background: c }} title={c} />)}
+          {p.global.theme ? <Chip tone="accent">{p.global.theme} theme</Chip> : null}
           <Chip>{p.global.musicMood} music</Chip>
         </div>
         <p className="text-muted">{p.global.stylePrompt}</p>

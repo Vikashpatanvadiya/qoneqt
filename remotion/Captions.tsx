@@ -2,13 +2,17 @@ import React from "react";
 import { spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { CAPTION_LAYOUT, HIGH_CONTRAST_BACKING_ALPHA, groupWords } from "../shared/layout";
 import type { RenderScene } from "../shared/types";
-import { BACKING, FONT, TEXT_SHADOW } from "./theme";
+import { BACKING, TEXT_SHADOW } from "./theme";
+import type { Theme } from "./themes";
 
 const bare = (word: string) => word.toLowerCase().replace(/[^\p{L}\p{N}]/gu, "");
 
 // Word-by-word captions for one scene. `frame` counts from the start of the scene.
 // Styles: pop (scale bounce on the spoken word), karaoke (words fill with the accent color), minimal.
-export const Captions: React.FC<{ scene: RenderScene; accent: string }> = ({ scene, accent }) => {
+export const Captions: React.FC<{ scene: RenderScene; accent: string; theme: Theme }> = ({ scene, accent, theme }) => {
+  // Light backgrounds (paper, pop cards) need dark caption text.
+  const onLight = scene.layout === "full_image" && scene.imageFile ? theme.image === "framed" : theme.cardLight;
+  const ink = onLight ? "#141414" : "white";
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const t = frame / fps;
@@ -28,7 +32,7 @@ export const Captions: React.FC<{ scene: RenderScene; accent: string }> = ({ sce
   const fontSize = Math.min(baseSize, scene.captionFontSize ?? baseSize);
   const groupIn = spring({ frame: frame - Math.round(group[0].startSec * fps), fps, config: { damping: 18, stiffness: 240 } });
   // Karaoke always sits on a pill. Other styles get one only when the QA gate asks for it.
-  const backing = style === "karaoke" ? 0.55 : scene.highContrast ? HIGH_CONTRAST_BACKING_ALPHA : 0;
+  const backing = onLight ? 0 : style === "karaoke" ? 0.55 : scene.highContrast ? HIGH_CONTRAST_BACKING_ALPHA : 0;
 
   return (
     // Sits above the bottom 20% safe zone
@@ -39,11 +43,11 @@ export const Captions: React.FC<{ scene: RenderScene; accent: string }> = ({ sce
           flexWrap: "wrap",
           justifyContent: "center",
           gap: `0 ${CAPTION_LAYOUT.wordGap}px`,
-          fontFamily: FONT,
-          fontWeight: style === "minimal" ? 600 : 800,
+          fontFamily: theme.captionFont,
+          fontWeight: style === "minimal" ? 600 : theme.captionWeight,
           fontSize,
           lineHeight: CAPTION_LAYOUT.lineHeight,
-          textShadow: TEXT_SHADOW,
+          textShadow: onLight ? "none" : theme.titleGlow && style !== "minimal" ? `${TEXT_SHADOW}, 0 0 16px ${accent}66` : TEXT_SHADOW,
           transform: `scale(${style === "minimal" ? 1 : 0.94 + 0.06 * groupIn})`,
           ...(backing ? { backgroundColor: BACKING(backing), borderRadius: 26, padding: "10px 28px" } : {}),
         }}
@@ -54,20 +58,30 @@ export const Captions: React.FC<{ scene: RenderScene; accent: string }> = ({ sce
           const isEmphasis = emphasis.has(bare(w.word));
           const bounce = spring({ frame: frame - Math.round(w.startSec * fps), fps, config: { damping: 9, stiffness: 260 } });
 
-          let color = isEmphasis ? accent : "white";
+          let color = isEmphasis && !onLight ? accent : ink;
           let opacity = 1;
           let scale = 1;
           if (style === "pop") {
             opacity = spoken ? 1 : 0.55;
             scale = isCurrent ? 1 + (isEmphasis ? 0.1 : 0.07) * bounce : 1;
           } else if (style === "karaoke") {
-            color = spoken ? accent : "white";
+            color = spoken ? (onLight ? ink : accent) : ink;
             opacity = spoken ? 1 : 0.7;
           } else {
             opacity = isCurrent ? 1 : 0.62;
           }
           return (
-            <span key={i} style={{ display: "inline-block", color, opacity, transform: `scale(${scale})` }}>
+            <span
+              key={i}
+              style={{
+                display: "inline-block",
+                color,
+                opacity,
+                transform: `scale(${scale})`,
+                // On light backgrounds emphasis (and karaoke progress) is a highlighter stroke, not a color
+                ...(onLight && (isEmphasis || (style === "karaoke" && spoken)) ? { background: `linear-gradient(transparent 52%, ${accent}bb 52%)`, padding: "0 4px" } : {}),
+              }}
+            >
               {w.word}
             </span>
           );

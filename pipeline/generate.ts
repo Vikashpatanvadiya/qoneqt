@@ -222,7 +222,7 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
     const { retries, ...llm } = track(res);
     return {
       value: plan,
-      summary: `${images} image scenes, ${layouts.length - images} designed scenes, ${plan.global.musicMood} music`,
+      summary: `${plan.global.theme ?? "auto"} theme, ${images} image scenes, ${layouts.length - images} designed scenes, ${plan.global.musicMood} music`,
       reason: `Style: ${plan.global.stylePrompt}`,
       output: { plan, repairs, ...llm },
       retries,
