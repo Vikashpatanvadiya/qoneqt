@@ -3,13 +3,15 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { DEFAULT_COMMUNITY, parseCommunityProfile } from "./agents/community";
-import { createStageRunner, getCommunity, getJob, updateJob, uploadFile } from "./db";
+import { createStageRunner, getCommunity, getJob, saveEditBundle, updateJob, uploadFile } from "./db";
 import { generateVideo } from "./generate";
 import { resolveEngine } from "./providers";
 import { InputTypeSchema } from "./schemas";
 import { sleep } from "./util";
 import { parseSound } from "./sound";
 import { parseMedia } from "./uploads";
+import { parseVoiceover } from "./voiceover";
+import { generateEdit, parseEdit } from "./editJob";
 
 const JOB_TIMEOUT_MS = 25 * 60 * 1000;
 
@@ -49,6 +51,22 @@ async function runJob(jobId: string) {
   });
 
   const workDir = fs.mkdtempSync(path.join(os.tmpdir(), `pulse-${jobId}-`));
+
+  // An edited version of an earlier video: apply the edits and render, without the agents.
+  const edit = parseEdit(job.options?.edit);
+  if (edit) {
+    const sound = parseSound(job.options?.sound);
+    const result = await generateEdit({ edit, engine, sound, voice: sound.voice || community.defaultVoice, voiceLocked: Boolean(job.options?.voiceover), workDir, stage });
+    const urls = await stage("upload", async () => {
+      const videoUrl = await uploadFile(`${jobId}/video.mp4`, result.videoFile, "video/mp4");
+      const thumbUrl = await uploadFile(`${jobId}/thumb.jpg`, result.thumbFile, "image/jpeg");
+      const editFiles = await saveEditBundle(jobId, result.propsFile, result.publicDir).catch(() => 0);
+      return { value: { videoUrl, thumbUrl }, summary: `Edited video uploaded${editFiles ? ", ready to edit again" : ""}`, output: { videoUrl, thumbUrl, editable: editFiles > 0 } };
+    });
+    await updateJob(jobId, { status: "done", title: result.title, video_url: urls.videoUrl, thumb_url: urls.thumbUrl, duration_sec: Number(result.durationSec.toFixed(2)), metrics: { edited_from: edit.fromJob, total_ms: Date.now() - totalStart, stage_ms: stageMs, fixes: 0 } });
+    console.log(`\nDone: ${urls.videoUrl}`);
+    return;
+  }
   const inputType = InputTypeSchema.catch("topic").parse(job.input_type);
   const result = await generateVideo({
     inputType,
@@ -62,6 +80,7 @@ async function runJob(jobId: string) {
     sound: parseSound(job.options?.sound),
     ownScript: ownScriptOption(job.options),
     media: parseMedia(job.options?.media),
+    voiceover: parseVoiceover(job.options?.voiceover),
     workDir,
     stage,
   });
@@ -69,7 +88,12 @@ async function runJob(jobId: string) {
   const urls = await stage("upload", async () => {
     const videoUrl = await uploadFile(`${jobId}/video.mp4`, result.videoFile, "video/mp4");
     const thumbUrl = await uploadFile(`${jobId}/thumb.jpg`, result.thumbFile, "image/jpeg");
-    return { value: { videoUrl, thumbUrl }, summary: "Video and thumbnail uploaded", output: { videoUrl, thumbUrl } };
+    // The editor needs the render inputs. A failure here does not fail the video.
+    const editFiles = await saveEditBundle(jobId, result.propsFile, result.publicDir).catch((err) => {
+      console.warn(`  [upload] edit bundle not saved: ${(err as Error).message.slice(0, 120)}`);
+      return 0;
+    });
+    return { value: { videoUrl, thumbUrl }, summary: `Video and thumbnail uploaded${editFiles ? `, ready to edit (${editFiles} files)` : ""}`, output: { videoUrl, thumbUrl, editable: editFiles > 0 } };
   });
 
   await updateJob(jobId, {

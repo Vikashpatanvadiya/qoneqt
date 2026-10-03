@@ -9,6 +9,7 @@ import { HowItWorksPage } from "./pages/HowItWorks";
 import { JobPage } from "./pages/Job";
 import { LibraryPage } from "./pages/Library";
 import { LoginPage } from "./pages/Login";
+import { EditorPage } from "./pages/Editor";
 import { AuthProvider } from "./lib/auth";
 
 createRoot(document.getElementById("root")!).render(
@@ -19,6 +20,7 @@ createRoot(document.getElementById("root")!).render(
         <Route element={<Layout />}>
           <Route path="/" element={<CreatePage />} />
           <Route path="/jobs/:id" element={<JobPage />} />
+          <Route path="/jobs/:id/edit" element={<EditorPage />} />
           <Route path="/library" element={<LibraryPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/how-it-works" element={<HowItWorksPage />} />

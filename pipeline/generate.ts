@@ -13,6 +13,7 @@ import { judge, runScriptCritic, type CriticThresholds } from "./agents/scriptCr
 import { runScriptRevision, runScriptwriter } from "./agents/scriptwriter";
 import { dressOwnScript, splitScript } from "./agents/ownScript";
 import { placeUploads, type MediaOptions, type Placement } from "./uploads";
+import { cutScene, transcribeVoiceover, type Transcript, type VoiceoverOption } from "./voiceover";
 import { config } from "./config";
 import { fluxNeurons } from "./cost/pricing";
 import { budgetSec, governScript, governTimeline, type GovernorAction } from "./governor";
@@ -26,7 +27,7 @@ import { runVisionStage } from "./visionStage";
 import { DOCUMENTARY_STYLE, gradeImage } from "./imageLook";
 import { DEFAULT_SOUND, buildMusicBed, musicVolume, normalizeForSpeech, polishVoice, prepareSfx, sfxVolume, type SoundOptions } from "./sound";
 
-export type StageName = "ingest" | "plan" | "research" | "script" | "script_critic" | "direct" | "assets" | "vision_critic" | "render" | "qa" | "upload";
+export type StageName = "ingest" | "voiceover" | "plan" | "research" | "script" | "script_critic" | "direct" | "assets" | "vision_critic" | "render" | "qa" | "upload";
 
 // `status` defaults to "done". "fixed" means the stage caught a problem and repaired it, "skipped" means it could not run.
 export type StageResult<T> = { value: T; summary: string; reason?: string; output?: unknown; retries?: number; status?: "done" | "fixed" | "skipped" };
@@ -50,12 +51,17 @@ export type GenerateInput = {
   // The user's own script. With keepWords the narration is used word for word.
   ownScript?: { text: string; keepWords: boolean };
   media?: MediaOptions;
+  // The creator's own recorded voice. Replaces the AI voice; its transcript becomes the script, word for word.
+  voiceover?: VoiceoverOption;
   workDir: string;
   stage: StageRunner;
 };
 
 export type GenerateResult = {
   title: string;
+  // Render inputs, kept so the video can be opened in the editor later.
+  propsFile: string;
+  publicDir: string;
   script: Script;
   videoFile: string;
   thumbFile: string;
@@ -306,6 +312,23 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
   };
 
   // Own script, word for word: code splits it, the model only dresses it, the critic only advises.
+  // A voiceover is transcribed first; from then on it behaves like an own script that must not change.
+  let transcript: Transcript | null = null;
+  let voiceWav = "";
+  if (input.voiceover) {
+    const t = await stage("voiceover", async () => {
+      const res = await transcribeVoiceover({ voiceover: input.voiceover!, workDir });
+      return {
+        value: res,
+        summary: `Transcribed your voiceover: ${res.transcript.scenes.reduce((n, s) => n + s.words.length, 0)} words, ${res.transcript.durationSec.toFixed(1)}s, language ${res.transcript.language}`,
+        reason: "faster-whisper (base model, CPU) gave word timings, so captions follow your voice exactly.",
+        output: { transcript: res.transcript.text, durationSec: res.transcript.durationSec, scenes: res.transcript.scenes.map(({ id, narration, startSec, endSec }) => ({ id, narration, startSec, endSec })) },
+      };
+    });
+    transcript = t.transcript;
+    voiceWav = t.wavFile;
+    input.ownScript = { text: transcript.text, keepWords: true };
+  }
   const keepWords = Boolean(input.ownScript?.keepWords);
   const sceneTags = new Map<string, number>();
   const planWithOwnScript = async (): Promise<{ script: Script; plan: ShotPlan }> => {
@@ -363,9 +386,18 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
 
     // Voice first: the real audio length decides which scenes survive, so no image quota is spent on dropped scenes.
     let kept = script.scenes;
-    let voices = await speakAll(kept, 0);
+    // With a voiceover, each scene gets its own cut of the creator's recording instead of an AI voice.
+    const cutVoiceover = () =>
+      kept.map((s) => {
+        const part = transcript!.scenes.find((t) => t.id === s.id);
+        if (!part) throw new Error(`No voiceover part for ${s.id}`);
+        return cutScene(voiceWav, part, path.join(workDir, "voiceover", `${s.id}.mp3`));
+      });
+    let voices = transcript ? cutVoiceover() : await speakAll(kept, 0);
     const measuredSec = total(voices);
-    const decision = governTimeline(kept.map((s, i) => ({ id: s.id, purpose: s.purpose, durationSec: voices[i].durationSec + config.scenePaddingSec })), { keepWords });
+    const decision = transcript
+      ? { dropIds: [] as string[], speedUpPct: 0, actions: [] as GovernorAction[] }
+      : governTimeline(kept.map((s, i) => ({ id: s.id, purpose: s.purpose, durationSec: voices[i].durationSec + config.scenePaddingSec })), { keepWords });
     const actions: GovernorAction[] = [...decision.actions];
     if (decision.dropIds.length || decision.speedUpPct) {
       kept = kept.filter((s) => !decision.dropIds.includes(s.id));
@@ -561,5 +593,5 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
   });
 
   metrics.fixes = metrics.script_revisions + metrics.governor_actions + metrics.vision_fixes + metrics.qa_fixed;
-  return { title: script.title, script, videoFile, thumbFile, durationSec, scores, qa, metrics };
+  return { title: script.title, propsFile: path.join(workDir, "props.json"), publicDir, script, videoFile, thumbFile, durationSec, scores, qa, metrics };
 }

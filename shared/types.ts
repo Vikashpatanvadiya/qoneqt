@@ -46,6 +46,8 @@ export type PulseVideoProps = {
   grainFile: string | null;
   // "creator" (default): beats, eased camera, varied transitions. "classic": the earlier, calmer edit.
   editStyle?: "creator" | "classic";
+  // Browser preview only: asset files are loaded from this URL prefix instead of the render's public folder.
+  assetBase?: string;
   // Sound design. Missing on older jobs, which then use the plain music track.
   sound?: { bedFile: string | null; musicVolume: number; duck: boolean; sfx: Record<string, string> | null; sfxVolume: number };
 };

@@ -37,3 +37,39 @@ export async function uploadImages(files: File[]): Promise<Uploaded[]> {
   }
   return out;
 }
+
+export type UploadedVoice = { path: string; name: string; url: string; durationSec: number };
+
+export async function audioDuration(blob: Blob): Promise<number> {
+  const url = URL.createObjectURL(blob);
+  try {
+    return await new Promise<number>((resolve) => {
+      const a = new Audio();
+      a.preload = "metadata";
+      a.onloadedmetadata = () => {
+        // Browser recordings report Infinity until seeked to the end.
+        if (Number.isFinite(a.duration)) return resolve(a.duration);
+        a.currentTime = 1e9;
+        a.ontimeupdate = () => resolve(Number.isFinite(a.duration) ? a.duration : 0);
+      };
+      a.onerror = () => resolve(0);
+      a.src = url;
+    });
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+export async function uploadVoice(blob: Blob, name: string): Promise<UploadedVoice> {
+  const type = (blob.type || "audio/mpeg").split(";")[0];
+  if (blob.size > 15 * 1024 * 1024) throw new Error("The voiceover must be under 15 MB");
+  const durationSec = await audioDuration(blob);
+  if (durationSec > 60) throw new Error(`The voiceover is ${Math.round(durationSec)} s. Keep it under 60 s (Qoneqt plays up to 45 s).`);
+  const res = await fetch("/api/uploads", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ files: [{ kind: "voice", name, type, size: blob.size }] }) });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error ?? `Upload failed (${res.status})`);
+  const u = data.uploads[0] as { path: string; token: string };
+  const { error } = await supabase.storage.from("videos").uploadToSignedUrl(u.path, u.token, blob, { contentType: type });
+  if (error) throw new Error(error.message);
+  return { path: u.path, name, url: URL.createObjectURL(blob), durationSec };
+}

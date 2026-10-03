@@ -10,6 +10,7 @@ import { toPalette, type Palette } from "./theme";
 import { themeFor, type Theme } from "./themes";
 import { CreatorTimeline } from "./creator/CreatorTimeline";
 import { SoundTrack } from "./SoundTrack";
+import { AssetProvider, useAsset } from "./assets";
 
 export const sceneFrames = (scene: RenderScene) => Math.max(1, Math.round(scene.durationSec * FPS));
 export const OUTRO_FRAMES = Math.round(OUTRO_SEC * FPS);
@@ -40,9 +41,10 @@ const SceneVisual: React.FC<{ scene: RenderScene; palette: Palette; isHook: bool
 
 const Music: React.FC<{ file: string; voiceFrames: number }> = ({ file, voiceFrames }) => {
   const { durationInFrames } = useVideoConfig();
+  const asset = useAsset();
   return (
     <Audio
-      src={staticFile(file)}
+      src={asset(file)}
       loop
       volume={(f) => {
         // Low under the voice, a little louder on the outro, with a short fade at both ends.
@@ -54,7 +56,18 @@ const Music: React.FC<{ file: string; voiceFrames: number }> = ({ file, voiceFra
   );
 };
 
-export const PulseVideo: React.FC<PulseVideoProps> = ({ title, scenes, global, communityName, cta, musicFile, logoFile, grainFile, editStyle, sound }) => {
+const VoiceAudio: React.FC<{ file: string }> = ({ file }) => {
+  const asset = useAsset();
+  return <Audio src={asset(file)} />;
+};
+
+export const PulseVideo: React.FC<PulseVideoProps> = (props) => (
+  <AssetProvider base={props.assetBase}>
+    <PulseVideoInner {...props} />
+  </AssetProvider>
+);
+
+const PulseVideoInner: React.FC<PulseVideoProps> = ({ title, scenes, global, communityName, cta, musicFile, logoFile, grainFile, editStyle, sound }) => {
   const creator = editStyle !== "classic";
   const theme = themeFor(global?.theme, title);
   const directed = toPalette(global?.palette ?? []);
@@ -100,7 +113,7 @@ export const PulseVideo: React.FC<PulseVideoProps> = ({ title, scenes, global, c
       {scenes.map((scene, i) => (
         <Sequence key={scene.id} from={starts[i]} durationInFrames={sceneFrames(scene)} name={`${scene.id} voice + captions`}>
           <Captions scene={scene} accent={palette.accent} theme={theme} creator={creator} />
-          <Audio src={staticFile(scene.audioFile)} />
+          <VoiceAudio file={scene.audioFile} />
         </Sequence>
       ))}
 

@@ -56,3 +56,24 @@ export async function uploadFile(storagePath: string, file: string, contentType:
   check("upload", await db().storage.from(BUCKET).upload(storagePath, fs.readFileSync(file), { contentType, upsert: true }));
   return db().storage.from(BUCKET).getPublicUrl(storagePath).data.publicUrl;
 }
+
+const CONTENT_TYPES: Record<string, string> = { jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", svg: "image/svg+xml", mp3: "audio/mpeg", m4a: "audio/mp4", wav: "audio/wav", json: "application/json" };
+
+// Saves the render inputs (props.json and every file it points to) under <job>/edit/,
+// so the browser editor can preview the video and a re-render can start from it.
+export async function saveEditBundle(jobId: string, propsFile: string, publicDir: string): Promise<number> {
+  const props = JSON.parse(fs.readFileSync(propsFile, "utf8"));
+  const names = new Set<string>();
+  for (const scene of props.scenes ?? []) {
+    if (scene.imageFile) names.add(scene.imageFile);
+    if (scene.audioFile) names.add(scene.audioFile);
+  }
+  for (const n of [props.musicFile, props.logoFile, props.grainFile, props.sound?.bedFile, ...Object.values(props.sound?.sfx ?? {})]) if (typeof n === "string") names.add(n);
+  const files = [...names].filter((n) => !/^https?:/.test(n) && fs.existsSync(`${publicDir}/${n}`));
+  await Promise.all(files.map((n) => uploadFile(`${jobId}/edit/${n}`, `${publicDir}/${n}`, CONTENT_TYPES[n.split(".").pop() ?? ""] ?? "application/octet-stream")));
+  const { assetBase: _drop, ...clean } = props;
+  const tmp = `${propsFile}.edit.json`;
+  fs.writeFileSync(tmp, JSON.stringify(clean));
+  await uploadFile(`${jobId}/edit/props.json`, tmp, "application/json");
+  return files.length;
+}

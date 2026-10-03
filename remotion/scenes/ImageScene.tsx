@@ -4,6 +4,7 @@ import { HIGH_CONTRAST_BACKING_ALPHA, TITLE_LAYOUT, titleBox } from "../../share
 import type { RenderScene } from "../../shared/types";
 import { BACKING, TEXT_SHADOW, type Palette } from "../theme";
 import type { Theme } from "../themes";
+import { useAsset } from "../assets";
 
 // Ken Burns motion, driven by the Director's `camera`.
 function cameraTransform(camera: RenderScene["camera"], progress: number): string {
@@ -24,12 +25,13 @@ function cameraTransform(camera: RenderScene["camera"], progress: number): strin
 // `imageTransform` replaces the Ken Burns move (the creator edit computes its own eased camera).
 export const ImageScene: React.FC<{ scene: RenderScene; isHook: boolean; frames: number; theme: Theme; palette: Palette; imageTransform?: string; titleAlreadyIn?: boolean }> = ({ scene, isHook, frames, theme, palette, imageTransform, titleAlreadyIn }) => {
   const frame = useCurrentFrame();
+  const asset = useAsset();
   const progress = Math.min(1, frame / frames);
   // The hook is readable from frame 0. Other titles rise in.
   const enter = isHook || titleAlreadyIn ? 1 : interpolate(frame, [4, 14], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   const settle = isHook ? interpolate(frame, [0, 10], [1.06, 1], { extrapolateRight: "clamp" }) : 1;
   const fontSize = scene.titleFontSize ?? titleBox("image", isHook).fontSize;
-  const image = <Img src={staticFile(scene.imageFile!)} style={{ width: "100%", height: "100%", objectFit: "cover", transform: imageTransform ?? cameraTransform(scene.camera, progress), filter: theme.image === "duotone" ? "grayscale(1) contrast(1.2) brightness(1.15)" : "saturate(1.08) contrast(1.04)" }} />;
+  const image = <Img src={asset(scene.imageFile!)} style={{ width: "100%", height: "100%", objectFit: "cover", transform: imageTransform ?? cameraTransform(scene.camera, progress), filter: theme.image === "duotone" ? "grayscale(1) contrast(1.2) brightness(1.15)" : "saturate(1.08) contrast(1.04)" }} />;
 
   // Paper: the photo sits in a white frame on the paper, the title is a label on top of it.
   if (theme.image === "framed") {

@@ -49,6 +49,19 @@ Every agent returns JSON that is validated with zod. Every external call retries
 
 The options are stored in the job record, so every job can be reproduced.
 
+### Your own voice
+On Create, choose **Voice: My voiceover**, then record in the browser or upload MP3, M4A or WAV (up to 60 s). faster-whisper (MIT licence, base model, CPU) transcribes it with word timings. Your words become the script word for word, the captions follow your voice, and the AI voice is skipped. The light voice polish still applies.
+
+### Edit after rendering (Canva-style)
+Every new video saves its render inputs. **Edit video** on the Job page opens an editor with a live in-browser preview (Remotion Player) and a scene strip. You can:
+- cut scenes and move them earlier or later,
+- change the on-screen text,
+- change a narration line (it is re-voiced and re-captioned on render; not possible for your own voiceover),
+- turn a scene into a text card,
+- upload a replacement image, or describe a new AI image.
+
+Text, order, cuts, cards and uploads show in the preview immediately. **Render edited version** creates a new video from the original's files and skips the agents, about a minute of rendering. Videos made before this feature cannot be edited.
+
 ### Accounts, guests and posting
 - **Guests:** no account needed to try it. A guest gets one video per network per day (`GUEST_VIDEOS_PER_DAY`), no batch mode.
 - **Log in** (Supabase email and password) to:

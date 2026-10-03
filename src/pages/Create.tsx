@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, Cpu, ImagePlus, Layers, SlidersHorizontal, Sparkles, X } from "lucide-react";
-import { uploadImages, type Uploaded } from "../lib/uploads";
+import { uploadImages, type Uploaded, type UploadedVoice } from "../lib/uploads";
+import { VoiceoverPicker } from "../components/VoiceoverPicker";
 import { ApiError, createJobs } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { supabase } from "../lib/supabase";
@@ -74,6 +75,8 @@ export function CreatePage() {
   const [uploads, setUploads] = useState<Uploaded[]>([]);
   const [mediaMode, setMediaMode] = useState<"mixed" | "ai" | "uploads">("mixed");
   const [uploading, setUploading] = useState(false);
+  const [voiceMode, setVoiceMode] = useState<"ai" | "mine">("ai");
+  const [voiceover, setVoiceover] = useState<UploadedVoice | null>(null);
 
   async function addFiles(list: FileList | null) {
     if (!list?.length) return;
@@ -98,22 +101,33 @@ export function CreatePage() {
   }, []);
 
   const own = scriptMode === "own";
-  const inputs = batch && !own && session ? text.split("\n").map((l) => l.trim()).filter(Boolean) : [text.trim()].filter(Boolean);
+  const useVoiceover = voiceMode === "mine";
+  const inputs = useVoiceover
+    ? [text.trim() || `My voiceover${voiceover ? ` (${voiceover.name})` : ""}`]
+    : batch && !own && session ? text.split("\n").map((l) => l.trim()).filter(Boolean) : [text.trim()].filter(Boolean);
   const current = TYPES.find((t) => t.id === type)!;
 
   async function submit() {
     setError(null);
     setNeedLogin(false);
+    if (useVoiceover && !voiceover) return setError("Record or upload your voiceover first.");
     if (inputs.length === 0) return setError("Write a topic, trend, thread or idea first.");
     if (inputs.length > 10) return setError("Batch mode takes up to 10 lines at a time.");
     setBusy(true);
     try {
       const media = uploads.length ? { mode: mediaMode, uploads: uploads.map(({ index, path, name }) => ({ index, path, name })) } : undefined;
       const res = await createJobs({
-        input_type: own ? "idea" : type,
+        input_type: own || useVoiceover ? "idea" : type,
         inputs,
         community_id: communityId || null,
-        options: { engine, editStyle, sound, ...(own ? { script: { text: inputs[0], keepWords } } : {}), ...(media ? { media } : {}) },
+        options: {
+          engine,
+          editStyle,
+          sound,
+          ...(own && !useVoiceover ? { script: { text: inputs[0], keepWords } } : {}),
+          ...(media ? { media } : {}),
+          ...(useVoiceover && voiceover ? { voiceover: { path: voiceover.path, name: voiceover.name } } : {}),
+        },
       });
       const ok = res.jobs.filter((j) => j.status !== "failed");
       if (ok.length === 0) throw new Error(res.jobs[0]?.error ?? "Could not start the job");
@@ -223,6 +237,21 @@ export function CreatePage() {
                 ))}
               </div>
             </div>
+          </div>
+
+          <div className="space-y-3 border-t border-line pt-5">
+            <Segmented
+              label="Voice"
+              value={voiceMode}
+              onChange={setVoiceMode}
+              options={[{ value: "ai", label: "AI voice" }, { value: "mine", label: "My voiceover" }]}
+            />
+            {useVoiceover ? (
+              <>
+                <VoiceoverPicker value={voiceover} onChange={setVoiceover} onError={setError} />
+                <p className="text-xs text-faint">Your recording is transcribed with word timings: your words become the script and the captions, and the AI voice is skipped. The text box above is optional; use it as a title or topic. Image tags like [img1] can't be used here; your images are matched by meaning.</p>
+              </>
+            ) : null}
           </div>
 
           <div className="border-t border-line pt-5">

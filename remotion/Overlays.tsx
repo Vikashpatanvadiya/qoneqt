@@ -1,4 +1,5 @@
 import React from "react";
+import { useAsset } from "./assets";
 import { AbsoluteFill, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 
 // Thin progress bar at the very top. It helps retention and sits above every scene.
@@ -15,13 +16,14 @@ export const ProgressBar: React.FC<{ color: string }> = ({ color }) => {
 // Subtle film grain and a vignette tie AI images and designed cards into one look.
 export const FilmLook: React.FC<{ grainFile: string | null }> = ({ grainFile }) => {
   const frame = useCurrentFrame();
+  const asset = useAsset();
   // Shift the grain tile a little every second frame so it moves like film.
   const step = Math.floor(frame / 2);
   const x = (step * 73) % 256;
   const y = (step * 151) % 256;
   return (
     <AbsoluteFill style={{ pointerEvents: "none" }}>
-      {grainFile ? <AbsoluteFill style={{ backgroundImage: `url(${staticFile(grainFile)})`, backgroundPosition: `${x}px ${y}px`, opacity: 0.045, mixBlendMode: "overlay" }} /> : null}
+      {grainFile ? <AbsoluteFill style={{ backgroundImage: `url(${asset(grainFile)})`, backgroundPosition: `${x}px ${y}px`, opacity: 0.045, mixBlendMode: "overlay" }} /> : null}
       <AbsoluteFill style={{ background: "radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(0,0,0,0.38) 100%)" }} />
     </AbsoluteFill>
   );

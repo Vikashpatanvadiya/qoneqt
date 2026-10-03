@@ -120,7 +120,15 @@ async function createJobs(req: VercelRequest, res: VercelResponse) {
   }
 
   const batchId = inputs.length > 1 ? crypto.randomUUID() : null;
-  const requested = typeof body.options === "object" && body.options ? body.options : {};
+  let requested = typeof body.options === "object" && body.options ? body.options : {};
+  // An edited version keeps the source video's settings; only the edit itself comes from the request.
+  if (requested.edit && typeof requested.edit.fromJob === "string") {
+    const src = await db.from("jobs").select("status, options, community_id").eq("id", requested.edit.fromJob).maybeSingle();
+    if (src.error || !src.data || src.data.status !== "done") return res.status(400).json({ error: "The video to edit was not found or is not finished" });
+    const { ipHash: _ip, edit: _old, ...inherited } = (src.data.options ?? {}) as Record<string, unknown>;
+    requested = { ...inherited, edit: requested.edit };
+    body.community_id = src.data.community_id;
+  }
   // The engine decides whether the worker starts our own model, so only known names are passed on.
   const engine = ENGINES.includes(requested.engine) ? String(requested.engine) : "gemini";
   const options = { ...requested, engine, ipHash };
@@ -162,8 +170,12 @@ async function deleteJob(req: VercelRequest, res: VercelResponse) {
 
   // Files first (video, thumbnail, stills), then the job row. Stages go with it (on delete cascade).
   const bucket = db.storage.from("videos");
-  const [top, stills] = await Promise.all([bucket.list(id, { limit: 100 }), bucket.list(`${id}/stills`, { limit: 200 })]);
-  const paths = [...(top.data ?? []).filter((f) => f.id).map((f) => `${id}/${f.name}`), ...(stills.data ?? []).map((f) => `${id}/stills/${f.name}`)];
+  const [top, stills, edit] = await Promise.all([bucket.list(id, { limit: 100 }), bucket.list(`${id}/stills`, { limit: 200 }), bucket.list(`${id}/edit`, { limit: 200 })]);
+  const paths = [
+    ...(top.data ?? []).filter((f) => f.id).map((f) => `${id}/${f.name}`),
+    ...(stills.data ?? []).map((f) => `${id}/stills/${f.name}`),
+    ...(edit.data ?? []).map((f) => `${id}/edit/${f.name}`),
+  ];
   if (paths.length) {
     const removed = await bucket.remove(paths);
     if (removed.error) throw new Error(removed.error.message);

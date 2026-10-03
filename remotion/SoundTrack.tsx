@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import { Audio, Sequence, interpolate, staticFile, useVideoConfig } from "remotion";
 import type { PulseVideoProps, RenderScene } from "../shared/types";
 import { pickTransitions } from "./creator/CreatorTimeline";
+import { useAsset } from "./assets";
 
 const DUCK = 0.2; // about -14 dB under the voice
 const ATTACK = 4; // frames to duck before speech
@@ -13,6 +14,7 @@ type Cue = { sfx: string; at: number; gain: number };
 // Music under the voice with smooth ducking, plus sound effects placed on transitions, emphasis words, the hook and the twist.
 export const SoundTrack: React.FC<{ scenes: RenderScene[]; sound: NonNullable<PulseVideoProps["sound"]>; creator: boolean }> = ({ scenes, sound, creator }) => {
   const { fps, durationInFrames } = useVideoConfig();
+  const asset = useAsset();
 
   const { speech, cues, voiceEnd } = useMemo(() => {
     const speech: Array<[number, number]> = [];
@@ -66,13 +68,13 @@ export const SoundTrack: React.FC<{ scenes: RenderScene[]; sound: NonNullable<Pu
 
   return (
     <>
-      {sound.bedFile ? <Audio src={staticFile(sound.bedFile)} volume={musicGain} /> : null}
+      {sound.bedFile ? <Audio src={asset(sound.bedFile)} volume={musicGain} /> : null}
       {sound.sfx && sound.sfxVolume > 0
         ? cues
             .filter((c) => sound.sfx![c.sfx])
             .map((c, i) => (
               <Sequence key={`${c.sfx}-${i}`} from={c.at} durationInFrames={Math.round(fps * 1.2)} name={`sfx ${c.sfx}`}>
-                <Audio src={staticFile(sound.sfx![c.sfx])} volume={sound.sfxVolume * c.gain} />
+                <Audio src={asset(sound.sfx![c.sfx])} volume={sound.sfxVolume * c.gain} />
               </Sequence>
             ))
         : null}

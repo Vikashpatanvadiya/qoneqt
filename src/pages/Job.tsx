@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ChevronDown, Copy, Download, ExternalLink, Film, Send, Timer, Trash2 } from "lucide-react";
+import { ChevronDown, Copy, Download, ExternalLink, Film, Scissors, Send, Timer, Trash2 } from "lucide-react";
 import { deleteJob } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { ago, score, seconds, stageMs } from "../lib/format";
@@ -135,6 +135,12 @@ export function JobPage() {
               </div>
             ) : null}
           </Card>
+          {byName.get("upload")?.output?.editable ? (
+            <Link to={`/jobs/${job.id}/edit`} className="flex w-full items-center justify-center gap-2 rounded-2xl border border-amber/40 px-4 py-2.5 text-sm font-semibold text-amber hover:bg-amber/10">
+              <Scissors size={16} /> Edit video
+            </Link>
+          ) : null}
+          {job.metrics?.edited_from ? <p className="text-center text-xs text-faint">Edited version of <Link to={`/jobs/${job.metrics.edited_from}`} className="text-amber">this video</Link></p> : null}
           {job.video_url ? <PostToQoneqt videoUrl={job.video_url} title={job.title} caption={caption} /> : null}
           {isOwner && finished ? (
             <button onClick={remove} disabled={deleting} className="flex w-full items-center justify-center gap-2 rounded-2xl border border-red/30 px-4 py-2.5 text-sm font-semibold text-red hover:bg-red/10 disabled:opacity-50">

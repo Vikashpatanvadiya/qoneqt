@@ -83,6 +83,7 @@ jobs:
           path: |
             node_modules/.remotion
             .cache
+            ~/.cache/huggingface
           key: pulse-cache-${{ hashFiles('package-lock.json') }}-${{ github.run_id }}
           restore-keys: |
             pulse-cache-${{ hashFiles('package-lock.json') }}-
