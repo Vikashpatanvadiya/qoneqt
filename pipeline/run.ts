@@ -41,7 +41,17 @@ async function runJob(jobId: string) {
 
   const workDir = fs.mkdtempSync(path.join(os.tmpdir(), `pulse-${jobId}-`));
   const inputType = InputTypeSchema.catch("topic").parse(job.input_type);
-  const result = await generateVideo({ inputType, content: job.input_text, community, engine, criticThresholds: criticOptions(job.options), workDir, stage });
+  const result = await generateVideo({
+    inputType,
+    content: job.input_text,
+    community,
+    engine,
+    criticThresholds: criticOptions(job.options),
+    uploadStill: (file, name) => uploadFile(`${jobId}/stills/${name}`, file, "image/jpeg"),
+    debugBreakScene: typeof job.options?.debugBreakScene === "string" ? job.options.debugBreakScene : undefined,
+    workDir,
+    stage,
+  });
 
   const urls = await stage("upload", async () => {
     const videoUrl = await uploadFile(`${jobId}/video.mp4`, result.videoFile, "video/mp4");

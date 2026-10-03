@@ -129,3 +129,16 @@ export const ShotPlanSchema = z.object({
 export type ShotPlan = z.infer<typeof ShotPlanSchema>;
 
 export const MAX_IMAGE_SCENES = 5;
+
+// 7.5 Vision Critic: one review per scene still
+export const VisionReviewSchema = z.object({
+  sceneId: z.string(),
+  matchesNarration: z.boolean(),
+  captionReadable: z.boolean(),
+  hasArtifacts: z.boolean().describe("Weird hands, broken faces, garbled or misspelled text inside the image, distorted objects"),
+  notes: z.string().describe("One or two sentences on what is in the frame and what is wrong"),
+  score: z.number().min(1).max(10),
+  action: z.enum(["keep", "regenerate_image", "adjust_caption", "use_template"]),
+  newVisualPrompt: z.string().optional().describe("Only for regenerate_image: a simpler, concrete image prompt that fixes the problem. No text in the image"),
+});
+export type VisionReview = z.infer<typeof VisionReviewSchema>;

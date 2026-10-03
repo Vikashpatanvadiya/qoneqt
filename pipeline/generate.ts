@@ -20,6 +20,7 @@ import { qaScenes, qaVideo, summarizeChecks, type QaCheck } from "./qa";
 import type { TtsResult } from "./providers/tts";
 import { scriptWordCount, type CommunityProfile, type InputType, type Script, type ScriptVersion, type ShotPlan } from "./schemas";
 import { mapLimit } from "./util";
+import { runVisionStage } from "./visionStage";
 
 export type StageName = "ingest" | "plan" | "research" | "script" | "script_critic" | "direct" | "assets" | "vision_critic" | "render" | "qa" | "upload";
 
@@ -35,6 +36,10 @@ export type GenerateInput = {
   community: CommunityProfile;
   engine: Engine;
   criticThresholds?: Partial<CriticThresholds>;
+  // Stores a Vision Critic still and returns a URL the UI can show. Without it, local paths are kept.
+  uploadStill?: (file: string, name: string) => Promise<string>;
+  // Testing and demo only: swap this scene's image for an unrelated one, so the Vision Critic has something to catch.
+  debugBreakScene?: string;
   workDir: string;
   stage: StageRunner;
 };
@@ -45,7 +50,7 @@ export type GenerateResult = {
   videoFile: string;
   thumbFile: string;
   durationSec: number;
-  scores: { script_v1: number | null; script_final: number | null };
+  scores: { script_v1: number | null; script_final: number | null; vision_avg: number | null };
   qa: QaCheck[];
   metrics: {
     engine: string;
@@ -63,13 +68,15 @@ export type GenerateResult = {
     governor_actions: number;
     over_limit: boolean;
     script_revisions: number;
+    vision_fixes: number;
+    vision_skipped: number;
     qa_fixed: number;
     qa_flagged: number;
     fixes: number; // everything the engine repaired on its own: script revisions, governor actions, QA fixes
   };
 };
 
-function imageSize(file: string): { width: number; height: number } {
+export function imageSize(file: string): { width: number; height: number } {
   const out = execFileSync("ffprobe", ["-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height", "-of", "csv=p=0", file]).toString();
   const [width, height] = out.trim().split(",").map(Number);
   return { width, height };
@@ -96,6 +103,8 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
     governor_actions: 0,
     over_limit: false,
     script_revisions: 0,
+    vision_fixes: 0,
+    vision_skipped: 0,
     qa_fixed: 0,
     qa_flagged: 0,
     fixes: 0,
@@ -120,7 +129,7 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
     minOverall: input.criticThresholds?.minOverall ?? config.critic.minOverall(),
     minHook: input.criticThresholds?.minHook ?? config.critic.minHook(),
   };
-  const scores: GenerateResult["scores"] = { script_v1: null, script_final: null };
+  const scores: GenerateResult["scores"] = { script_v1: null, script_final: null, vision_avg: null };
 
   // Cloud engine: Researcher, Scriptwriter, Script Critic and Director as separate agents.
   const planWithAgents = async (): Promise<{ script: Script; plan: ShotPlan }> => {
@@ -375,28 +384,38 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
   const videoFile = path.join(workDir, "video.mp4");
   const thumbFile = path.join(workDir, "thumb.jpg");
 
-  // QA gate, part 1: measure the layout before rendering and fix what can be fixed, so one render is enough.
-  const pre = qaScenes({ scenes, publicDir });
+  // Extras for the composition. Each one is optional and skipped quietly if its file is missing.
+  const copyIfExists = (from: string, to: string) => {
+    if (!fs.existsSync(from)) return null;
+    fs.copyFileSync(from, path.join(publicDir, to));
+    return to;
+  };
+  const musicFile = copyIfExists(path.resolve("public/music", `${plan.global.musicMood}.mp3`), "music.mp3");
+  const logoFile = ["svg", "png"].map((ext) => copyIfExists(path.resolve("public/brand", `logo.${ext}`), `logo.${ext}`)).find(Boolean) ?? null;
+  let grainFile: string | null = "grain.png";
+  try {
+    // A small noise tile for the film grain overlay.
+    execFileSync("ffmpeg", ["-v", "error", "-y", "-f", "lavfi", "-i", "nullsrc=s=256x256,geq=lum='random(1)*255':cb=128:cr=128", "-frames:v", "1", path.join(publicDir, grainFile)]);
+  } catch {
+    grainFile = null;
+  }
+  const propsFor = (list: RenderScene[]): PulseVideoProps => ({ title: script.title, communityName: community.name, cta: script.cta, global: plan.global, scenes: list, musicFile, logoFile, grainFile });
+  // The bundle copies the public dir, so it is rebuilt whenever an image file changes.
+  const bundleNow = () => bundle({ entryPoint: path.resolve("remotion/index.ts"), publicDir });
+
+  // Layout fixes from the QA gate come first, so the Vision Critic sees exactly what will be rendered.
+  let serveUrl = await bundleNow();
+  const visionScenes = await stage("vision_critic", () =>
+    runVisionStage({ scenes: qaScenes({ scenes, publicDir }).scenes, plan, engine, community, workDir, publicDir, propsFor, bundleNow, serveUrl, metrics, scores, track: trackAttempts, uploadStill: input.uploadStill, breakScene: input.debugBreakScene }),
+  );
+  if (visionScenes.rebundle) serveUrl = await bundleNow();
+
+  // QA gate, part 1: measure the layout of the final scenes and fix what can be fixed, so one render is enough.
+  const pre = qaScenes({ scenes: visionScenes.scenes, publicDir });
 
   await stage("render", async () => {
-    // Optional extras. Each one is skipped quietly if its file is missing, so the render never depends on them.
-    const copyIfExists = (from: string, to: string) => {
-      if (!fs.existsSync(from)) return null;
-      fs.copyFileSync(from, path.join(publicDir, to));
-      return to;
-    };
-    const musicFile = copyIfExists(path.resolve("public/music", `${plan.global.musicMood}.mp3`), "music.mp3");
-    const logoFile = ["svg", "png"].map((ext) => copyIfExists(path.resolve("public/brand", `logo.${ext}`), `logo.${ext}`)).find(Boolean) ?? null;
-    let grainFile: string | null = "grain.png";
-    try {
-      // A small noise tile for the film grain overlay.
-      execFileSync("ffmpeg", ["-v", "error", "-y", "-f", "lavfi", "-i", "nullsrc=s=256x256,geq=lum='random(1)*255':cb=128:cr=128", "-frames:v", "1", path.join(publicDir, grainFile)]);
-    } catch {
-      grainFile = null;
-    }
-    const inputProps: PulseVideoProps = { title: script.title, communityName: community.name, cta: script.cta, global: plan.global, scenes: pre.scenes, musicFile, logoFile, grainFile };
+    const inputProps = propsFor(pre.scenes);
     fs.writeFileSync(path.join(workDir, "props.json"), JSON.stringify(inputProps, null, 2));
-    const serveUrl = await bundle({ entryPoint: path.resolve("remotion/index.ts"), publicDir });
     const composition = await selectComposition({ serveUrl, id: "PulseVideo", inputProps });
     const renderStart = Date.now();
     await renderMedia({ composition, serveUrl, codec: "h264", crf: config.render.crf(), scale: config.render.scale(), outputLocation: videoFile, inputProps, concurrency: os.cpus().length });
@@ -428,6 +447,6 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
     };
   });
 
-  metrics.fixes = metrics.script_revisions + metrics.governor_actions + metrics.qa_fixed;
+  metrics.fixes = metrics.script_revisions + metrics.governor_actions + metrics.vision_fixes + metrics.qa_fixed;
   return { title: script.title, script, videoFile, thumbFile, durationSec, scores, qa, metrics };
 }

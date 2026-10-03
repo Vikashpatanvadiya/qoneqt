@@ -6,7 +6,10 @@ import { generateVideo, type StageRunner } from "../pipeline/generate";
 import { resolveEngine } from "../pipeline/providers";
 
 async function main() {
-  const topic = process.argv.slice(2).join(" ").trim();
+  // --break s2 swaps that scene's image for an unrelated one, to see the Vision Critic catch it.
+  const breakAt = process.argv.indexOf("--break");
+  const debugBreakScene = breakAt >= 0 ? process.argv[breakAt + 1] : undefined;
+  const topic = process.argv.slice(2).filter((a, i, all) => a !== "--break" && all[i - 1] !== "--break").join(" ").trim();
   if (!topic) {
     console.error('Usage: npm run gen -- "<topic>"');
     process.exit(1);
@@ -23,7 +26,7 @@ async function main() {
 
   const totalStart = Date.now();
   const { engine } = resolveEngine();
-  const result = await generateVideo({ inputType: "topic", content: topic, community: DEFAULT_COMMUNITY, engine, workDir: path.resolve("out"), stage });
+  const result = await generateVideo({ inputType: "topic", content: topic, community: DEFAULT_COMMUNITY, engine, debugBreakScene, workDir: path.resolve("out"), stage });
   const m = result.metrics;
 
   console.log("\n--- Summary ---");
@@ -32,6 +35,7 @@ async function main() {
   console.log(`Total: ${((Date.now() - totalStart) / 1000).toFixed(1)}s`);
   console.log(`LLM (${m.engine}): ${m.llm_calls} calls, ${m.llm_failures} failed, ${m.rate_limit_hits} rate-limit hits, ${(m.llm_wait_ms / 1000).toFixed(1)}s waiting, ${m.input_tokens} in / ${m.output_tokens} out tokens`);
   console.log(`Script score: v1 ${result.scores.script_v1} -> final ${result.scores.script_final} (${m.script_revisions} revisions)`);
+  console.log(`Vision: average ${result.scores.vision_avg}, ${m.vision_fixes} scenes fixed, ${m.vision_skipped} not checked`);
   console.log(`Governor: ${m.governor_actions} actions, over limit: ${m.over_limit}`);
   for (const c of result.qa) console.log(`QA ${c.status.padEnd(7)} ${c.label}: ${c.detail}${c.before ? ` [${c.before} -> ${c.after}]` : ""}`);
   console.log(

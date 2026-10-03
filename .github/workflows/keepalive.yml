@@ -1,0 +1,37 @@
+name: keepalive
+
+# Supabase free projects pause after about a week without activity. This touches the database twice a day
+# and checks that the free providers still answer, so problems show up here before a judge finds them.
+on:
+  schedule:
+    - cron: "17 */12 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+      CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+    steps:
+      - name: Touch Supabase
+        run: |
+          curl -sf "$SUPABASE_URL/rest/v1/jobs?select=id&limit=1" -H "apikey: $SUPABASE_SERVICE_KEY" -H "Authorization: Bearer $SUPABASE_SERVICE_KEY" > /dev/null
+          echo "Supabase OK"
+
+      - name: Check Gemini key
+        run: |
+          curl -sf "https://generativelanguage.googleapis.com/v1beta/models?pageSize=1" -H "x-goog-api-key: $GEMINI_API_KEY" > /dev/null
+          echo "Gemini OK"
+
+      - name: Check Cloudflare token
+        run: |
+          curl -sf "https://api.cloudflare.com/client/v4/user/tokens/verify" -H "Authorization: Bearer $CF_API_TOKEN" | grep -q '"success":true'
+          echo "Cloudflare OK"
