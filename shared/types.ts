@@ -44,6 +44,8 @@ export type PulseVideoProps = {
   grainFile: string | null;
   // "creator" (default): beats, eased camera, varied transitions. "classic": the earlier, calmer edit.
   editStyle?: "creator" | "classic";
+  // Sound design. Missing on older jobs, which then use the plain music track.
+  sound?: { bedFile: string | null; musicVolume: number; duck: boolean; sfx: Record<string, string> | null; sfxVolume: number };
 };
 
 export const FPS = 30;

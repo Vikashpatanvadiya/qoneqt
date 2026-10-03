@@ -84,7 +84,7 @@ export const config = {
   // Code QA gate targets
   qa: {
     maxFileMb: 25,
-    targetLufs: -16,
+    targetLufs: -14,
     lufsTolerance: 1.5,
     maxTruePeakDb: -1,
     maxSilenceSec: 1.2,

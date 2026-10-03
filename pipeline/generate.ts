@@ -21,6 +21,7 @@ import type { TtsResult } from "./providers/tts";
 import { scriptWordCount, type CommunityProfile, type InputType, type Script, type ScriptVersion, type ShotPlan } from "./schemas";
 import { mapLimit } from "./util";
 import { runVisionStage } from "./visionStage";
+import { DEFAULT_SOUND, buildMusicBed, musicVolume, normalizeForSpeech, polishVoice, prepareSfx, sfxVolume, type SoundOptions } from "./sound";
 
 export type StageName = "ingest" | "plan" | "research" | "script" | "script_critic" | "direct" | "assets" | "vision_critic" | "render" | "qa" | "upload";
 
@@ -42,6 +43,7 @@ export type GenerateInput = {
   debugBreakScene?: string;
   // "creator" (default) or "classic" edit
   editStyle?: "creator" | "classic";
+  sound?: SoundOptions;
   workDir: string;
   stage: StageRunner;
 };
@@ -89,6 +91,7 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
   const publicDir = path.join(workDir, "public");
   fs.rmSync(publicDir, { recursive: true, force: true });
   fs.mkdirSync(publicDir, { recursive: true });
+  const sound = input.sound ?? DEFAULT_SOUND;
   const metrics: GenerateResult["metrics"] = {
     engine: engine.name,
     llm_calls: 0,
@@ -299,8 +302,10 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
   const { script, plan } = (engine.planner ? await planWithPulseLm() : null) ?? (await planWithAgents());
 
   const scenes = await stage("assets", async () => {
-    const voice = community.defaultVoice;
-    const speakAll = (list: Script["scenes"], speedUpPct: number) => mapLimit(list, config.maxParallelAssets, (scene) => engine.tts.speak(scene.narration, { voice, speedUpPct }));
+    const voice = sound.voice || community.defaultVoice;
+    // The voice reads a speech-friendly version (₹300 -> "300 rupees"); captions follow what is actually said.
+    const speakAll = (list: Script["scenes"], speedUpPct: number) =>
+      mapLimit(list, config.maxParallelAssets, (scene) => engine.tts.speak(normalizeForSpeech(scene.narration), { voice, speedUpPct, baseRatePct: sound.voiceRatePct }));
     const total = (tracks: TtsResult[]) => tracks.reduce((n, t) => n + t.durationSec + config.scenePaddingSec, 0);
 
     // Voice first: the real audio length decides which scenes survive, so no image quota is spent on dropped scenes.
@@ -352,7 +357,15 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
         metrics.fallbacks++;
       }
       const audioFile = `${scene.id}.mp3`;
-      fs.copyFileSync(track.audioFile, path.join(publicDir, audioFile));
+      if (sound.voicePolish) {
+        try {
+          polishVoice(track.audioFile, path.join(publicDir, audioFile));
+        } catch {
+          fs.copyFileSync(track.audioFile, path.join(publicDir, audioFile));
+        }
+      } else {
+        fs.copyFileSync(track.audioFile, path.join(publicDir, audioFile));
+      }
       console.log(`  ${scene.id} ${wantsImage ? (image ? `image ${image.cached ? "cached" : `${(image.ms / 1000).toFixed(1)}s`}` : "image FAILED -> text card") : shot.layout}, voice ${track.durationSec.toFixed(1)}s (${track.timingSource})`);
 
       return {
@@ -402,7 +415,23 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
     fs.copyFileSync(from, path.join(publicDir, to));
     return to;
   };
-  const musicFile = copyIfExists(path.resolve("public/music", `${plan.global.musicMood}.mp3`), "music.mp3");
+  // Music bed sized to the video (crossfaded loops, random start), falling back to the plain looping track.
+  let bed: { file: string; track: string } | null = null;
+  try {
+    bed = buildMusicBed({ mood: plan.global.musicMood, sound, durationSec, seed: script.title, publicDir });
+  } catch (err) {
+    console.warn(`  [sound] music bed failed, using the plain track: ${(err as Error).message.slice(0, 120)}`);
+  }
+  const musicFile = sound.music === "none" ? null : bed ? null : copyIfExists(path.resolve("public/music", `${plan.global.musicMood}.mp3`), "music.mp3");
+  let sfx: Record<string, string> | null = null;
+  if (sound.sfx !== "off") {
+    try {
+      sfx = prepareSfx(publicDir);
+    } catch (err) {
+      console.warn(`  [sound] sound effects failed, continuing without: ${(err as Error).message.slice(0, 120)}`);
+    }
+  }
+  const soundProps: PulseVideoProps["sound"] = { bedFile: bed?.file ?? null, musicVolume: musicVolume(sound.musicLevel), duck: sound.ducking, sfx, sfxVolume: sfxVolume(sound.sfx) };
   const logoFile = ["svg", "png"].map((ext) => copyIfExists(path.resolve("public/brand", `logo.${ext}`), `logo.${ext}`)).find(Boolean) ?? null;
   let grainFile: string | null = "grain.png";
   try {
@@ -411,7 +440,7 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
   } catch {
     grainFile = null;
   }
-  const propsFor = (list: RenderScene[]): PulseVideoProps => ({ title: script.title, communityName: community.name, cta: script.cta, global: plan.global, scenes: list, musicFile, logoFile, grainFile, editStyle: input.editStyle ?? "creator" });
+  const propsFor = (list: RenderScene[]): PulseVideoProps => ({ title: script.title, communityName: community.name, cta: script.cta, global: plan.global, scenes: list, musicFile, logoFile, grainFile, editStyle: input.editStyle ?? "creator", sound: soundProps });
   // The bundle copies the public dir, so it is rebuilt whenever an image file changes.
   const bundleNow = () => bundle({ entryPoint: path.resolve("remotion/index.ts"), publicDir });
 
@@ -437,7 +466,7 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
     return {
       value: null,
       summary: `${durationSec.toFixed(1)}s video, ${sizeMb.toFixed(1)} MB, rendered in ${renderSec.toFixed(0)}s on ${os.cpus().length} CPUs`,
-      reason: `${musicFile ? `${plan.global.musicMood} music` : "No music file found"}, ${logoFile ? "logo" : "text wordmark"} in the outro`,
+      reason: `${bed ? `music: ${bed.track} (crossfaded bed${sound.ducking ? ", ducked under the voice" : ""})` : musicFile ? `${plan.global.musicMood} music` : "no music"}, sound effects ${sfx ? sound.sfx : "off"}, voice ${sound.voice || community.defaultVoice || "default"}${sound.voicePolish ? " (polished)" : ""}, ${input.editStyle === "classic" ? "classic" : "creator"} edit`,
       output: { sizeMb, durationSec, renderSec, cpus: os.cpus().length, music: musicFile ? plan.global.musicMood : null, logo: Boolean(logoFile), scale: config.render.scale() },
     };
   });

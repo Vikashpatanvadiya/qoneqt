@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowRight, Cpu, Layers, Sparkles } from "lucide-react";
+import { ArrowRight, Cpu, Layers, SlidersHorizontal, Sparkles } from "lucide-react";
 import { createJobs } from "../lib/api";
 import { supabase } from "../lib/supabase";
 import { JOB_COLUMNS, type CommunityRow, type JobRow } from "../lib/types";
@@ -24,6 +24,33 @@ const SAMPLES: Record<string, string[]> = {
 
 type Engine = "gemini" | "pulse-lm";
 
+type Sound = {
+  music: "auto" | "upbeat" | "calm" | "dramatic" | "inspiring" | "none";
+  musicLevel: "low" | "medium" | "high";
+  ducking: boolean;
+  sfx: "off" | "low" | "medium" | "high";
+  voice: string;
+  voiceRatePct: number;
+};
+
+const DEFAULT_SOUND: Sound = { music: "auto", musicLevel: "medium", ducking: true, sfx: "medium", voice: "en-IN-NeerjaNeural", voiceRatePct: 0 };
+
+// Small segmented control used by the sound options.
+function Segmented<T extends string | number>({ label, value, options, onChange }: { label: string; value: T; options: Array<{ value: T; label: string }>; onChange: (v: T) => void }) {
+  return (
+    <div>
+      <span className="text-sm font-medium text-muted">{label}</span>
+      <div className="mt-2 flex flex-wrap gap-1.5">
+        {options.map((o) => (
+          <button key={String(o.value)} onClick={() => onChange(o.value)} aria-pressed={value === o.value} className={cx("rounded-xl px-3 py-1.5 text-sm font-medium transition", value === o.value ? "bg-ink text-bg" : "bg-white/[0.05] text-muted hover:text-ink")}>
+            {o.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export function CreatePage() {
   const navigate = useNavigate();
   const [type, setType] = useState<(typeof TYPES)[number]["id"]>("topic");
@@ -35,6 +62,10 @@ export function CreatePage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [recent, setRecent] = useState<JobRow[]>([]);
+  const [sound, setSound] = useState<Sound>(DEFAULT_SOUND);
+  const [editStyle, setEditStyle] = useState<"creator" | "classic">("creator");
+  const [showSound, setShowSound] = useState(false);
+  const setS = <K extends keyof Sound>(k: K) => (v: Sound[K]) => setSound((prev) => ({ ...prev, [k]: v }));
 
   useEffect(() => {
     supabase.from("communities").select("id,name,profile").order("name").then(({ data }) => setCommunities((data as CommunityRow[]) ?? []));
@@ -50,7 +81,7 @@ export function CreatePage() {
     if (inputs.length > 10) return setError("Batch mode takes up to 10 lines at a time.");
     setBusy(true);
     try {
-      const res = await createJobs({ input_type: type, inputs, community_id: communityId || null, options: { engine } });
+      const res = await createJobs({ input_type: type, inputs, community_id: communityId || null, options: { engine, editStyle, sound } });
       const ok = res.jobs.filter((j) => j.status !== "failed");
       if (ok.length === 0) throw new Error(res.jobs[0]?.error ?? "Could not start the job");
       navigate(res.batch_id ? `/library?batch=${res.batch_id}` : `/jobs/${ok[0].id}`);
@@ -139,6 +170,26 @@ export function CreatePage() {
                 ))}
               </div>
             </div>
+          </div>
+
+          <div className="border-t border-line pt-5">
+            <button onClick={() => setShowSound(!showSound)} className="flex items-center gap-2 text-sm font-semibold text-muted hover:text-ink" aria-expanded={showSound}>
+              <SlidersHorizontal size={16} /> Sound and edit
+              <span className="font-normal text-faint">
+                · {editStyle} edit · music {sound.music}{sound.music !== "none" ? `, ${sound.musicLevel}` : ""} · effects {sound.sfx} · {sound.voice.includes("Prabhat") ? "male" : "female"} voice
+              </span>
+            </button>
+            {showSound ? (
+              <div className="mt-5 grid gap-5 md:grid-cols-2">
+                <Segmented label="Edit style" value={editStyle} onChange={setEditStyle} options={[{ value: "creator", label: "Creator (fast cuts)" }, { value: "classic", label: "Classic (calm)" }]} />
+                <Segmented label="Music" value={sound.music} onChange={setS("music")} options={[{ value: "auto", label: "Auto" }, { value: "upbeat", label: "Upbeat" }, { value: "calm", label: "Calm" }, { value: "dramatic", label: "Dramatic" }, { value: "inspiring", label: "Inspiring" }, { value: "none", label: "No music" }]} />
+                <Segmented label="Music volume" value={sound.musicLevel} onChange={setS("musicLevel")} options={[{ value: "low", label: "Low" }, { value: "medium", label: "Medium" }, { value: "high", label: "High" }]} />
+                <Segmented label="Duck music under the voice" value={sound.ducking ? "on" : "off"} onChange={(v) => setS("ducking")(v === "on")} options={[{ value: "on", label: "On" }, { value: "off", label: "Off" }]} />
+                <Segmented label="Sound effects" value={sound.sfx} onChange={setS("sfx")} options={[{ value: "off", label: "Off" }, { value: "low", label: "Low" }, { value: "medium", label: "Medium" }, { value: "high", label: "High" }]} />
+                <Segmented label="Voice" value={sound.voice} onChange={setS("voice")} options={[{ value: "en-IN-NeerjaNeural", label: "Neerja (female)" }, { value: "en-IN-PrabhatNeural", label: "Prabhat (male)" }]} />
+                <Segmented label="Voice speed" value={sound.voiceRatePct} onChange={setS("voiceRatePct")} options={[{ value: -10, label: "Slower" }, { value: 0, label: "Normal" }, { value: 10, label: "Faster" }]} />
+              </div>
+            ) : null}
           </div>
 
           <div className="flex flex-col gap-4 border-t border-line pt-6 sm:flex-row sm:items-center">

@@ -8,6 +8,7 @@ import { generateVideo } from "./generate";
 import { resolveEngine } from "./providers";
 import { InputTypeSchema } from "./schemas";
 import { sleep } from "./util";
+import { parseSound } from "./sound";
 
 const JOB_TIMEOUT_MS = 25 * 60 * 1000;
 
@@ -50,6 +51,7 @@ async function runJob(jobId: string) {
     uploadStill: (file, name) => uploadFile(`${jobId}/stills/${name}`, file, "image/jpeg"),
     debugBreakScene: typeof job.options?.debugBreakScene === "string" ? job.options.debugBreakScene : undefined,
     editStyle: job.options?.editStyle === "classic" ? "classic" : "creator",
+    sound: parseSound(job.options?.sound),
     workDir,
     stage,
   });

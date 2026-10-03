@@ -9,6 +9,7 @@ import { ImageScene } from "./scenes/ImageScene";
 import { toPalette, type Palette } from "./theme";
 import { themeFor, type Theme } from "./themes";
 import { CreatorTimeline } from "./creator/CreatorTimeline";
+import { SoundTrack } from "./SoundTrack";
 
 export const sceneFrames = (scene: RenderScene) => Math.max(1, Math.round(scene.durationSec * FPS));
 export const OUTRO_FRAMES = Math.round(OUTRO_SEC * FPS);
@@ -53,7 +54,7 @@ const Music: React.FC<{ file: string; voiceFrames: number }> = ({ file, voiceFra
   );
 };
 
-export const PulseVideo: React.FC<PulseVideoProps> = ({ title, scenes, global, communityName, cta, musicFile, logoFile, grainFile, editStyle }) => {
+export const PulseVideo: React.FC<PulseVideoProps> = ({ title, scenes, global, communityName, cta, musicFile, logoFile, grainFile, editStyle, sound }) => {
   const creator = editStyle !== "classic";
   const theme = themeFor(global?.theme, title);
   const directed = toPalette(global?.palette ?? []);
@@ -103,7 +104,8 @@ export const PulseVideo: React.FC<PulseVideoProps> = ({ title, scenes, global, c
         </Sequence>
       ))}
 
-      {musicFile ? <Music file={musicFile} voiceFrames={voiceFrames} /> : null}
+      {sound ? <SoundTrack scenes={scenes} sound={sound} creator={creator} /> : null}
+      {musicFile && !sound?.bedFile ? <Music file={musicFile} voiceFrames={voiceFrames} /> : null}
       <ProgressBar color={palette.accent} />
     </AbsoluteFill>
   );

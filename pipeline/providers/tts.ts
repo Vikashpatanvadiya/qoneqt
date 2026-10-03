@@ -9,7 +9,7 @@ import { resolveTimings } from "./timings";
 
 const execFileAsync = promisify(execFile);
 
-export type TtsOptions = { voice?: string; speedUpPct?: number };
+export type TtsOptions = { voice?: string; speedUpPct?: number; baseRatePct?: number };
 
 export type TtsResult = {
   audioFile: string;
@@ -48,7 +48,8 @@ export const edgeTts: TtsProvider = {
   name: "edge-tts",
   async speak(text, options = {}) {
     const voice = options.voice || config.tts.voice();
-    const rate = `+${Math.max(0, Math.round(options.speedUpPct ?? 0))}%`;
+    const pct = Math.round((options.baseRatePct ?? 0) + Math.max(0, options.speedUpPct ?? 0));
+    const rate = `${pct >= 0 ? "+" : ""}${pct}%`;
     const dir = path.join(config.cacheDir(), "tts");
     fs.mkdirSync(dir, { recursive: true });
     const key = sha(text, voice, rate);
