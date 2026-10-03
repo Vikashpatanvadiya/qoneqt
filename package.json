@@ -5,7 +5,10 @@
   "scripts": {
     "gen": "tsx scripts/gen.ts",
     "remotion:studio": "remotion studio remotion/index.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "dev:web": "vite",
+    "build": "vite build",
+    "preview:web": "vite preview"
   },
   "dependencies": {
     "@remotion/bundler": "^4.0.532",
@@ -14,17 +17,23 @@
     "@remotion/renderer": "^4.0.532",
     "@supabase/supabase-js": "^2.117.2",
     "dotenv": "^18.0.5",
+    "lucide-react": "^1.50.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
+    "react-router-dom": "^7.18.4",
     "remotion": "^4.0.532",
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^26.6.4",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vercel/node": "^17.0.0",
+    "@vitejs/plugin-react": "^5.2.0",
+    "tailwindcss": "^4.3.3",
     "tsx": "^4.23.15",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "vite": "^8.3.2"
   }
 }

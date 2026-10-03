@@ -16,3 +16,4 @@ data/private/
 # Pulse-LM dataset working files
 data/pulse-lm/generate.log
 data/pulse-lm/eval.log
+dist
