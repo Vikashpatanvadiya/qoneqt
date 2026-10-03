@@ -8,7 +8,9 @@ import { LlmError, type LlmAttempt, type LlmResult } from "./llm";
 
 export type PlannerResult = LlmResult<Combined> & { tokensPerSec: number; outputTokens: number };
 
-async function chat(prompt: string, schema: unknown): Promise<{ text: string; inputTokens: number; outputTokens: number; tokensPerSec: number }> {
+// The model was fine-tuned to write this JSON on its own, so it runs in plain JSON mode and zod checks the result.
+// (A schema-constrained grammar made it skip every optional field, including the image prompts.)
+async function chat(prompt: string): Promise<{ text: string; inputTokens: number; outputTokens: number; tokensPerSec: number }> {
   const res = await fetch(`${config.pulseLm.url()}/api/chat`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -16,7 +18,7 @@ async function chat(prompt: string, schema: unknown): Promise<{ text: string; in
       model: config.pulseLm.model(),
       stream: false,
       think: false,
-      format: schema,
+      format: "json",
       messages: [
         { role: "system", content: COMBINED_SYSTEM },
         { role: "user", content: prompt },
@@ -49,7 +51,6 @@ export async function isPulseLmUp(): Promise<boolean> {
 // One call, plus one corrective retry if the answer fails our validation.
 export async function runPulsePlanner(input: CombinedInput): Promise<PlannerResult> {
   const model = config.pulseLm.model();
-  const schema = z.toJSONSchema(CombinedSchema);
   const attempts: LlmAttempt[] = [];
   let prompt = combinedPrompt(input);
   let lastError = "";
@@ -57,7 +58,7 @@ export async function runPulsePlanner(input: CombinedInput): Promise<PlannerResu
   for (let attempt = 0; attempt < 2; attempt++) {
     const start = Date.now();
     try {
-      const out = await chat(prompt, schema);
+      const out = await chat(prompt);
       const usage = { inputTokens: out.inputTokens, outputTokens: out.outputTokens };
       let parsed: unknown;
       try {

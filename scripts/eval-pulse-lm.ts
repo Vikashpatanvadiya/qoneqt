@@ -122,7 +122,7 @@ async function main() {
     score: gap !== null && gap <= 1,
     scoreGap: gap,
   };
-  const result = { ranAt: new Date().toISOString(), machine: "local laptop (Apple M1, 8 GB)", note: "Pulse-LM output is constrained to the JSON schema by the server.", pulse, gemini, decision, rows: rows.map(({ output, ...r }) => r) };
+  const result = { ranAt: new Date().toISOString(), machine: "local laptop (Apple M1, 8 GB)", note: "Pulse-LM runs in plain JSON mode, with no schema grammar. Our zod schema validates the result.", pulse, gemini, decision, rows: rows.map(({ output, ...r }) => r) };
   fs.writeFileSync(path.join(DIR, "eval.json"), JSON.stringify(result, null, 2));
   fs.writeFileSync(path.join(DIR, "eval-outputs.json"), JSON.stringify(rows.map((r) => ({ id: r.id, engine: r.engine, output: r.output })), null, 2));
 
