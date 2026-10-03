@@ -1,5 +1,6 @@
 // Zod schemas for every agent output (CLAUDE.md Section 7). /shared/types.ts re-exports the inferred types.
 import { z } from "zod";
+import { PACK_IDS } from "../../src/styles/packs";
 
 const words = (s: string) => s.trim().split(/\s+/).filter(Boolean).length;
 
@@ -106,6 +107,8 @@ export const MusicMoodSchema = z.enum(["upbeat", "calm", "dramatic", "inspiring"
 // Visual themes the renderer knows. Each changes fonts, backgrounds, image framing and captions.
 export const ThemeSchema = z.enum(["midnight", "paper", "neon", "editorial", "pop"]);
 export type ThemeId = z.infer<typeof ThemeSchema>;
+// Style Packs (src/styles/packs): the full look of a video. Newer than themes; old jobs only have a theme.
+export const PackIdSchema = z.enum(PACK_IDS);
 
 export const ShotSchema = z.object({
   sceneId: z.string(),
@@ -126,7 +129,8 @@ export const ShotPlanSchema = z.object({
     stylePrompt: z.string().describe("Added to every image prompt for visual consistency"),
     palette: z.array(z.string().regex(/^#[0-9a-fA-F]{6}$/)).min(3).max(4),
     musicMood: MusicMoodSchema,
-    theme: ThemeSchema.optional().describe("The visual theme for the whole video"),
+    theme: ThemeSchema.optional().describe("Legacy visual theme, used only when there is no packId"),
+    packId: PackIdSchema.optional().describe("The Style Pack for the whole video: fonts, colours, captions, motion and layouts"),
   }),
   shots: z.array(ShotSchema).min(1),
 });
@@ -141,6 +145,7 @@ export const VisionReviewSchema = z.object({
   captionReadable: z.boolean(),
   hasArtifacts: z.boolean().describe("Weird hands, broken faces, garbled or misspelled text inside the image, distorted objects"),
   looksAiGenerated: z.boolean().describe("Obvious AI look: plastic or waxy skin, uncanny faces, glowing oversaturated colors, extra fingers, garbled text"),
+  matchesStyle: z.boolean().optional().describe("Only when a style pack is given: the fonts, colours and layout look like that pack and like a single, consistent video"),
   notes: z.string().describe("One or two sentences on what is in the frame and what is wrong"),
   score: z.number().min(1).max(10),
   action: z.enum(["keep", "regenerate_image", "adjust_caption", "use_template"]),

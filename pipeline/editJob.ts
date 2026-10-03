@@ -2,6 +2,7 @@
 // (delete, reorder, on-screen text, narration, layout, replacement image), then QA, render and QA again.
 // The agents are skipped on purpose: the creator is in control of this version.
 import fs from "node:fs";
+import { gradeKey } from "./packs";
 import os from "node:os";
 import path from "node:path";
 import { execFileSync } from "node:child_process";
@@ -95,7 +96,7 @@ export async function generateEdit(input: { edit: EditOptions; engine: Engine; s
           const raw = path.join(workDir, `${scene.id}-upload${path.extname(e.image.upload)}`);
           await download(storageUrl(e.image.upload), raw);
           const file = `${scene.id}_u.jpg`;
-          gradeImage({ inFile: raw, outFile: path.join(publicDir, file), theme: source.global.theme });
+          gradeImage({ inFile: raw, outFile: path.join(publicDir, file), theme: gradeKey(source.global) });
           Object.assign(scene, { imageFile: file, layout: "full_image", source: "upload" });
           changes.images++;
         } catch (err) {
@@ -105,7 +106,7 @@ export async function generateEdit(input: { edit: EditOptions; engine: Engine; s
         try {
           const img = await engine.image.generate(`${e.image.prompt}. ${source.global.stylePrompt}. ${DOCUMENTARY_STYLE}. Vertical 9:16 composition.`);
           const file = `${scene.id}_p.jpg`;
-          gradeImage({ inFile: img.file, outFile: path.join(publicDir, file), theme: source.global.theme });
+          gradeImage({ inFile: img.file, outFile: path.join(publicDir, file), theme: gradeKey(source.global) });
           Object.assign(scene, { imageFile: file, layout: "full_image", source: "ai" });
           changes.images++;
         } catch (err) {

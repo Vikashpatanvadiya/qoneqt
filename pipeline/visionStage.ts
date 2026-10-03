@@ -4,6 +4,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { PulseVideoProps, RenderScene } from "../shared/types";
+import { packById } from "../src/styles/packs";
+import { gradeKey, styleNoteFor } from "./packs";
 import { decide, runVisionCritic, type VisionDecision } from "./agents/visionCritic";
 import { fluxNeurons } from "./cost/pricing";
 import { imageSize, type GenerateResult, type StageResult } from "./generate";
@@ -64,7 +66,7 @@ export async function runVisionStage(input: VisionStageInput): Promise<StageResu
     const image = await engine.image.generate(`${prompt}. ${plan.global.stylePrompt}. ${DOCUMENTARY_STYLE}. Vertical 9:16 composition.`);
     const file = `${scene.id}_${label}.jpg`;
     try {
-      gradeImage({ inFile: image.file, outFile: path.join(publicDir, file), theme: plan.global.theme });
+      gradeImage({ inFile: image.file, outFile: path.join(publicDir, file), theme: gradeKey(plan.global) });
     } catch {
       fs.copyFileSync(image.file, path.join(publicDir, file));
     }
@@ -93,6 +95,7 @@ export async function runVisionStage(input: VisionStageInput): Promise<StageResu
     try {
       const res = await runVisionCritic(engine.vision, {
         communityProfile: community,
+        styleNote: styleNoteFor(plan.global.packId),
         stills: toCheck.map((id) => {
           const scene = scenes.find((s) => s.id === id)!;
           return { sceneId: id, file: stills.get(id)!, narration: scene.narration, onScreenText: scene.onScreenText, layout: scene.layout, visualPrompt: scene.imageFile ? promptOf.get(id) : undefined };
@@ -179,6 +182,8 @@ export async function runVisionStage(input: VisionStageInput): Promise<StageResu
   };
   const rounds = Math.max(0, ...list.map((r) => r.rounds.length));
   const status: "done" | "fixed" | "skipped" = reviewed.length === 0 ? "skipped" : fixedIds.length ? "fixed" : "done";
+  const styleReviews = list.map((r) => r.rounds.find((x) => x.review)?.review?.matchesStyle).filter((v): v is boolean => typeof v === "boolean");
+  const styleLine = styleReviews.length ? ` Style consistency: ${styleReviews.filter(Boolean).length}/${styleReviews.length} frames match the ${packById(plan.global.packId)?.name ?? "chosen"} pack.` : "";
   const firstProblem = list.find((r) => r.fix)?.rounds.find((x) => x.review)?.review?.notes;
 
   return {
@@ -187,7 +192,7 @@ export async function runVisionStage(input: VisionStageInput): Promise<StageResu
     summary:
       status === "skipped"
         ? "Vision check skipped: the vision model was not available. The video continues unchecked."
-        : `Checked ${reviewed.length} frames in ${rounds} round${rounds > 1 ? "s" : ""}, average score ${scores.vision_avg}.${fixedIds.length ? ` Fixed: ${list.filter((r) => r.fix).map(describe).join("; ")}.` : " Nothing to fix."}${skipped.length ? ` ${skipped.length} not checked.` : ""}`,
+        : `Checked ${reviewed.length} frames in ${rounds} round${rounds > 1 ? "s" : ""}, average score ${scores.vision_avg}.${fixedIds.length ? ` Fixed: ${list.filter((r) => r.fix).map(describe).join("; ")}.` : " Nothing to fix."}${skipped.length ? ` ${skipped.length} not checked.` : ""}${styleLine}`,
     reason: skippedReason ?? firstProblem ?? "Every frame matched its line and was readable",
     output: { scenes: list, deliberatelyBroken: broken?.id ?? null, ...llm },
     retries: llm.retries,

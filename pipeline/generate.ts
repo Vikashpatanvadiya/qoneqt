@@ -8,6 +8,8 @@ import { bundle } from "@remotion/bundler";
 import { renderMedia, selectComposition } from "@remotion/renderer";
 import type { PulseVideoProps, RenderScene } from "../shared/types";
 import { normalizeShotPlan, runDirector } from "./agents/director";
+import { packById } from "../src/styles/packs";
+import { applyPack, gradeKey, lockPack, packLog } from "./packs";
 import { runResearcher } from "./agents/researcher";
 import { judge, runScriptCritic, type CriticThresholds } from "./agents/scriptCritic";
 import { runScriptRevision, runScriptwriter } from "./agents/scriptwriter";
@@ -53,12 +55,17 @@ export type GenerateInput = {
   media?: MediaOptions;
   // The creator's own recorded voice. Replaces the AI voice; its transcript becomes the script, word for word.
   voiceover?: VoiceoverOption;
+  // Style Pack picked on the Create page ("auto" or missing lets the Director pick), and this user's previous pack.
+  stylePack?: string;
+  lastPack?: string;
   workDir: string;
   stage: StageRunner;
 };
 
 export type GenerateResult = {
   title: string;
+  // Style Pack used (null for the legacy themes), shown on the Job page and Library cards.
+  pack: ReturnType<typeof packLog>;
   // Render inputs, kept so the video can be opened in the editor later.
   propsFile: string;
   publicDir: string;
@@ -148,11 +155,24 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
   };
   const scores: GenerateResult["scores"] = { script_v1: null, script_final: null, vision_avg: null };
 
+  // The Style Pack is locked right after the Director (see pipeline/packs.ts) and reused by every later step.
+  let emotion: string | undefined;
+  const withPack = (plan: ShotPlan, title: string) => {
+    if (input.stylePack === "classic") return { plan: { ...plan, global: { ...plan.global, packId: undefined } }, packReason: "Classic theme (Style Packs turned off on the Create page)" };
+    const lock = lockPack({ directorPick: plan.global.packId, userPick: input.stylePack, lastPack: input.lastPack, emotion, seed: title });
+    return { plan: applyPack(plan, lock.packId, title), packReason: lock.reason };
+  };
+  const directSummary = (plan: ShotPlan) => {
+    const images = plan.shots.filter((s) => s.layout === "full_image").length;
+    return `${packById(plan.global.packId)?.name ?? plan.global.theme ?? "auto"} style, ${images} image scenes, ${plan.shots.length - images} designed scenes, ${plan.global.musicMood} music`;
+  };
+
   // Cloud engine: Researcher, Scriptwriter, Script Critic and Director as separate agents.
   const planWithAgents = async (): Promise<{ script: Script; plan: ShotPlan }> => {
   const research = await stage("research", async () => {
     const res = await runResearcher(engine.llm, { inputType, content, communityProfile: community });
     const chosen = res.data.angles[res.data.chosenIndex];
+    emotion = chosen.targetEmotion;
     const { retries, ...llm } = track(res);
     return { value: res.data, summary: `Angle: ${chosen.title} (${chosen.targetEmotion})`, reason: res.data.reason, output: { research: res.data, ...llm }, retries };
   });
@@ -233,15 +253,15 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
 
   const plan = await stage("direct", async () => {
     const res = await runDirector(engine.llm, { script, communityProfile: community });
-    const { plan, repairs } = normalizeShotPlan(res.data, script);
-    const layouts = plan.shots.map((s) => s.layout);
-    const images = layouts.filter((l) => l === "full_image").length;
+    const normalized = normalizeShotPlan(res.data, script);
+    const { plan, packReason } = withPack(normalized.plan, script.title);
+    const repairs = normalized.repairs;
     const { retries, ...llm } = track(res);
     return {
       value: plan,
-      summary: `${plan.global.theme ?? "auto"} theme, ${images} image scenes, ${layouts.length - images} designed scenes, ${plan.global.musicMood} music`,
-      reason: `Style: ${plan.global.stylePrompt}`,
-      output: { plan, repairs, ...llm },
+      summary: directSummary(plan),
+      reason: `${packReason}. Image style: ${plan.global.stylePrompt}`,
+      output: { plan, repairs, pack: packLog(plan.global), directorPack: res.data.global.packId ?? null, ...llm },
       retries,
     };
   });
@@ -256,7 +276,9 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
         const start = Date.now();
         const res = await engine.planner!({ inputType, content, communityProfile: community });
         const governed = governScript(res.data.script);
-        const { plan, repairs } = normalizeShotPlan(res.data.plan, governed.script);
+        const normalized = normalizeShotPlan(res.data.plan, governed.script);
+        const { plan } = withPack(normalized.plan, governed.script.title);
+        const repairs = normalized.repairs;
         metrics.governor_actions += governed.actions.length;
         const { retries, ...llm } = track(res);
         const images = plan.shots.filter((s) => s.layout === "full_image").length;
@@ -365,10 +387,10 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
     });
     const plan = await stage("direct", async () => {
       const res = await runDirector(engine.llm, { script: own, communityProfile: community });
-      const { plan, repairs } = normalizeShotPlan(res.data, own);
-      const images = plan.shots.filter((s) => s.layout === "full_image").length;
+      const normalized = normalizeShotPlan(res.data, own);
+      const { plan, packReason } = withPack(normalized.plan, own.title);
       const { retries, ...llm } = track(res);
-      return { value: plan, summary: `${plan.global.theme ?? "auto"} theme, ${images} image scenes, ${plan.shots.length - images} designed scenes, ${plan.global.musicMood} music`, reason: `Style: ${plan.global.stylePrompt}`, output: { plan, repairs, ...llm }, retries };
+      return { value: plan, summary: directSummary(plan), reason: `${packReason}. Image style: ${plan.global.stylePrompt}`, output: { plan, repairs: normalized.repairs, pack: packLog(plan.global), directorPack: res.data.global.packId ?? null, ...llm }, retries };
     });
     return { script: own, plan };
   };
@@ -417,7 +439,7 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
     const media = input.media ?? { mode: "mixed" as const, uploads: [] };
     let placements: Placement[] = [];
     if (media.uploads.length && media.mode !== "ai") {
-      const placed = await placeUploads({ media, script: { ...script, scenes: kept }, tags: sceneTags, theme: plan.global.theme, publicDir, workDir, vision: engine.vision });
+      const placed = await placeUploads({ media, script: { ...script, scenes: kept }, tags: sceneTags, theme: gradeKey(plan.global), publicDir, workDir, vision: engine.vision });
       placements = placed.placements;
       placed.problems.forEach((p) => imageProblems.add(p));
       trackAttempts(placed.attempts);
@@ -444,7 +466,7 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
         imageFile = `${scene.id}.jpg`;
         // One grade per theme for every image, and a blurred fill instead of a hard crop for wide images.
         try {
-          gradeImage({ inFile: image.file, outFile: path.join(publicDir, imageFile), theme: plan.global.theme });
+          gradeImage({ inFile: image.file, outFile: path.join(publicDir, imageFile), theme: gradeKey(plan.global) });
         } catch {
           fs.copyFileSync(image.file, path.join(publicDir, imageFile));
         }
@@ -593,5 +615,5 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
   });
 
   metrics.fixes = metrics.script_revisions + metrics.governor_actions + metrics.vision_fixes + metrics.qa_fixed;
-  return { title: script.title, propsFile: path.join(workDir, "props.json"), publicDir, script, videoFile, thumbFile, durationSec, scores, qa, metrics };
+  return { title: script.title, propsFile: path.join(workDir, "props.json"), publicDir, script, videoFile, thumbFile, durationSec, scores, qa, metrics, pack: packLog(plan.global) };
 }

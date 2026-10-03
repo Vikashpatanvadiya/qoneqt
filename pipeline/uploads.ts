@@ -7,7 +7,7 @@ import { z } from "zod";
 import { config } from "./config";
 import { gradeImage } from "./imageLook";
 import type { LlmAttempt, VisionProvider } from "./providers/llm";
-import type { Script, ThemeId } from "./schemas";
+import type { Script } from "./schemas";
 
 export type UploadRef = { index: number; path: string; name: string };
 export type MediaOptions = { mode: "mixed" | "ai" | "uploads"; uploads: UploadRef[] };
@@ -31,7 +31,7 @@ export async function placeUploads(input: {
   media: MediaOptions;
   script: Script;
   tags: Map<string, number>;
-  theme: ThemeId | undefined;
+  theme: string | undefined;
   publicDir: string;
   workDir: string;
   vision: VisionProvider;

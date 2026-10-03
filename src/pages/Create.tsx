@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowRight, Cpu, ImagePlus, Layers, SlidersHorizontal, Sparkles, X } from "lucide-react";
+import { ArrowRight, Cpu, ImagePlus, Layers, Palette, SlidersHorizontal, Sparkles, X } from "lucide-react";
+import { PACKS, PACK_IDS, type PackId } from "../styles/packs";
 import { uploadImages, type Uploaded, type UploadedVoice } from "../lib/uploads";
 import { VoiceoverPicker } from "../components/VoiceoverPicker";
 import { ApiError, createJobs } from "../lib/api";
@@ -37,6 +38,35 @@ type Sound = {
 };
 
 const DEFAULT_SOUND: Sound = { music: "auto", musicLevel: "medium", ducking: true, sfx: "medium", voice: "en-IN-NeerjaNeural", voiceRatePct: 0 };
+
+// Style Pack grid: Auto lets the Director pick (never the same pack twice in a row); classic keeps the older themes.
+function StylePicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const tile = (id: string, active: boolean) => cx("group relative overflow-hidden rounded-2xl border text-left transition", active ? "border-amber/70 ring-2 ring-amber/40" : "border-line hover:border-white/25");
+  return (
+    <div className="border-t border-line pt-5">
+      <div className="flex flex-wrap items-baseline gap-2">
+        <span className="flex items-center gap-2 text-sm font-semibold text-muted"><Palette size={16} /> Style</span>
+        <span className="text-xs text-faint">{value === "auto" ? "Auto: the Director picks a pack for the topic and never repeats your last one" : value === "classic" ? "Classic: the original themes" : `${PACKS[value as PackId]?.name}: ${PACKS[value as PackId]?.mood}`}</span>
+      </div>
+      <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-5">
+        <button onClick={() => onChange("auto")} aria-pressed={value === "auto"} className={cx(tile("auto", value === "auto"), "flex aspect-[9/16] flex-col items-center justify-center gap-2 bg-surface p-2 text-center")}>
+          <Sparkles size={20} className="text-amber" />
+          <span className="text-sm font-semibold">Auto</span>
+          <span className="text-[11px] leading-tight text-muted">Director picks</span>
+        </button>
+        {PACK_IDS.map((id) => (
+          <button key={id} onClick={() => onChange(id)} aria-pressed={value === id} title={`${PACKS[id].name}: ${PACKS[id].useFor}`} className={tile(id, value === id)}>
+            <img src={`/packs/${id}.jpg`} alt="" loading="lazy" className="aspect-[9/16] w-full object-cover" />
+            <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 to-transparent px-2 pb-1.5 pt-6 text-[12px] font-semibold leading-tight text-white">{PACKS[id].name}</span>
+          </button>
+        ))}
+      </div>
+      <button onClick={() => onChange(value === "classic" ? "auto" : "classic")} className="mt-2 text-xs text-faint underline-offset-2 hover:text-ink hover:underline">
+        {value === "classic" ? "Use Style Packs again" : "Advanced: use the classic themes instead"}
+      </button>
+    </div>
+  );
+}
 
 // Small segmented control used by the sound options.
 function Segmented<T extends string | number>({ label, value, options, onChange }: { label: string; value: T; options: Array<{ value: T; label: string }>; onChange: (v: T) => void }) {
@@ -77,6 +107,7 @@ export function CreatePage() {
   const [uploading, setUploading] = useState(false);
   const [voiceMode, setVoiceMode] = useState<"ai" | "mine">("ai");
   const [voiceover, setVoiceover] = useState<UploadedVoice | null>(null);
+  const [stylePack, setStylePack] = useState<string>("auto");
 
   async function addFiles(list: FileList | null) {
     if (!list?.length) return;
@@ -124,6 +155,7 @@ export function CreatePage() {
           engine,
           editStyle,
           sound,
+          stylePack,
           ...(own && !useVoiceover ? { script: { text: inputs[0], keepWords } } : {}),
           ...(media ? { media } : {}),
           ...(useVoiceover && voiceover ? { voiceover: { path: voiceover.path, name: voiceover.name } } : {}),
@@ -279,6 +311,8 @@ export function CreatePage() {
               </div>
             ) : null}
           </div>
+
+          <StylePicker value={stylePack} onChange={setStylePack} />
 
           <div className="border-t border-line pt-5">
             <button onClick={() => setShowSound(!showSound)} className="flex items-center gap-2 text-sm font-semibold text-muted hover:text-ink" aria-expanded={showSound}>

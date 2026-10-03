@@ -12,14 +12,22 @@ const bare = (w: string) => w.toLowerCase().replace(/[^\p{L}\p{N}]/gu, "");
 type Cue = { sfx: string; at: number; gain: number };
 
 // Music under the voice with smooth ducking, plus sound effects placed on transitions, emphasis words, the hook and the twist.
-export const SoundTrack: React.FC<{ scenes: RenderScene[]; sound: NonNullable<PulseVideoProps["sound"]>; creator: boolean }> = ({ scenes, sound, creator }) => {
+// Style Packs pass their own transitions and an effects profile that scales or drops cues.
+const PROFILES: Record<string, Record<string, number>> = {
+  full: { hit: 1, whoosh: 1, riser: 1, tick: 1, pop: 1 },
+  soft: { hit: 0.5, whoosh: 0.55, riser: 0.5, tick: 0.4, pop: 0.45 },
+  minimal: { hit: 0.6, whoosh: 0, riser: 0.5, tick: 0, pop: 0 },
+  clicky: { hit: 0.7, whoosh: 0.35, riser: 0.6, tick: 1, pop: 0.8 },
+};
+
+export const SoundTrack: React.FC<{ scenes: RenderScene[]; sound: NonNullable<PulseVideoProps["sound"]>; creator: boolean; transitions?: string[]; profile?: string }> = ({ scenes, sound, creator, transitions, profile }) => {
   const { fps, durationInFrames } = useVideoConfig();
   const asset = useAsset();
 
   const { speech, cues, voiceEnd } = useMemo(() => {
     const speech: Array<[number, number]> = [];
     const cues: Cue[] = [];
-    const kinds = creator ? pickTransitions(scenes) : scenes.map((s, i) => (i === 0 || s.transition === "cut" ? "cut" : "fade"));
+    const kinds = transitions ?? (creator ? pickTransitions(scenes) : scenes.map((s, i) => (i === 0 || s.transition === "cut" ? "cut" : "fade")));
     let cursor = 0;
     scenes.forEach((scene, i) => {
       const start = cursor;
@@ -27,6 +35,7 @@ export const SoundTrack: React.FC<{ scenes: RenderScene[]; sound: NonNullable<Pu
       for (const w of scene.words) speech.push([start + Math.round(w.startSec * fps), start + Math.round(w.endSec * fps)]);
       if (i === 0) cues.push({ sfx: "hit", at: 0, gain: 0.9 });
       else if (kinds[i] !== "cut") cues.push({ sfx: "whoosh", at: Math.max(0, start - 5), gain: 1 });
+      else if (profile === "clicky") cues.push({ sfx: "tick", at: start, gain: 0.5 });
       if (scene.purpose === "twist" && i > 0) {
         cues.push({ sfx: "riser", at: Math.max(0, start - 27), gain: 0.8 });
         cues.push({ sfx: "hit", at: start, gain: 0.8 });
@@ -45,8 +54,10 @@ export const SoundTrack: React.FC<{ scenes: RenderScene[]; sound: NonNullable<Pu
       if (last && a - last[1] < fps / 4) last[1] = Math.max(last[1], b);
       else merged.push([a, b]);
     }
-    return { speech: merged, cues, voiceEnd: cursor };
-  }, [scenes, fps, creator]);
+    const gains = profile ? PROFILES[profile] ?? PROFILES.full : PROFILES.full;
+    const scaled = cues.map((c) => ({ ...c, gain: c.gain * (gains[c.sfx] ?? 1) })).filter((c) => c.gain > 0);
+    return { speech: merged, cues: scaled, voiceEnd: cursor };
+  }, [scenes, fps, creator, transitions, profile]);
 
   const musicGain = (f: number) => {
     // Fade out over the last second, and lift a little on the outro where nobody speaks.

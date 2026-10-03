@@ -11,6 +11,8 @@ import { themeFor, type Theme } from "./themes";
 import { CreatorTimeline } from "./creator/CreatorTimeline";
 import { SoundTrack } from "./SoundTrack";
 import { AssetProvider, useAsset } from "./assets";
+import { PackVideo } from "./pack/PackVideo";
+import { resolvePack } from "./pack/resolve";
 
 export const sceneFrames = (scene: RenderScene) => Math.max(1, Math.round(scene.durationSec * FPS));
 export const OUTRO_FRAMES = Math.round(OUTRO_SEC * FPS);
@@ -61,11 +63,11 @@ const VoiceAudio: React.FC<{ file: string }> = ({ file }) => {
   return <Audio src={asset(file)} />;
 };
 
-export const PulseVideo: React.FC<PulseVideoProps> = (props) => (
-  <AssetProvider base={props.assetBase}>
-    <PulseVideoInner {...props} />
-  </AssetProvider>
-);
+export const PulseVideo: React.FC<PulseVideoProps> = (props) => {
+  // Videos with a Style Pack use the pack renderer. Older videos (theme only) render exactly as before.
+  const rp = resolvePack(props.global?.packId, props.title);
+  return <AssetProvider base={props.assetBase}>{rp ? <PackVideo props={props} rp={rp} /> : <PulseVideoInner {...props} />}</AssetProvider>;
+};
 
 const PulseVideoInner: React.FC<PulseVideoProps> = ({ title, scenes, global, communityName, cta, musicFile, logoFile, grainFile, editStyle, sound }) => {
   const creator = editStyle !== "classic";

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ChevronDown, Copy, Download, ExternalLink, Film, Scissors, Send, Timer, Trash2 } from "lucide-react";
+import { ChevronDown, Copy, Download, ExternalLink, Film, Palette, Scissors, Send, Timer, Trash2 } from "lucide-react";
+import { PACKS, type PackId } from "../styles/packs";
 import { deleteJob } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { ago, score, seconds, stageMs } from "../lib/format";
@@ -70,6 +71,7 @@ export function JobPage() {
   const vision = byName.get("vision_critic")?.output;
   const qaChecks: any[] = byName.get("qa")?.output?.checks ?? [];
   const community = byName.get("ingest")?.output?.community?.name ?? "Qoneqt Global Feed";
+  const pack = job.metrics?.pack ?? byName.get("direct")?.output?.pack ?? null;
   const caption = scriptVersions.at(-1)?.script?.caption ?? scriptVersions[0]?.script?.caption;
   const isOwner = Boolean(session && job.user_id && session.user.id === job.user_id);
   const finished = job.status === "done" || job.status === "failed";
@@ -159,6 +161,7 @@ export function JobPage() {
             <Row k="Fixed on its own" v={job.metrics?.fixes ?? "–"} />
             <Row k="Cost" v="₹0 on free tiers" />
           </Card>
+          {pack ? <StyleCard pack={pack} /> : null}
         </aside>
       </div>
 
@@ -288,7 +291,7 @@ function StageDetail({ name, output }: { name: string; output: any }) {
       <div className="space-y-3 text-sm">
         <div className="flex flex-wrap items-center gap-2">
           {p.global.palette.map((c: string) => <span key={c} className="h-6 w-6 rounded-full border border-white/10" style={{ background: c }} title={c} />)}
-          {p.global.theme ? <Chip tone="accent">{p.global.theme} theme</Chip> : null}
+          {p.global.packId ? <Chip tone="accent">{PACKS[p.global.packId as PackId]?.name ?? p.global.packId}</Chip> : p.global.theme ? <Chip tone="accent">{p.global.theme} theme</Chip> : null}
           <Chip>{p.global.musicMood} music</Chip>
         </div>
         <p className="text-muted">{p.global.stylePrompt}</p>
@@ -486,5 +489,21 @@ function QaTable({ checks }: { checks: any[] }) {
         ))}
       </Card>
     </section>
+  );
+}
+
+// The Style Pack this video used: name, fonts, palette and caption style, as logged by the render.
+function StyleCard({ pack }: { pack: { id: string; name: string; fonts: string[]; palette: string[]; captionStyle: string; transitions?: string[]; camera?: string } }) {
+  const spec = PACKS[pack.id as PackId];
+  return (
+    <Card className="space-y-3 p-5 text-sm sm:p-5">
+      <div className="flex items-center gap-2 font-semibold"><Palette size={16} className="text-amber" /> Style: {pack.name}</div>
+      {spec ? <p className="text-xs text-muted">{spec.mood}</p> : null}
+      <div className="flex flex-wrap gap-1.5">{pack.palette.map((c) => <span key={c} className="h-6 w-6 rounded-full border border-white/10" style={{ background: c }} title={c} />)}</div>
+      <Row k="Fonts" v={pack.fonts.join(", ")} />
+      <Row k="Captions" v={pack.captionStyle} />
+      {pack.camera ? <Row k="Camera" v={pack.camera} /> : null}
+      {pack.transitions ? <Row k="Transitions" v={pack.transitions.join(", ")} /> : null}
+    </Card>
   );
 }

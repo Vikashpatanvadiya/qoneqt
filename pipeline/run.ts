@@ -3,7 +3,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { DEFAULT_COMMUNITY, parseCommunityProfile } from "./agents/community";
-import { createStageRunner, getCommunity, getJob, saveEditBundle, updateJob, uploadFile } from "./db";
+import { createStageRunner, db, getCommunity, getJob, saveEditBundle, updateJob, uploadFile } from "./db";
 import { generateVideo } from "./generate";
 import { resolveEngine } from "./providers";
 import { InputTypeSchema } from "./schemas";
@@ -12,6 +12,7 @@ import { parseSound } from "./sound";
 import { parseMedia } from "./uploads";
 import { parseVoiceover } from "./voiceover";
 import { generateEdit, parseEdit } from "./editJob";
+import { packLog } from "./packs";
 
 const JOB_TIMEOUT_MS = 25 * 60 * 1000;
 
@@ -27,6 +28,24 @@ function ownScriptOption(options: unknown): { text: string; keepWords: boolean }
   const o = (options as { script?: { text?: unknown; keepWords?: unknown } } | null)?.script;
   if (!o || typeof o.text !== "string" || o.text.trim().length < 20) return undefined;
   return { text: o.text.slice(0, 5000), keepWords: o.keepWords !== false };
+}
+
+function editPack(propsFile: string) {
+  try {
+    return packLog(JSON.parse(fs.readFileSync(propsFile, "utf8")).global);
+  } catch {
+    return null;
+  }
+}
+
+// The pack of this user's (or this network's) previous video, so two videos in a row never share a pack.
+async function lastPackFor(job: { id: string; user_id?: string | null; options?: Record<string, unknown> | null }): Promise<string | undefined> {
+  let query = db().from("jobs").select("metrics").neq("id", job.id).eq("status", "done").order("created_at", { ascending: false }).limit(5);
+  if (job.user_id) query = query.eq("user_id", job.user_id);
+  else if (typeof job.options?.ipHash === "string") query = query.eq("options->>ipHash", job.options.ipHash);
+  const { data } = await query;
+  const row = (data ?? []).find((r) => (r.metrics as { pack?: { id?: string } } | null)?.pack?.id);
+  return (row?.metrics as { pack?: { id?: string } } | undefined)?.pack?.id;
 }
 
 async function runJob(jobId: string) {
@@ -63,7 +82,7 @@ async function runJob(jobId: string) {
       const editFiles = await saveEditBundle(jobId, result.propsFile, result.publicDir).catch(() => 0);
       return { value: { videoUrl, thumbUrl }, summary: `Edited video uploaded${editFiles ? ", ready to edit again" : ""}`, output: { videoUrl, thumbUrl, editable: editFiles > 0 } };
     });
-    await updateJob(jobId, { status: "done", title: result.title, video_url: urls.videoUrl, thumb_url: urls.thumbUrl, duration_sec: Number(result.durationSec.toFixed(2)), metrics: { edited_from: edit.fromJob, total_ms: Date.now() - totalStart, stage_ms: stageMs, fixes: 0 } });
+    await updateJob(jobId, { status: "done", title: result.title, video_url: urls.videoUrl, thumb_url: urls.thumbUrl, duration_sec: Number(result.durationSec.toFixed(2)), metrics: { edited_from: edit.fromJob, pack: editPack(result.propsFile), total_ms: Date.now() - totalStart, stage_ms: stageMs, fixes: 0 } });
     console.log(`\nDone: ${urls.videoUrl}`);
     return;
   }
@@ -81,6 +100,8 @@ async function runJob(jobId: string) {
     ownScript: ownScriptOption(job.options),
     media: parseMedia(job.options?.media),
     voiceover: parseVoiceover(job.options?.voiceover),
+    stylePack: typeof job.options?.stylePack === "string" ? job.options.stylePack : undefined,
+    lastPack: await lastPackFor(job).catch(() => undefined),
     workDir,
     stage,
   });
@@ -103,7 +124,7 @@ async function runJob(jobId: string) {
     thumb_url: urls.thumbUrl,
     duration_sec: Number(result.durationSec.toFixed(2)),
     scores: result.scores,
-    metrics: { ...result.metrics, total_ms: Date.now() - totalStart, stage_ms: stageMs },
+    metrics: { ...result.metrics, pack: result.pack, total_ms: Date.now() - totalStart, stage_ms: stageMs },
   });
   console.log(`\nDone: ${urls.videoUrl}`);
 }

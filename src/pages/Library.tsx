@@ -49,6 +49,7 @@ export function LibraryPage() {
             <Link key={j.id} to={`/jobs/${j.id}`} className="group overflow-hidden rounded-3xl border border-white/[0.04] bg-card transition hover:border-white/15">
               <div className="relative aspect-[9/16] bg-surface">
                 {j.thumb_url ? <img src={j.thumb_url} alt="" className="h-full w-full object-cover" loading="lazy" /> : null}
+                {j.metrics?.pack?.name ? <span className="absolute bottom-2 left-2 rounded-full bg-black/70 px-2 py-0.5 text-[11px] font-semibold text-white backdrop-blur">{j.metrics.pack.name}</span> : null}
                 <span className="absolute left-3 top-3"><StatusPill status={j.status === "done" ? "done" : j.status === "failed" ? "failed" : j.status === "running" ? "running" : "queued"} /></span>
               </div>
               <div className="space-y-2 p-4">

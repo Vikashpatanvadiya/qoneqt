@@ -12,14 +12,16 @@ export type Beat = {
 
 const bare = (w: string) => w.toLowerCase().replace(/[^\p{L}\p{N}]/gu, "");
 
-export function planBeats(scene: RenderScene, sceneIndex: number, fps: number): Beat[] {
+// `opts` comes from a Style Pack: its shot length decides how many beats a scene gets, and word beats are optional.
+export function planBeats(scene: RenderScene, sceneIndex: number, fps: number, opts?: { shot: [number, number]; wordBeats: boolean }): Beat[] {
   const frames = Math.max(1, Math.round(scene.durationSec * fps));
   const isImage = scene.layout === "full_image" && Boolean(scene.imageFile);
   const durationSec = scene.durationSec;
   const single = (): Beat[] => [{ from: 0, duration: frames, kind: isImage ? "image" : "card", framing: sceneIndex % 4 }];
-  if (durationSec < 3.2 || scene.words.length < 4) return single();
+  if (durationSec < (opts ? opts.shot[0] * 2 : 3.2) || scene.words.length < 4) return single();
 
-  const count = durationSec > 6 ? 3 : 2;
+  const count = opts ? Math.min(3, Math.max(1, Math.round(durationSec / ((opts.shot[0] + opts.shot[1]) / 2)))) : durationSec > 6 ? 3 : 2;
+  if (count === 1) return single();
   const emphasis = new Set(scene.emphasisWords.flatMap((w) => w.split(/\s+/)).map(bare).filter(Boolean));
   const cuts: Array<{ sec: number; word: WordTiming }> = [];
   for (let k = 1; k < count; k++) {
@@ -40,7 +42,7 @@ export function planBeats(scene: RenderScene, sceneIndex: number, fps: number): 
     const cutWord = i > 0 ? cuts[i - 1].word : undefined;
     let kind: Beat["kind"] = isImage ? "image" : i % 2 === 1 ? "card_alt" : "card";
     // In a 3-beat image scene, the middle beat becomes a big word card when it starts on an emphasis word.
-    if (isImage && count === 3 && i === 1 && cutWord && emphasis.has(bare(cutWord.word))) kind = "word";
+    if (isImage && count === 3 && i === 1 && cutWord && emphasis.has(bare(cutWord.word)) && (opts?.wordBeats ?? true)) kind = "word";
     return { from, duration: end - from, kind, framing: (i % 2 === 0 ? [0, 2] : [1, 3])[(sceneIndex + i) % 2], word: kind === "word" ? cutWord!.word.replace(/[^\p{L}\p{N}%₹$'-]/gu, "") : undefined };
   });
 }

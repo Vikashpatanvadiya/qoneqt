@@ -1,6 +1,7 @@
 import type { LlmProvider, LlmResult } from "../providers/llm";
 import { MAX_IMAGE_SCENES, ShotPlanSchema, type CommunityProfile, type Script, type Shot, type ShotPlan } from "../schemas";
 import { communityBlock } from "./community";
+import { packMenu } from "../packs";
 
 export type DirectorInput = { script: Script; communityProfile: CommunityProfile };
 
@@ -18,12 +19,8 @@ Rules:
 - The hook scene is a text_card or a very strong full_image. The last scene (the question) is a text_card.
 - Vary camera moves between scenes so the video never feels static. Vary transitions too.
 - One visual style for the whole video: global.stylePrompt is added to every image prompt.
-- global.theme sets the look of the whole video. Pick the one that fits the content and emotion:
-  midnight: dark, cinematic glow. Serious, dramatic or late-night topics.
-  paper: warm off-white paper, framed photos, highlighter marks. Relatable stories, study, money, everyday life.
-  neon: black with neon glow and duotone images. Gaming, tech, debates, hot takes.
-  editorial: magazine look with serif type. Thoughtful, inspiring, career and craft topics.
-  pop: bright orange gradient, bold condensed type, sticker titles. Humor, trends, fast and playful topics.
+- global.packId sets the whole look (fonts, colours, captions, motion, layouts). Pick the pack that fits the topic, the community and the emotion. Different topics should get different packs:
+${packMenu()}
 - global.palette is 3 to 4 hex colors (like "#7C3AED") that suit the style and stay readable on dark backgrounds. The first is the accent color.
 - emphasisWords are 1 to 3 words copied exactly from that scene's narration.
 - useHeroClip is always false.

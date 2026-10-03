@@ -30,9 +30,9 @@ Return one review per frame, with the frame's sceneId. Be strict about artifacts
 const BatchSchema = z.object({ reviews: z.array(VisionReviewSchema) });
 
 // All frames go in one call, so a video costs one vision request per round instead of one per scene.
-export async function runVisionCritic(vision: VisionProvider, input: { stills: StillForReview[]; communityProfile: CommunityProfile }): Promise<LlmResult<Map<string, VisionReview>>> {
+export async function runVisionCritic(vision: VisionProvider, input: { stills: StillForReview[]; communityProfile: CommunityProfile; styleNote?: string }): Promise<LlmResult<Map<string, VisionReview>>> {
   const prompt = `Community: ${input.communityProfile.name}. Audience: ${input.communityProfile.audience}
-
+${input.styleNote ? `Style pack for this video: ${input.styleNote}\nSet matchesStyle for every frame: true when its fonts, colours and layout fit this pack and look like the same video as the other frames.\n` : ""}
 The frames are attached in this order:
 ${input.stills
   .map((s, i) => `Frame ${i + 1} = sceneId ${s.sceneId}, layout ${s.layout}
