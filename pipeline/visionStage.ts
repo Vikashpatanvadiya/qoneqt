@@ -11,6 +11,7 @@ import type { Engine } from "./providers";
 import { LlmError, type LlmAttempt } from "./providers/llm";
 import type { CommunityProfile, ShotPlan, VisionReview } from "./schemas";
 import { renderSceneStills } from "./stills";
+import { DOCUMENTARY_STYLE, gradeImage } from "./imageLook";
 
 const MAX_REGENERATIONS = 2;
 
@@ -60,9 +61,13 @@ export async function runVisionStage(input: VisionStageInput): Promise<StageResu
   let skippedReason: string | null = null;
 
   const useImage = async (scene: RenderScene, prompt: string, label: string) => {
-    const image = await engine.image.generate(`${prompt}. ${plan.global.stylePrompt}. Vertical composition, no text, no watermark.`);
+    const image = await engine.image.generate(`${prompt}. ${plan.global.stylePrompt}. ${DOCUMENTARY_STYLE}. Vertical 9:16 composition.`);
     const file = `${scene.id}_${label}.jpg`;
-    fs.copyFileSync(image.file, path.join(publicDir, file));
+    try {
+      gradeImage({ inFile: image.file, outFile: path.join(publicDir, file), theme: plan.global.theme });
+    } catch {
+      fs.copyFileSync(image.file, path.join(publicDir, file));
+    }
     if (!image.cached) {
       const size = imageSize(image.file);
       metrics.images++;
@@ -167,7 +172,8 @@ export async function runVisionStage(input: VisionStageInput): Promise<StageResu
   const describe = (r: SceneReport) => {
     const first = r.rounds.find((x) => x.review)?.review;
     const last = [...r.rounds].reverse().find((x) => x.review)?.review;
-    const what = r.fix === "regenerated" ? "new image" : r.fix === "template" ? "switched to a designed card" : "dark backing behind text";
+    const aiLook = r.rounds.some((x) => x.review?.looksAiGenerated);
+    const what = r.fix === "regenerated" ? `new image${aiLook ? " (AI look)" : ""}` : r.fix === "template" ? `switched to a designed card${aiLook ? " (AI look)" : ""}` : "dark backing behind text";
     return `${r.sceneId} ${what}${first && last && first !== last ? ` (${first.score} -> ${last.score})` : first ? ` (was ${first.score})` : ""}`;
   };
   const rounds = Math.max(0, ...list.map((r) => r.rounds.length));

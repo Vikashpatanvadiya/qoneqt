@@ -21,6 +21,7 @@ import type { TtsResult } from "./providers/tts";
 import { scriptWordCount, type CommunityProfile, type InputType, type Script, type ScriptVersion, type ShotPlan } from "./schemas";
 import { mapLimit } from "./util";
 import { runVisionStage } from "./visionStage";
+import { DOCUMENTARY_STYLE, gradeImage } from "./imageLook";
 import { DEFAULT_SOUND, buildMusicBed, musicVolume, normalizeForSpeech, polishVoice, prepareSfx, sfxVolume, type SoundOptions } from "./sound";
 
 export type StageName = "ingest" | "plan" | "research" | "script" | "script_critic" | "direct" | "assets" | "vision_critic" | "render" | "qa" | "upload";
@@ -333,7 +334,7 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
       const track = voices[i];
       const wantsImage = shot.layout === "full_image";
       const image = wantsImage
-        ? await engine.image.generate(`${shot.visualPrompt}. ${plan.global.stylePrompt}. Vertical composition, no text, no watermark.`).catch((err) => {
+        ? await engine.image.generate(`${shot.visualPrompt}. ${plan.global.stylePrompt}. ${DOCUMENTARY_STYLE}. Vertical 9:16 composition.`).catch((err) => {
             console.warn(`  [image] ${scene.id} failed, using a designed scene: ${(err as Error).message.slice(0, 160)}`);
             imageProblems.add((err as Error).message.slice(0, 300));
             return null;
@@ -345,7 +346,12 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
         imageSources[image.provider] = (imageSources[image.provider] ?? 0) + 1;
         for (const problem of image.fallbackFrom ?? []) imageProblems.add(problem);
         imageFile = `${scene.id}.jpg`;
-        fs.copyFileSync(image.file, path.join(publicDir, imageFile));
+        // One grade per theme for every image, and a blurred fill instead of a hard crop for wide images.
+        try {
+          gradeImage({ inFile: image.file, outFile: path.join(publicDir, imageFile), theme: plan.global.theme });
+        } catch {
+          fs.copyFileSync(image.file, path.join(publicDir, imageFile));
+        }
         if (image.cached) {
           metrics.images_cached++;
         } else {

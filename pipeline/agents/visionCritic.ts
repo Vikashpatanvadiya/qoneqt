@@ -16,6 +16,7 @@ You get one frame from the middle of each scene, exactly as viewers will see it,
 For each frame, judge:
 - matchesNarration: does the picture clearly fit what is being said? A loosely related stock-photo feel is fine. A wrong subject is not.
 - captionReadable: can the captions and on-screen text be read easily on a phone?
+- looksAiGenerated: the picture has an obvious AI look: plastic or waxy skin, uncanny faces, glowing oversaturated colors, extra fingers, garbled text. Real-looking photos with natural light pass.
 - hasArtifacts: deformed hands or faces, extra fingers, melted objects, or any garbled, misspelled or fake text inside the generated picture (text added by the video itself is fine).
 - score from 1 to 10 for how ready this frame is to publish.
 - action:
@@ -54,7 +55,7 @@ export type VisionDecision = "keep" | "regenerate" | "high_contrast" | "template
 // The critic advises, code decides. Flags count even when the critic's own action says "keep".
 export function decide(review: VisionReview, isImageScene: boolean): VisionDecision {
   if (isImageScene && (review.action === "use_template")) return "template";
-  if (isImageScene && (review.action === "regenerate_image" || review.hasArtifacts || !review.matchesNarration || review.score < 6)) return "regenerate";
+  if (isImageScene && (review.action === "regenerate_image" || review.hasArtifacts || review.looksAiGenerated || !review.matchesNarration || review.score < 6)) return "regenerate";
   if (review.action === "adjust_caption" || !review.captionReadable) return "high_contrast";
   return "keep";
 }

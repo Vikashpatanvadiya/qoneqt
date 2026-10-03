@@ -12,6 +12,8 @@ Layouts:
 - stat_card: a big number. Only use it if the narration has a real number, and put it in statValue (for example "73%").
 - quote_card: a quote with an accent bar. Good for a line someone would say.
 Rules:
+- Image prompts read like a documentary photo brief: a specific, real subject and place (for example "a steel tiffin and a phone showing a payment app on a hostel desk"), never generic "futuristic" or "digital" scenes.
+- Avoid close-up faces and hands. Prefer objects, places, people seen from behind, from a distance or in a medium shot.
 - Use at most ${MAX_IMAGE_SCENES} full_image scenes. Use designed layouts for the rest. Never invent a statistic.
 - The hook scene is a text_card or a very strong full_image. The last scene (the question) is a text_card.
 - Vary camera moves between scenes so the video never feels static. Vary transitions too.

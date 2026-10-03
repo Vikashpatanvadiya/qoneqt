@@ -140,6 +140,7 @@ export const VisionReviewSchema = z.object({
   matchesNarration: z.boolean(),
   captionReadable: z.boolean(),
   hasArtifacts: z.boolean().describe("Weird hands, broken faces, garbled or misspelled text inside the image, distorted objects"),
+  looksAiGenerated: z.boolean().describe("Obvious AI look: plastic or waxy skin, uncanny faces, glowing oversaturated colors, extra fingers, garbled text"),
   notes: z.string().describe("One or two sentences on what is in the frame and what is wrong"),
   score: z.number().min(1).max(10),
   action: z.enum(["keep", "regenerate_image", "adjust_caption", "use_template"]),

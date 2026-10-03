@@ -365,6 +365,7 @@ function Storyboard({ vision }: { vision: any }) {
                       <img src={r.stillUrl} alt={`Scene ${s.sceneId}, round ${r.round}`} className="aspect-[9/16] w-full rounded-xl object-cover" loading="lazy" />
                       <figcaption className="mt-2 text-xs leading-snug">
                         <span className="font-semibold">Round {r.round}: {r.review ? `${r.review.score}/10` : "skipped"}</span>
+                        {r.review?.looksAiGenerated ? <span className="block text-amber">AI look</span> : null}
                         {r.review ? <span className="block text-muted">{r.review.notes}</span> : null}
                       </figcaption>
                     </figure>
