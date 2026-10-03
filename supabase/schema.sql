@@ -63,3 +63,7 @@ grant usage, select on all sequences in schema public to service_role;
 insert into storage.buckets (id, name, public)
 values ('videos', 'videos', true)
 on conflict (id) do update set public = true;
+
+-- Login support (also in supabase/migrations/002_auth.sql)
+alter table jobs add column if not exists user_id uuid references auth.users(id) on delete set null;
+create index if not exists jobs_user_id_idx on jobs (user_id, created_at desc);

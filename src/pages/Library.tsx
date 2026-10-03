@@ -3,11 +3,14 @@ import { Link, useSearchParams } from "react-router-dom";
 import { ago, score, seconds } from "../lib/format";
 import { supabase } from "../lib/supabase";
 import { JOB_COLUMNS, type JobRow } from "../lib/types";
+import { useAuth } from "../lib/auth";
 import { Chip, Empty, SectionTitle, StatusPill } from "../components/ui";
 
 export function LibraryPage() {
   const [params] = useSearchParams();
   const batch = params.get("batch");
+  const { session, ready } = useAuth();
+  const mine = params.get("mine") === "1" && session ? session.user.id : null;
   const [jobs, setJobs] = useState<JobRow[] | null>(null);
 
   useEffect(() => {
@@ -15,7 +18,7 @@ export function LibraryPage() {
     let timer: number | undefined;
     const load = async () => {
       let q = supabase.from("jobs").select(JOB_COLUMNS).order("created_at", { ascending: false }).limit(60);
-      q = batch ? q.eq("batch_id", batch) : q.eq("status", "done");
+      q = batch ? q.eq("batch_id", batch) : mine ? q.eq("user_id", mine) : q.eq("status", "done");
       const { data } = await q;
       if (stop) return;
       const rows = (data as JobRow[]) ?? [];
@@ -28,13 +31,13 @@ export function LibraryPage() {
       stop = true;
       window.clearTimeout(timer);
     };
-  }, [batch]);
+  }, [batch, mine, ready]);
 
   const done = jobs?.filter((j) => j.status === "done").length ?? 0;
   return (
     <div>
       <SectionTitle right={batch ? <Link to="/library" className="text-sm text-muted hover:text-ink">All videos →</Link> : null}>
-        {batch ? `Batch: ${done} of ${jobs?.length ?? 0} ready` : "Library"}
+        {batch ? `Batch: ${done} of ${jobs?.length ?? 0} ready` : mine ? "My videos" : "Library"}
       </SectionTitle>
       {jobs === null ? (
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4">{Array.from({ length: 8 }, (_, i) => <div key={i} className="aspect-[9/16] animate-pulse rounded-3xl bg-card" />)}</div>

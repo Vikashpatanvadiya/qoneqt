@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowRight, Cpu, ImagePlus, Layers, SlidersHorizontal, Sparkles, X } from "lucide-react";
 import { uploadImages, type Uploaded } from "../lib/uploads";
-import { createJobs } from "../lib/api";
+import { ApiError, createJobs } from "../lib/api";
+import { useAuth } from "../lib/auth";
 import { supabase } from "../lib/supabase";
 import { JOB_COLUMNS, type CommunityRow, type JobRow } from "../lib/types";
 import { Button, Card, SectionTitle, cx } from "../components/ui";
@@ -54,6 +55,8 @@ function Segmented<T extends string | number>({ label, value, options, onChange 
 
 export function CreatePage() {
   const navigate = useNavigate();
+  const { session } = useAuth();
+  const [needLogin, setNeedLogin] = useState(false);
   const [type, setType] = useState<(typeof TYPES)[number]["id"]>("topic");
   const [text, setText] = useState("");
   const [batch, setBatch] = useState(false);
@@ -95,11 +98,12 @@ export function CreatePage() {
   }, []);
 
   const own = scriptMode === "own";
-  const inputs = batch && !own ? text.split("\n").map((l) => l.trim()).filter(Boolean) : [text.trim()].filter(Boolean);
+  const inputs = batch && !own && session ? text.split("\n").map((l) => l.trim()).filter(Boolean) : [text.trim()].filter(Boolean);
   const current = TYPES.find((t) => t.id === type)!;
 
   async function submit() {
     setError(null);
+    setNeedLogin(false);
     if (inputs.length === 0) return setError("Write a topic, trend, thread or idea first.");
     if (inputs.length > 10) return setError("Batch mode takes up to 10 lines at a time.");
     setBusy(true);
@@ -116,6 +120,7 @@ export function CreatePage() {
       navigate(res.batch_id ? `/library?batch=${res.batch_id}` : `/jobs/${ok[0].id}`);
     } catch (err) {
       setError((err as Error).message);
+      setNeedLogin(err instanceof ApiError && err.needLogin);
       setBusy(false);
     }
   }
@@ -268,7 +273,7 @@ export function CreatePage() {
 
           <div className="flex flex-col gap-4 border-t border-line pt-6 sm:flex-row sm:items-center">
             <label className="flex cursor-pointer items-center gap-3 text-sm">
-              <input type="checkbox" checked={batch && !own} disabled={own} onChange={(e) => setBatch(e.target.checked)} className="peer sr-only" />
+              <input type="checkbox" checked={batch && !own && Boolean(session)} disabled={own || !session} onChange={(e) => setBatch(e.target.checked)} className="peer sr-only" />
               <span className="relative h-6 w-11 rounded-full bg-white/10 transition peer-checked:bg-amber after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-ink after:transition peer-checked:after:translate-x-5" />
               <span className="flex items-center gap-1.5 font-medium"><Layers size={15} />Batch mode</span>
               <span className="text-faint">{batch ? `${inputs.length} video${inputs.length === 1 ? "" : "s"}, rendered in parallel` : "one line, one video"}</span>
@@ -278,7 +283,13 @@ export function CreatePage() {
               <ArrowRight size={18} />
             </Button>
           </div>
-          {error ? <p className="rounded-2xl bg-red/10 px-4 py-3 text-sm text-red">{error}</p> : null}
+          {error ? (
+            <p className="rounded-2xl bg-red/10 px-4 py-3 text-sm text-red">
+              {error}
+              {needLogin ? <> <Link to="/login?next=/" className="font-semibold underline">Log in</Link></> : null}
+            </p>
+          ) : null}
+          {!session ? <p className="text-xs text-faint">No account needed for your first video. <Link to="/login?next=/" className="text-amber">Log in</Link> to make more, use batch mode and delete your videos.</p> : null}
         </Card>
       </section>
 

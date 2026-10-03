@@ -6,5 +6,5 @@ const key = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
 
 export const supabaseConfigured = Boolean(url && key);
 
-// Read-only access with the public key. Row level security only allows select.
-export const supabase = createClient(url ?? "https://missing.supabase.co", key ?? "missing", { auth: { persistSession: false } });
+// Public key: reads are allowed by row level security, writes go through /api. Auth sessions are kept in the browser.
+export const supabase = createClient(url ?? "https://missing.supabase.co", key ?? "missing", { auth: { persistSession: true, autoRefreshToken: true } });

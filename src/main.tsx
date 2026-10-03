@@ -8,9 +8,12 @@ import { DashboardPage } from "./pages/Dashboard";
 import { HowItWorksPage } from "./pages/HowItWorks";
 import { JobPage } from "./pages/Job";
 import { LibraryPage } from "./pages/Library";
+import { LoginPage } from "./pages/Login";
+import { AuthProvider } from "./lib/auth";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
+    <AuthProvider>
     <BrowserRouter>
       <Routes>
         <Route element={<Layout />}>
@@ -19,9 +22,11 @@ createRoot(document.getElementById("root")!).render(
           <Route path="/library" element={<LibraryPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/how-it-works" element={<HowItWorksPage />} />
+          <Route path="/login" element={<LoginPage />} />
           <Route path="*" element={<CreatePage />} />
         </Route>
       </Routes>
     </BrowserRouter>
+    </AuthProvider>
   </StrictMode>,
 );

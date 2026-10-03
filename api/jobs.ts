@@ -1,4 +1,6 @@
 // Vercel function. POST creates job(s) and dispatches one GitHub Action run per job. GET ?id= returns a job with its stages.
+// DELETE ?id= removes a job, its stages and its files, for the signed-in owner only.
+// Guests (no login) can make one video per network per day; signed-in users get the normal limits.
 // Self-contained on purpose: it never renders and imports nothing from /pipeline.
 import { createClient } from "@supabase/supabase-js";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
@@ -17,6 +19,28 @@ const env = (name: string, fallback?: string): string => {
 const supabase = () => createClient(env("SUPABASE_URL"), env("SUPABASE_SERVICE_KEY"), { auth: { persistSession: false } });
 
 const ENGINES = ["gemini", "pulse-lm"];
+const GUEST_VIDEOS_PER_DAY = Number(process.env.GUEST_VIDEOS_PER_DAY ?? 1);
+
+// The signed-in user from "Authorization: Bearer <access token>", or null for guests.
+async function currentUser(req: VercelRequest) {
+  const header = String(req.headers.authorization ?? "");
+  const token = header.startsWith("Bearer ") ? header.slice(7) : "";
+  if (!token) return null;
+  const { data, error } = await supabase().auth.getUser(token);
+  return error ? null : data.user;
+}
+
+// True once supabase/migrations/002_auth.sql has been run. Until then login still works but jobs are not linked to users.
+let userColumn: boolean | undefined;
+async function hasUserColumn(): Promise<boolean> {
+  if (userColumn === undefined) userColumn = !(await supabase().from("jobs").select("user_id").limit(1)).error;
+  return userColumn;
+}
+
+const networkHash = (req: VercelRequest) => {
+  const ip = String(req.headers["x-forwarded-for"] ?? "unknown").split(",")[0].trim();
+  return crypto.createHash("sha256").update(ip + env("SUPABASE_SERVICE_KEY")).digest("hex").slice(0, 16);
+};
 
 async function dispatchRender(jobId: string, delaySec: number, engine: string): Promise<void> {
   const url = `https://api.github.com/repos/${env("GH_OWNER")}/${env("GH_REPO")}/actions/workflows/render.yml/dispatches`;
@@ -62,8 +86,21 @@ async function createJobs(req: VercelRequest, res: VercelResponse) {
   for (const name of ["GH_OWNER", "GH_REPO", "GH_PAT"]) env(name);
 
   const db = supabase();
-  const ip = String(req.headers["x-forwarded-for"] ?? "unknown").split(",")[0].trim();
-  const ipHash = crypto.createHash("sha256").update(ip + env("SUPABASE_SERVICE_KEY")).digest("hex").slice(0, 16);
+  const user = await currentUser(req);
+  const ipHash = networkHash(req);
+
+  // Guests can try it once: one video, no batch.
+  if (!user) {
+    if (inputs.length > 1) return res.status(401).json({ error: "Log in to use batch mode.", needLogin: true });
+    const since = new Date(Date.now() - 86_400_000).toISOString();
+    let query = db.from("jobs").select("id", { count: "exact", head: true }).gte("created_at", since).neq("status", "failed").eq("options->>ipHash", ipHash);
+    if (await hasUserColumn()) query = query.is("user_id", null);
+    const guest = await query;
+    if (guest.error) throw new Error(guest.error.message);
+    if ((guest.count ?? 0) >= GUEST_VIDEOS_PER_DAY) {
+      return res.status(401).json({ error: "You have used your free try. Log in to make more videos.", needLogin: true });
+    }
+  }
   const maxPerIp = Number(process.env.MAX_JOBS_PER_IP_PER_HOUR ?? 5);
   const maxPerDay = Number(process.env.MAX_JOBS_PER_DAY ?? 40);
   // Failed jobs do not count towards either limit.
@@ -87,9 +124,10 @@ async function createJobs(req: VercelRequest, res: VercelResponse) {
   // The engine decides whether the worker starts our own model, so only known names are passed on.
   const engine = ENGINES.includes(requested.engine) ? String(requested.engine) : "gemini";
   const options = { ...requested, engine, ipHash };
+  const linkUser = await hasUserColumn();
   const inserted = await db
     .from("jobs")
-    .insert(inputs.map((input_text) => ({ input_type: inputType, input_text, batch_id: batchId, community_id: body.community_id ?? null, options })))
+    .insert(inputs.map((input_text) => ({ input_type: inputType, input_text, batch_id: batchId, community_id: body.community_id ?? null, options, ...(linkUser ? { user_id: user?.id ?? null } : {}) })))
     .select("id");
   if (inserted.error) throw new Error(inserted.error.message);
 
@@ -109,11 +147,38 @@ async function createJobs(req: VercelRequest, res: VercelResponse) {
   return res.status(jobs.some((j) => j.status === "queued") ? 201 : 502).json({ batch_id: batchId, jobs });
 }
 
+async function deleteJob(req: VercelRequest, res: VercelResponse) {
+  const id = String(req.query.id ?? "");
+  if (!/^[0-9a-f-]{36}$/i.test(id)) return res.status(400).json({ error: "Pass a valid job id as ?id=" });
+  const user = await currentUser(req);
+  if (!user) return res.status(401).json({ error: "Log in to delete videos.", needLogin: true });
+  const db = supabase();
+  if (!(await hasUserColumn())) return res.status(503).json({ error: "Deleting needs the login database update (supabase/migrations/002_auth.sql)." });
+  const job = await db.from("jobs").select("id, user_id, status").eq("id", id).maybeSingle();
+  if (job.error) throw new Error(job.error.message);
+  if (!job.data) return res.status(404).json({ error: "Video not found" });
+  if (job.data.user_id !== user.id) return res.status(403).json({ error: "You can only delete your own videos." });
+  if (job.data.status === "queued" || job.data.status === "running") return res.status(409).json({ error: "Wait until the video has finished." });
+
+  // Files first (video, thumbnail, stills), then the job row. Stages go with it (on delete cascade).
+  const bucket = db.storage.from("videos");
+  const [top, stills] = await Promise.all([bucket.list(id, { limit: 100 }), bucket.list(`${id}/stills`, { limit: 200 })]);
+  const paths = [...(top.data ?? []).filter((f) => f.id).map((f) => `${id}/${f.name}`), ...(stills.data ?? []).map((f) => `${id}/stills/${f.name}`)];
+  if (paths.length) {
+    const removed = await bucket.remove(paths);
+    if (removed.error) throw new Error(removed.error.message);
+  }
+  const deleted = await db.from("jobs").delete().eq("id", id).eq("user_id", user.id);
+  if (deleted.error) throw new Error(deleted.error.message);
+  return res.status(200).json({ deleted: id, files: paths.length });
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     if (req.method === "GET") return await getJob(req, res);
     if (req.method === "POST") return await createJobs(req, res);
-    res.setHeader("Allow", "GET, POST");
+    if (req.method === "DELETE") return await deleteJob(req, res);
+    res.setHeader("Allow", "GET, POST, DELETE");
     return res.status(405).json({ error: "Method not allowed" });
   } catch (err) {
     console.error(err);

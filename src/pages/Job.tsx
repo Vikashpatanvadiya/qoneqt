@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { ChevronDown, Copy, Download, Film, Timer } from "lucide-react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { ChevronDown, Copy, Download, ExternalLink, Film, Send, Timer, Trash2 } from "lucide-react";
+import { deleteJob } from "../lib/api";
+import { useAuth } from "../lib/auth";
 import { ago, score, seconds, stageMs } from "../lib/format";
 import { EXPECTED_STAGES, STAGE_INFO } from "../lib/stages";
 import { supabase } from "../lib/supabase";
@@ -11,6 +13,10 @@ const POLL_MS = 2500;
 
 export function JobPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { session } = useAuth();
+  const [deleting, setDeleting] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [job, setJob] = useState<JobRow | null>(null);
   const [stages, setStages] = useState<StageRow[]>([]);
   const [missing, setMissing] = useState(false);
@@ -65,6 +71,21 @@ export function JobPage() {
   const qaChecks: any[] = byName.get("qa")?.output?.checks ?? [];
   const community = byName.get("ingest")?.output?.community?.name ?? "Qoneqt Global Feed";
   const caption = scriptVersions.at(-1)?.script?.caption ?? scriptVersions[0]?.script?.caption;
+  const isOwner = Boolean(session && job.user_id && session.user.id === job.user_id);
+  const finished = job.status === "done" || job.status === "failed";
+
+  async function remove() {
+    if (!window.confirm("Delete this video, its frames and its record? This cannot be undone.")) return;
+    setDeleting(true);
+    setActionError(null);
+    try {
+      await deleteJob(job!.id);
+      navigate("/library?mine=1");
+    } catch (err) {
+      setActionError((err as Error).message);
+      setDeleting(false);
+    }
+  }
 
   return (
     <div className="space-y-14">
@@ -114,6 +135,13 @@ export function JobPage() {
               </div>
             ) : null}
           </Card>
+          {job.video_url ? <PostToQoneqt videoUrl={job.video_url} title={job.title} caption={caption} /> : null}
+          {isOwner && finished ? (
+            <button onClick={remove} disabled={deleting} className="flex w-full items-center justify-center gap-2 rounded-2xl border border-red/30 px-4 py-2.5 text-sm font-semibold text-red hover:bg-red/10 disabled:opacity-50">
+              <Trash2 size={16} /> {deleting ? "Deleting…" : "Delete this video"}
+            </button>
+          ) : null}
+          {actionError ? <p className="rounded-xl bg-red/10 px-3 py-2 text-sm text-red">{actionError}</p> : null}
           <Card className="space-y-3 p-5 text-sm sm:p-5">
             <div className="flex items-center gap-2 font-semibold"><Timer size={16} className="text-amber" /> Time and cost</div>
             <Row k="Total time" v={seconds(totalMs)} />
@@ -132,6 +160,47 @@ export function JobPage() {
       {vision?.scenes?.length ? <Storyboard vision={vision} /> : null}
       {qaChecks.length ? <QaTable checks={qaChecks} /> : null}
     </div>
+  );
+}
+
+// Qoneqt has no public posting API, so this hands the creator everything for the upload page in three steps.
+function PostToQoneqt({ videoUrl, title, caption }: { videoUrl: string; title: string | null; caption?: string }) {
+  const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const file = `${(title ?? "pulse-video").replace(/[^\w-]+/g, "-")}.mp4`;
+  return (
+    <Card className="p-4 sm:p-4">
+      <button onClick={() => setOpen(!open)} className="flex w-full items-center gap-2 text-sm font-semibold" aria-expanded={open}>
+        <Send size={16} className="text-amber" /> Post on Qoneqt
+        <ChevronDown size={16} className={cx("ml-auto text-faint transition", open && "rotate-180")} />
+      </button>
+      {open ? (
+        <ol className="mt-4 space-y-3 text-sm">
+          <li className="flex items-center gap-3">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/[0.08] text-xs font-semibold">1</span>
+            <a href={`${videoUrl}?download=${encodeURIComponent(file)}`} className="inline-flex items-center gap-1.5 font-semibold text-amber"><Download size={14} /> Download the video</a>
+          </li>
+          {caption ? (
+            <li className="flex items-center gap-3">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/[0.08] text-xs font-semibold">2</span>
+              <button
+                onClick={() => navigator.clipboard?.writeText(caption).then(() => setCopied(true))}
+                className="inline-flex items-center gap-1.5 font-semibold text-amber"
+              >
+                <Copy size={14} /> {copied ? "Caption copied" : "Copy the caption"}
+              </button>
+            </li>
+          ) : null}
+          <li className="flex items-start gap-3">
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/[0.08] text-xs font-semibold">{caption ? 3 : 2}</span>
+            <span>
+              <a href="https://qoneqt.com/create" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 font-semibold text-amber">Open Qoneqt Create <ExternalLink size={14} /></a>
+              <span className="mt-1 block text-xs text-muted">Choose Create Qlip, then Video, select the downloaded file and paste the caption. Qoneqt takes MP4 up to 45 s; this video fits.</span>
+            </span>
+          </li>
+        </ol>
+      ) : null}
+    </Card>
   );
 }
 

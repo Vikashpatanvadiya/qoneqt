@@ -49,6 +49,15 @@ Every agent returns JSON that is validated with zod. Every external call retries
 
 The options are stored in the job record, so every job can be reproduced.
 
+### Accounts, guests and posting
+- **Guests:** no account needed to try it. A guest gets one video per network per day (`GUEST_VIDEOS_PER_DAY`), no batch mode.
+- **Log in** (Supabase email and password) to:
+  - make more videos (normal rate limits apply),
+  - use batch mode,
+  - see "My videos",
+  - delete your own videos (video, frames and record).
+- **Post on Qoneqt:** Qoneqt has no public posting API. The Job page gives three steps instead: download the MP4, copy the caption, and open `qoneqt.com/create` (Create Qlip, then Video).
+
 ### Your own script
 With "Keep my words exactly" on, code splits the script at sentence ends into 5 to 8 scenes. The model only adds on-screen text, scene roles, a title and a caption. The Script Critic gives advice but never changes your words. Long scripts are never cut; the voice is sped up by at most 18% and anything still over 45 s is flagged.
 

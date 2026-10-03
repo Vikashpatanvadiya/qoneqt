@@ -1,5 +1,6 @@
-import { NavLink, Outlet } from "react-router-dom";
-import { supabaseConfigured } from "../lib/supabase";
+import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
+import { useAuth } from "../lib/auth";
+import { supabase, supabaseConfigured } from "../lib/supabase";
 import { cx } from "./ui";
 
 const NAV = [
@@ -10,6 +11,8 @@ const NAV = [
 ];
 
 export function Layout() {
+  const { session } = useAuth();
+  const location = useLocation();
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-20 border-b border-white/[0.05] bg-bg/85 backdrop-blur">
@@ -30,6 +33,18 @@ export function Layout() {
                 {item.label}
               </NavLink>
             ))}
+            {session ? (
+              <>
+                <NavLink to="/library?mine=1" className="whitespace-nowrap rounded-xl px-3 py-2 text-sm font-medium text-muted hover:text-ink">My videos</NavLink>
+                <button onClick={() => supabase.auth.signOut()} className="whitespace-nowrap rounded-xl border border-line px-3 py-1.5 text-sm font-medium text-muted hover:text-ink" title={session.user.email ?? ""}>
+                  Log out
+                </button>
+              </>
+            ) : (
+              <Link to={`/login?next=${encodeURIComponent(location.pathname + location.search)}`} className="whitespace-nowrap rounded-xl bg-brand px-3.5 py-1.5 text-sm font-semibold text-[#141414]">
+                Log in
+              </Link>
+            )}
           </nav>
         </div>
       </header>

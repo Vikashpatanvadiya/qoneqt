@@ -17,6 +17,7 @@ export type JobRow = {
   scores: { script_v1?: number | null; script_final?: number | null; vision_avg?: number | null } | null;
   metrics: Record<string, any> | null;
   error: string | null;
+  user_id?: string | null;
 };
 
 export type StageStatus = "pending" | "running" | "done" | "fixed" | "skipped" | "failed";
@@ -37,4 +38,5 @@ export type StageRow = {
 
 export type CommunityRow = { id: string; name: string; profile: Record<string, any> };
 
-export const JOB_COLUMNS = "id,created_at,batch_id,status,input_type,input_text,community_id,options,title,video_url,thumb_url,duration_sec,scores,metrics,error";
+// "*" so the app keeps working whether or not the login migration (user_id) has been run.
+export const JOB_COLUMNS = "*";
