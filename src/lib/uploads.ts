@@ -73,3 +73,32 @@ export async function uploadVoice(blob: Blob, name: string): Promise<UploadedVoi
   if (error) throw new Error(error.message);
   return { path: u.path, name, url: URL.createObjectURL(blob), durationSec };
 }
+
+export type UploadedVideo = { path: string; name: string; sizeMb: number; durationSec: number };
+
+function videoDuration(file: File): Promise<number> {
+  return new Promise((resolve) => {
+    const v = document.createElement("video");
+    v.preload = "metadata";
+    v.onloadedmetadata = () => {
+      resolve(Number.isFinite(v.duration) ? v.duration : 0);
+      URL.revokeObjectURL(v.src);
+    };
+    v.onerror = () => resolve(0);
+    v.src = URL.createObjectURL(file);
+  });
+}
+
+// One source video for the Clipper, uploaded straight to storage with a signed URL.
+export async function uploadVideo(file: File, maxMb: number): Promise<UploadedVideo> {
+  const type = file.type || "video/mp4";
+  if (file.size > maxMb * 1024 * 1024) throw new Error(`This file is ${Math.round(file.size / 1024 / 1024)} MB; the limit is ${maxMb} MB. Paste a link instead, or trim the video first.`);
+  const durationSec = await videoDuration(file);
+  const res = await fetch("/api/uploads", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ files: [{ kind: "video", name: file.name, type, size: file.size }] }) });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error ?? `Upload failed (${res.status})`);
+  const u = data.uploads[0] as { path: string; token: string };
+  const { error } = await supabase.storage.from("videos").uploadToSignedUrl(u.path, u.token, file, { contentType: type });
+  if (error) throw new Error(error.message);
+  return { path: u.path, name: file.name.slice(0, 80), sizeMb: Number((file.size / 1024 / 1024).toFixed(1)), durationSec };
+}

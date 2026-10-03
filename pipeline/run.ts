@@ -3,7 +3,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { DEFAULT_COMMUNITY, parseCommunityProfile } from "./agents/community";
-import { createStageRunner, db, getCommunity, getJob, saveEditBundle, updateJob, uploadFile } from "./db";
+import { BUCKET, createStageRunner, db, getCommunity, getJob, saveEditBundle, updateJob, uploadFile } from "./db";
 import { generateVideo } from "./generate";
 import { resolveEngine } from "./providers";
 import { InputTypeSchema } from "./schemas";
@@ -13,8 +13,11 @@ import { parseMedia } from "./uploads";
 import { parseVoiceover } from "./voiceover";
 import { generateEdit, parseEdit } from "./editJob";
 import { packLog } from "./packs";
+import { generateClips, parseClipOptions } from "./clipper";
+import type { ClipResult } from "../shared/clip";
 
-const JOB_TIMEOUT_MS = 25 * 60 * 1000;
+// Clipper jobs download and transcribe long videos, so they get more time (the workflow allows 90 minutes).
+const JOB_TIMEOUT_MS = Number(process.env.JOB_TIMEOUT_MIN ?? 80) * 60 * 1000;
 
 // options.critic = { minOverall, minHook } lets a job raise or lower the bar.
 function criticOptions(options: unknown): { minOverall?: number; minHook?: number } {
@@ -70,6 +73,34 @@ async function runJob(jobId: string) {
   });
 
   const workDir = fs.mkdtempSync(path.join(os.tmpdir(), `pulse-${jobId}-`));
+
+  // Clipper: a long video in, several short clips out.
+  const clip = parseClipOptions(job.options?.clip);
+  if (clip) {
+    const result = await generateClips({ options: clip, engine, stylePack: typeof job.options?.stylePack === "string" ? job.options.stylePack : undefined, lastPack: await lastPackFor(job).catch(() => undefined), workDir, stage });
+    const clips = await stage("upload", async () => {
+      const list: ClipResult[] = [];
+      for (const c of result.clips) {
+        const videoUrl = await uploadFile(`${jobId}/clips/${c.index}.mp4`, c.videoFile, "video/mp4");
+        const thumbUrl = await uploadFile(`${jobId}/clips/${c.index}.jpg`, c.thumbFile, "image/jpeg");
+        list.push({ index: c.index, title: c.idea.title, hook: c.idea.hook, reason: c.idea.reason, score: c.idea.score, startSec: Number(c.startSec.toFixed(1)), endSec: Number(c.endSec.toFixed(1)), durationSec: Number(c.durationSec.toFixed(1)), layout: c.layout, videoUrl, thumbUrl, sizeMb: c.sizeMb });
+      }
+      // The uploaded source is not needed any more; removing it keeps storage free.
+      if (clip.source.kind === "upload") await db().storage.from(BUCKET).remove([clip.source.path]).catch(() => undefined);
+      return { value: list, summary: `${list.length} clips uploaded, ready to download`, output: { clips: list } };
+    });
+    const best = [...clips].sort((a, b) => b.score - a.score)[0];
+    await updateJob(jobId, {
+      status: "done",
+      title: result.title,
+      video_url: best.videoUrl,
+      thumb_url: best.thumbUrl,
+      duration_sec: best.durationSec,
+      metrics: { ...result.metrics, clips, source_sec: Math.round(result.sourceSec), pack: result.pack, total_ms: Date.now() - totalStart, stage_ms: stageMs },
+    });
+    console.log(`\nDone: ${clips.length} clips`);
+    return;
+  }
 
   // An edited version of an earlier video: apply the edits and render, without the agents.
   const edit = parseEdit(job.options?.edit);
@@ -143,7 +174,7 @@ async function main() {
   }
   let timer: NodeJS.Timeout | undefined;
   const timeout = new Promise<never>((_, reject) => {
-    timer = setTimeout(() => reject(new Error("Job timed out after 25 minutes")), JOB_TIMEOUT_MS);
+    timer = setTimeout(() => reject(new Error(`Job timed out after ${JOB_TIMEOUT_MS / 60000} minutes`)), JOB_TIMEOUT_MS);
   });
   try {
     await Promise.race([runJob(jobId), timeout]);

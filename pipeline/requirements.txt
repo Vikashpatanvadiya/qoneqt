@@ -1,2 +1,4 @@
 edge-tts
 faster-whisper
+yt-dlp
+opencv-python-headless

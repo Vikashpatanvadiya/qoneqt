@@ -1,6 +1,10 @@
 // What each pipeline stage is called in the UI, and the order a job goes through them.
 export const STAGE_INFO: Record<string, { title: string; agent: string; blurb: string }> = {
   ingest: { title: "Ingest", agent: "Pipeline", blurb: "Reads the input and loads the Community Brain" },
+  download: { title: "Source video", agent: "yt-dlp / upload", blurb: "Gets the long video and checks its length and size" },
+  transcribe: { title: "Transcribe", agent: "faster-whisper", blurb: "Writes down every word with its exact time" },
+  find_clips: { title: "Clip Finder", agent: "Agent", blurb: "Reads the transcript and picks the moments that work on their own" },
+  reframe: { title: "Reframe", agent: "Face tracking", blurb: "Cuts each clip, follows the speaker into 9:16 and removes pauses" },
   voiceover: { title: "Your voiceover", agent: "faster-whisper", blurb: "Transcribes your recording with word timings" },
   plan: { title: "Pulse-LM planner", agent: "Our fine-tuned model", blurb: "Writes the script and shot plan in one call" },
   research: { title: "Researcher", agent: "Agent", blurb: "Finds three angles and picks the one most likely to get comments" },
@@ -11,10 +15,11 @@ export const STAGE_INFO: Record<string, { title: string; agent: string; blurb: s
   vision_critic: { title: "Vision Critic", agent: "Agent", blurb: "Looks at real frames and fixes bad scenes" },
   render: { title: "Render", agent: "Remotion", blurb: "Builds the 1080x1920 video" },
   qa: { title: "QA gate", agent: "Code checks", blurb: "Measures duration, safe zones, contrast, loudness, file size" },
-  upload: { title: "Ready to publish", agent: "Storage", blurb: "Uploads the video and thumbnail" },
+  upload: { title: "Ready to publish", agent: "Storage", blurb: "Uploads the videos and thumbnails" },
 };
 
 export const EXPECTED_STAGES: Record<string, string[]> = {
   gemini: ["ingest", "research", "script", "script_critic", "direct", "assets", "vision_critic", "render", "qa", "upload"],
+  clip: ["ingest", "download", "transcribe", "find_clips", "reframe", "render", "qa", "upload"],
   "pulse-lm": ["ingest", "plan", "script_critic", "assets", "vision_critic", "render", "qa", "upload"],
 };

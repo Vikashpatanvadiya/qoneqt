@@ -29,7 +29,7 @@ import { runVisionStage } from "./visionStage";
 import { DOCUMENTARY_STYLE, gradeImage } from "./imageLook";
 import { DEFAULT_SOUND, buildMusicBed, musicVolume, normalizeForSpeech, polishVoice, prepareSfx, sfxVolume, type SoundOptions } from "./sound";
 
-export type StageName = "ingest" | "voiceover" | "plan" | "research" | "script" | "script_critic" | "direct" | "assets" | "vision_critic" | "render" | "qa" | "upload";
+export type StageName = "ingest" | "download" | "transcribe" | "find_clips" | "reframe" | "voiceover" | "plan" | "research" | "script" | "script_critic" | "direct" | "assets" | "vision_critic" | "render" | "qa" | "upload";
 
 // `status` defaults to "done". "fixed" means the stage caught a problem and repaired it, "skipped" means it could not run.
 export type StageResult<T> = { value: T; summary: string; reason?: string; output?: unknown; retries?: number; status?: "done" | "fixed" | "skipped" };

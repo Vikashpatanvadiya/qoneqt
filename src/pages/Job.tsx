@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ChevronDown, Copy, Download, ExternalLink, Film, Palette, Scissors, Send, Timer, Trash2 } from "lucide-react";
 import { PACKS, type PackId } from "../styles/packs";
+import type { ClipResult } from "../../shared/clip";
 import { deleteJob } from "../lib/api";
 import { useAuth } from "../lib/auth";
 import { ago, score, seconds, stageMs } from "../lib/format";
@@ -57,10 +58,10 @@ export function JobPage() {
   const engine = (job?.options?.engine as string) ?? "gemini";
   const usedPlanner = byName.has("plan") && byName.get("plan")!.status !== "skipped";
   const order = useMemo(() => {
-    const expected = EXPECTED_STAGES[engine === "pulse-lm" && (usedPlanner || !byName.has("research")) ? "pulse-lm" : "gemini"];
+    const expected = EXPECTED_STAGES[job?.input_type === "video" ? "clip" : engine === "pulse-lm" && (usedPlanner || !byName.has("research")) ? "pulse-lm" : "gemini"];
     const seen = stages.map((s) => s.name);
     return [...seen, ...expected.filter((n) => !seen.includes(n))];
-  }, [stages, engine, usedPlanner, byName]);
+  }, [stages, engine, usedPlanner, byName, job?.input_type]);
 
   if (missing) return <Empty>This job does not exist. <Link to="/" className="text-amber">Create a video</Link></Empty>;
   if (!job) return <div className="h-40 animate-pulse rounded-3xl bg-card" />;
@@ -72,6 +73,7 @@ export function JobPage() {
   const qaChecks: any[] = byName.get("qa")?.output?.checks ?? [];
   const community = byName.get("ingest")?.output?.community?.name ?? "Qoneqt Global Feed";
   const pack = job.metrics?.pack ?? byName.get("direct")?.output?.pack ?? null;
+  const clips: ClipResult[] = job.metrics?.clips ?? byName.get("upload")?.output?.clips ?? [];
   const caption = scriptVersions.at(-1)?.script?.caption ?? scriptVersions[0]?.script?.caption;
   const isOwner = Boolean(session && job.user_id && session.user.id === job.user_id);
   const finished = job.status === "done" || job.status === "failed";
@@ -164,6 +166,8 @@ export function JobPage() {
           {pack ? <StyleCard pack={pack} /> : null}
         </aside>
       </div>
+
+      {clips.length ? <ClipsGrid clips={clips} /> : null}
 
       {scriptVersions.length ? <ScriptVersions versions={scriptVersions} thresholds={critic?.thresholds} /> : null}
       {vision?.scenes?.length ? <Storyboard vision={vision} /> : null}
@@ -505,5 +509,36 @@ function StyleCard({ pack }: { pack: { id: string; name: string; fonts: string[]
       {pack.camera ? <Row k="Camera" v={pack.camera} /> : null}
       {pack.transitions ? <Row k="Transitions" v={pack.transitions.join(", ")} /> : null}
     </Card>
+  );
+}
+
+// Clipper results: every clip with why the Clip Finder picked it, where it sits in the source, and a download.
+function ClipsGrid({ clips }: { clips: ClipResult[] }) {
+  const time = (t: number) => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`;
+  return (
+    <section>
+      <SectionTitle>Clips</SectionTitle>
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {[...clips].sort((a, b) => b.score - a.score).map((c) => (
+          <Card key={c.index} className="space-y-3 p-4 sm:p-4">
+            <video src={c.videoUrl} poster={c.thumbUrl} controls playsInline preload="none" className="aspect-[9/16] w-full rounded-2xl bg-black object-cover" />
+            <div className="flex items-start justify-between gap-2">
+              <div className="font-semibold leading-snug">{c.title}</div>
+              <Chip tone="accent">{c.score}/10</Chip>
+            </div>
+            <p className="text-sm text-muted">{c.reason}</p>
+            <div className="flex flex-wrap gap-1.5 text-xs">
+              <Chip>{c.durationSec.toFixed(0)} s</Chip>
+              <Chip>from {time(c.startSec)} to {time(c.endSec)}</Chip>
+              <Chip>{c.layout === "face" ? "follows the face" : c.layout === "blur" ? "blurred fill" : "split screen"}</Chip>
+              <Chip>{c.sizeMb} MB</Chip>
+            </div>
+            <a href={`${c.videoUrl}?download=${encodeURIComponent(`${c.title}.mp4`)}`} className="flex w-full items-center justify-center gap-2 rounded-2xl border border-line px-4 py-2.5 text-sm font-semibold hover:bg-white/[0.05]">
+              <Download size={16} /> Download
+            </a>
+          </Card>
+        ))}
+      </div>
+    </section>
   );
 }

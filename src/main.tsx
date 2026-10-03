@@ -10,6 +10,7 @@ import { JobPage } from "./pages/Job";
 import { LibraryPage } from "./pages/Library";
 import { LoginPage } from "./pages/Login";
 import { EditorPage } from "./pages/Editor";
+import { ClipperPage } from "./pages/Clipper";
 import { AuthProvider } from "./lib/auth";
 
 createRoot(document.getElementById("root")!).render(
@@ -21,6 +22,7 @@ createRoot(document.getElementById("root")!).render(
           <Route path="/" element={<CreatePage />} />
           <Route path="/jobs/:id" element={<JobPage />} />
           <Route path="/jobs/:id/edit" element={<EditorPage />} />
+          <Route path="/clipper" element={<ClipperPage />} />
           <Route path="/library" element={<LibraryPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/how-it-works" element={<HowItWorksPage />} />

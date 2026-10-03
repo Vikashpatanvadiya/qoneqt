@@ -6,7 +6,18 @@ import { createClient } from "@supabase/supabase-js";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import crypto from "node:crypto";
 
-const INPUT_TYPES = ["topic", "trend", "thread", "idea"];
+const INPUT_TYPES = ["topic", "trend", "thread", "idea", "video"];
+
+// Clipper jobs ("video"): one source per job, a link or an upload, and the rights tick is required.
+function clipError(options: unknown): string | null {
+  const clip = (options as { clip?: Record<string, unknown> } | null)?.clip;
+  if (!clip || typeof clip !== "object") return "Clipper jobs need options.clip";
+  if (clip.rightsConfirmed !== true) return "Confirm that you own the video or have permission to use it";
+  const src = (clip.source ?? {}) as Record<string, unknown>;
+  if (src.kind === "url") return typeof src.url === "string" && /^https?:\/\/\S{4,500}$/.test(src.url) ? null : "Paste a full video link (https://...)";
+  if (src.kind === "upload") return typeof src.path === "string" && /^uploads\/[0-9a-f-]{36}\/source\.(mp4|mov|webm|mkv|m4v)$/.test(src.path) ? null : "The uploaded video was not found";
+  return "Give a video link or upload a file";
+}
 const MAX_INPUTS = 10;
 const MAX_INPUT_CHARS = 6000;
 
@@ -77,6 +88,11 @@ async function createJobs(req: VercelRequest, res: VercelResponse) {
 
   if (!INPUT_TYPES.includes(inputType)) return res.status(400).json({ error: `input_type must be one of: ${INPUT_TYPES.join(", ")}` });
   if (inputs.length === 0) return res.status(400).json({ error: "Give at least one input" });
+  if (inputType === "video") {
+    const problem = clipError(body.options);
+    if (problem) return res.status(400).json({ error: problem });
+    if (inputs.length > 1) return res.status(400).json({ error: "One video per Clipper job" });
+  }
   if (inputs.length > MAX_INPUTS) return res.status(400).json({ error: `At most ${MAX_INPUTS} inputs per request` });
   if (inputs.some((s) => s.length < 3 || s.length > MAX_INPUT_CHARS)) {
     return res.status(400).json({ error: `Each input must be 3 to ${MAX_INPUT_CHARS} characters` });

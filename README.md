@@ -107,6 +107,23 @@ The pack is locked right after the Director, so vision fixes, retries and later 
 
 The packs come from editing techniques noted in seven public Shorts (`docs/style-library.md`). No footage or text was copied. All fonts are OFL (`docs/FONT-LICENSES.md`). Videos made before packs keep their original theme.
 
+## Clipper: long video in, short clips out
+
+Open **Clipper**, paste a video link (YouTube and most public links, up to 90 minutes) or upload a file (up to 50 MB on the free storage plan), and tick that you own the video or have permission to use it.
+
+1. **Source:** `yt-dlp` downloads the link on the worker, or the upload is read from storage. If YouTube refuses the server, the job says so and asks for the file instead.
+2. **Transcribe:** faster-whisper writes every word with its time.
+3. **Clip Finder** (an LLM agent) reads the timestamped transcript and proposes moments that stand on their own: a strong start, one idea, a payoff. Each comes with a title, a hook, a score and a reason. Code then snaps every clip to whole sentences, enforces the chosen length (15 to 35, 30 to 60 or 45 to 90 s) and removes overlaps. If the model is unavailable, evenly spaced clips are used and marked as such.
+4. **Reframe:** each clip is cut from the source. For the vertical layout, YuNet face detection (OpenCV, MIT licence, model in `pipeline/models/`) samples 2 frames a second, and a smoothed crop follows the speaker. Pauses longer than 0.6 s are cut down to a breath.
+   - **Auto:** follows the face, or uses blurred fill when there is no face.
+   - **Follow the face:** always tracks the speaker.
+   - **Blurred fill:** the whole frame on a blurred copy, for screens and slides.
+   - **Split screen:** speaker on top; below, a video from the bucket's `backgrounds/` folder (only videos you have the rights to), or a moving background in the pack's colours.
+5. **Render:** Remotion draws each clip with a hook title and captions in the chosen Style Pack. The QA gate normalises loudness and checks size.
+6. The Job page shows every clip with its score, the reason it was picked, where it sits in the source, and a download button. Uploaded sources are deleted after the job to save storage.
+
+Run it on the laptop: `npx tsx scripts/clip.ts <file-or-link> [count] [auto|face|blur|split] [short|medium|long] [pack]` (clips land in `out/clips/`).
+
 ## What makes it look edited, not generated
 
 - **Rhythm:** each scene is cut into 2 or 3 beats on word boundaries (wide and tight crops of the same image, a big emphasis-word card, a punch-zoomed re-cut of a card).

@@ -5,6 +5,7 @@ import { cx } from "./ui";
 
 const NAV = [
   { to: "/", label: "Create" },
+  { to: "/clipper", label: "Clipper" },
   { to: "/library", label: "Library" },
   { to: "/dashboard", label: "Dashboard" },
   { to: "/how-it-works", label: "How it works" },

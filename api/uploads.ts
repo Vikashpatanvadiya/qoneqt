@@ -10,6 +10,9 @@ const TYPES: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png",
 // One voiceover per batch: an uploaded file or a recording made in the browser.
 const VOICE_TYPES: Record<string, string> = { "audio/mpeg": "mp3", "audio/mp4": "m4a", "audio/x-m4a": "m4a", "audio/wav": "wav", "audio/x-wav": "wav", "audio/webm": "webm", "audio/ogg": "ogg" };
 const MAX_VOICE_BYTES = 15 * 1024 * 1024;
+// One source video for the Clipper. The cap follows the storage plan (Supabase free: about 50 MB per file).
+const VIDEO_TYPES: Record<string, string> = { "video/mp4": "mp4", "video/quicktime": "mov", "video/webm": "webm", "video/x-matroska": "mkv", "video/x-m4v": "m4v" };
+const MAX_VIDEO_BYTES = Number(process.env.MAX_VIDEO_UPLOAD_MB ?? 50) * 1024 * 1024;
 const PER_IP_PER_HOUR = Number(process.env.MAX_UPLOAD_BATCHES_PER_IP_PER_HOUR ?? 6);
 
 // Best-effort limit per warm instance. The job limit in /api/jobs is the real guard.
@@ -30,7 +33,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const body = (typeof req.body === "string" ? JSON.parse(req.body || "{}") : req.body) ?? {};
     const files: Array<{ name?: unknown; type?: unknown; size?: unknown; kind?: unknown }> = Array.isArray(body.files) ? body.files : [];
     const voice = files.filter((f) => f.kind === "voice");
-    const images = files.filter((f) => f.kind !== "voice");
+    const video = files.filter((f) => f.kind === "video");
+    const images = files.filter((f) => f.kind !== "voice" && f.kind !== "video");
+    if (video.length > 1 || (video.length === 1 && files.length > 1)) return res.status(400).json({ error: "Upload one video on its own" });
+    for (const f of video) {
+      if (typeof f.type !== "string" || !VIDEO_TYPES[f.type]) return res.status(400).json({ error: "The video must be MP4, MOV, WebM or MKV" });
+      if (typeof f.size !== "number" || f.size <= 0 || f.size > MAX_VIDEO_BYTES) return res.status(400).json({ error: `The video must be under ${Math.round(MAX_VIDEO_BYTES / 1024 / 1024)} MB. Paste a link instead, or trim it first.` });
+    }
     if (files.length === 0 || images.length > MAX_FILES || voice.length > 1) return res.status(400).json({ error: `Send up to ${MAX_FILES} images and at most one voiceover` });
     for (const f of images) {
       if (typeof f.type !== "string" || !TYPES[f.type]) return res.status(400).json({ error: "Only JPG, PNG or WebP images" });
@@ -53,10 +62,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const batch = crypto.randomUUID();
     const uploads = [];
     for (const [i, f] of files.entries()) {
-      const path = f.kind === "voice" ? `uploads/${batch}/voice.${VOICE_TYPES[f.type as string]}` : `uploads/${batch}/${i + 1}.${TYPES[f.type as string]}`;
+      const path = f.kind === "video" ? `uploads/${batch}/source.${VIDEO_TYPES[f.type as string]}` : f.kind === "voice" ? `uploads/${batch}/voice.${VOICE_TYPES[f.type as string]}` : `uploads/${batch}/${i + 1}.${TYPES[f.type as string]}`;
       const signed = await db.storage.from("videos").createSignedUploadUrl(path);
       if (signed.error) throw new Error(signed.error.message);
-      uploads.push({ index: i + 1, kind: f.kind === "voice" ? "voice" : "image", path, token: signed.data.token, name: String(f.name ?? `file ${i + 1}`).slice(0, 80) });
+      uploads.push({ index: i + 1, kind: f.kind === "video" ? "video" : f.kind === "voice" ? "voice" : "image", path, token: signed.data.token, name: String(f.name ?? `file ${i + 1}`).slice(0, 80) });
     }
     return res.status(200).json({ batch, uploads });
   } catch (err) {
