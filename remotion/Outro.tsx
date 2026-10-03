@@ -21,6 +21,7 @@ export const Outro: React.FC<{ communityName: string; cta: string; logoFile: str
         <div style={{ marginTop: 26, fontSize: 44, fontWeight: 600, color: theme.cardLight ? theme.outroText : palette.accent, opacity: rise, letterSpacing: 1 }}>{communityName}</div>
         <div style={{ marginTop: 110, fontSize: ctaSize, fontFamily: theme.titleFont, fontWeight: theme.titleWeight >= 700 ? theme.titleWeight : 800, lineHeight: 1.15, opacity: rise, transform: `translateY(${(1 - rise) * 30}px)` }}>{cta}</div>
         <div style={{ marginTop: 70, fontSize: 40, fontWeight: 600, opacity: rise * 0.85, border: `3px solid ${theme.cardLight ? theme.outroText : palette.accent}`, borderRadius: 999, padding: "14px 38px" }}>Tell us in the comments</div>
+        <div style={{ marginTop: 60, fontSize: 28, fontWeight: 600, opacity: rise * 0.6, letterSpacing: 1 }}>Made with Pulse Studio · AI-generated</div>
       </div>
     </AbsoluteFill>
   );

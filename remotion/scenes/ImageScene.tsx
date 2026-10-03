@@ -21,14 +21,15 @@ function cameraTransform(camera: RenderScene["camera"], progress: number): strin
   }
 }
 
-export const ImageScene: React.FC<{ scene: RenderScene; isHook: boolean; frames: number; theme: Theme; palette: Palette }> = ({ scene, isHook, frames, theme, palette }) => {
+// `imageTransform` replaces the Ken Burns move (the creator edit computes its own eased camera).
+export const ImageScene: React.FC<{ scene: RenderScene; isHook: boolean; frames: number; theme: Theme; palette: Palette; imageTransform?: string; titleAlreadyIn?: boolean }> = ({ scene, isHook, frames, theme, palette, imageTransform, titleAlreadyIn }) => {
   const frame = useCurrentFrame();
   const progress = Math.min(1, frame / frames);
   // The hook is readable from frame 0. Other titles rise in.
-  const enter = isHook ? 1 : interpolate(frame, [4, 14], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
+  const enter = isHook || titleAlreadyIn ? 1 : interpolate(frame, [4, 14], [0, 1], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
   const settle = isHook ? interpolate(frame, [0, 10], [1.06, 1], { extrapolateRight: "clamp" }) : 1;
   const fontSize = scene.titleFontSize ?? titleBox("image", isHook).fontSize;
-  const image = <Img src={staticFile(scene.imageFile!)} style={{ width: "100%", height: "100%", objectFit: "cover", transform: cameraTransform(scene.camera, progress), filter: theme.image === "duotone" ? "grayscale(1) contrast(1.2) brightness(1.15)" : "saturate(1.08) contrast(1.04)" }} />;
+  const image = <Img src={staticFile(scene.imageFile!)} style={{ width: "100%", height: "100%", objectFit: "cover", transform: imageTransform ?? cameraTransform(scene.camera, progress), filter: theme.image === "duotone" ? "grayscale(1) contrast(1.2) brightness(1.15)" : "saturate(1.08) contrast(1.04)" }} />;
 
   // Paper: the photo sits in a white frame on the paper, the title is a label on top of it.
   if (theme.image === "framed") {

@@ -40,6 +40,8 @@ export type GenerateInput = {
   uploadStill?: (file: string, name: string) => Promise<string>;
   // Testing and demo only: swap this scene's image for an unrelated one, so the Vision Critic has something to catch.
   debugBreakScene?: string;
+  // "creator" (default) or "classic" edit
+  editStyle?: "creator" | "classic";
   workDir: string;
   stage: StageRunner;
 };
@@ -355,6 +357,7 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
 
       return {
         id: scene.id,
+        purpose: scene.purpose,
         narration: scene.narration,
         onScreenText: scene.onScreenText,
         // A scene whose image failed becomes a designed scene, so the video still finishes.
@@ -408,7 +411,7 @@ export async function generateVideo(input: GenerateInput): Promise<GenerateResul
   } catch {
     grainFile = null;
   }
-  const propsFor = (list: RenderScene[]): PulseVideoProps => ({ title: script.title, communityName: community.name, cta: script.cta, global: plan.global, scenes: list, musicFile, logoFile, grainFile });
+  const propsFor = (list: RenderScene[]): PulseVideoProps => ({ title: script.title, communityName: community.name, cta: script.cta, global: plan.global, scenes: list, musicFile, logoFile, grainFile, editStyle: input.editStyle ?? "creator" });
   // The bundle copies the public dir, so it is rebuilt whenever an image file changes.
   const bundleNow = () => bundle({ entryPoint: path.resolve("remotion/index.ts"), publicDir });
 

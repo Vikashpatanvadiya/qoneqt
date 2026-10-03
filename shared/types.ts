@@ -13,6 +13,7 @@ export type WordTiming = {
 
 export type RenderScene = {
   id: string;
+  purpose?: "hook" | "context" | "point" | "twist" | "cta";
   narration: string;
   onScreenText: string;
   layout: Shot["layout"];
@@ -41,6 +42,8 @@ export type PulseVideoProps = {
   musicFile: string | null;
   logoFile: string | null;
   grainFile: string | null;
+  // "creator" (default): beats, eased camera, varied transitions. "classic": the earlier, calmer edit.
+  editStyle?: "creator" | "classic";
 };
 
 export const FPS = 30;

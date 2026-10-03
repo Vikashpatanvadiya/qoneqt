@@ -49,6 +49,7 @@ async function runJob(jobId: string) {
     criticThresholds: criticOptions(job.options),
     uploadStill: (file, name) => uploadFile(`${jobId}/stills/${name}`, file, "image/jpeg"),
     debugBreakScene: typeof job.options?.debugBreakScene === "string" ? job.options.debugBreakScene : undefined,
+    editStyle: job.options?.editStyle === "classic" ? "classic" : "creator",
     workDir,
     stage,
   });

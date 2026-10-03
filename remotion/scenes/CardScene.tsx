@@ -74,7 +74,8 @@ const StatValue: React.FC<{ value: string; accent: string; font: string; light: 
   return <div style={{ fontSize: 290, fontFamily: font, fontWeight: 900, lineHeight: 1, color: light ? "#141414" : accent, letterSpacing: -8, transform: `scale(${0.7 + 0.3 * grow})`, fontVariantNumeric: "tabular-nums" }}>{shown}</div>;
 };
 
-export const CardScene: React.FC<{ scene: RenderScene; palette: Palette; isHook: boolean; frames: number; theme: Theme }> = ({ scene, palette, isHook, frames, theme }) => {
+// `instant` shows the text without the word-by-word entrance (used when the creator edit re-cuts a card).
+export const CardScene: React.FC<{ scene: RenderScene; palette: Palette; isHook: boolean; frames: number; theme: Theme; instant?: boolean }> = ({ scene, palette, isHook, frames, theme, instant }) => {
   const frame = useCurrentFrame();
   const isStat = scene.layout === "stat_card" && Boolean(scene.statValue);
   const isQuote = scene.layout === "quote_card";
@@ -112,7 +113,7 @@ export const CardScene: React.FC<{ scene: RenderScene; palette: Palette; isHook:
             clipPath: isQuote ? `inset(0 0 ${(1 - bar) * 100}% 0)` : undefined,
           }}
         >
-          <KineticText text={scene.onScreenText} fontSize={fontSize} instant={isHook} uppercase={!isQuote && theme.upper} accent={palette.accent} theme={theme} palette={palette} />
+          <KineticText text={scene.onScreenText} fontSize={fontSize} instant={isHook || Boolean(instant)} uppercase={!isQuote && theme.upper} accent={palette.accent} theme={theme} palette={palette} />
         </div>
       </div>
     </AbsoluteFill>
