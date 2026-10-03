@@ -17,3 +17,8 @@ data/private/
 data/pulse-lm/generate.log
 data/pulse-lm/eval.log
 dist
+
+# Personal photos never go in this public repo
+Images/
+images/
+reference/
